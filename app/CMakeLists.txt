@@ -9,6 +9,7 @@ find_package(Qt6
 )
 
 find_package(unofficial-skia REQUIRED)
+find_package(spdlog REQUIRED)
 
 qt_standard_project_setup()
 
@@ -18,6 +19,7 @@ qt_add_executable (
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
 	"CityDraft/UI/Rendering/RenderingWidget.cpp"
+	"CityDraft/Logging/LogManager.cpp"
 )
 
 qt_add_resources(CityDraft "Resources.qrc")
@@ -30,6 +32,7 @@ target_link_libraries(CityDraft PRIVATE
 	Qt6::OpenGLPrivate
 	Qt6::OpenGLWidgets
 	Qt6::OpenGLWidgetsPrivate
+	spdlog::spdlog
 	unofficial::skia::skia
 )
 

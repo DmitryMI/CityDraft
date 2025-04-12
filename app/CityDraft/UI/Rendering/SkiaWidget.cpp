@@ -14,32 +14,54 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::initializeGL()
 	{
+		if (!isValid())
+		{
+			return;
+		}
+
 		m_GlFuncs.initializeOpenGLFunctions();
 
 		m_GrInterface = GrGLMakeNativeInterface();
 		m_GrContext = GrDirectContexts::MakeGL(m_GrInterface);
 
-		
+		m_GlFuncs.glEnable(GL_DEBUG_OUTPUT);
+
+		m_GlFuncs.glDebugMessageCallback([](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
+			qDebug() << "GL Error:" << message;
+			}, nullptr);
+
 	}
 
 
 	void SkiaWidget::resizeGL(int w, int h)
 	{
+		if (!isValid())
+		{
+			return;
+		}
+
 		if (!m_GrContext)
 		{
 			return;
 		}
 
+		auto surfaceFormat = QOpenGLContext::currentContext()->format();
+
 		GrGLFramebufferInfo fbInfo;
 		fbInfo.fFBOID = defaultFramebufferObject();
 		fbInfo.fFormat = GL_RGBA8;
 
-		m_BackendRenderTarget = GrBackendRenderTargets::MakeGL(w, h, 0, 0, fbInfo);
+		m_BackendRenderTarget = GrBackendRenderTargets::MakeGL(w, h, surfaceFormat.samples(), surfaceFormat.stencilBufferSize(), fbInfo);
 
-		SkSurfaceProps props;
+		sk_sp<SkColorSpace> srgb = SkColorSpace::MakeSRGB();
 		m_SkSurface = SkSurfaces::WrapBackendRenderTarget(
-			m_GrContext.get(), m_BackendRenderTarget, kBottomLeft_GrSurfaceOrigin,
-			kRGBA_8888_SkColorType, nullptr, &props);
+			m_GrContext.get(),
+			m_BackendRenderTarget,
+			kBottomLeft_GrSurfaceOrigin,
+			kRGBA_8888_SkColorType,
+			srgb,
+			nullptr
+		);
 
 		if (!m_SkSurface)
 		{
@@ -49,16 +71,17 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::paintGL()
 	{
-		m_GlFuncs.glEnable(GL_DEBUG_OUTPUT);
-
-		m_GlFuncs.glDebugMessageCallback([](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-			qDebug() << "GL Error:" << message;
-			}, nullptr);
+		if (!isValid())
+		{
+			return;
+		}
 
 		if (!m_SkSurface)
 		{
 			return;
 		}
+
+		m_GrContext->resetContext(kAll_GrBackendState);
 
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		canvas->clear(SK_ColorGREEN);
@@ -69,7 +92,6 @@ namespace CityDraft::UI::Rendering
 		paint.setStyle(SkPaint::Style::kFill_Style);
 		canvas->drawCircle(400, 250, 100, paint);
 
-		m_GrContext->resetContext(kAll_GrBackendState);
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
 	}
 

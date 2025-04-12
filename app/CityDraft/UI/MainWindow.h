@@ -1,10 +1,11 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include "spdlog/spdlog.h"
 #include "Rendering/RenderingWidget.h"
 #include "ui_MainWindow.h"
 
-namespace CityDraft
+namespace CityDraft::UI
 {
     class MainWindow : public QMainWindow
     {
