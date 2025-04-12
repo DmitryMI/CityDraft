@@ -36,6 +36,8 @@ target_link_libraries(CityDraft PRIVATE
 	unofficial::skia::skia
 )
 
+target_include_directories(CityDraft PRIVATE ./)
+
 set_property(TARGET CityDraft PROPERTY CXX_STANDARD 20)
 set_property(TARGET CityDraft PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
