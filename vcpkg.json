@@ -3,13 +3,17 @@
     {
       "name": "qtbase",
       "default-features": false,
-      "features": [ "widgets", "gui" ]
+      "features": [ "widgets", "gui", "opengl" ]
     },
     {
       "name": "qttools",
       "default-features": false,
-      "features": ["designer"]
+      "features": [ "designer" ]
     },
-    "gtest"
+    "gtest",
+    {
+      "name": "skia",
+      "default-features": true
+    }
   ]
 }

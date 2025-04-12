@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QMainWindow>
+#include "Rendering/RenderingWidget.h"
 #include "ui_MainWindow.h"
 
 namespace CityDraft
@@ -14,7 +15,9 @@ namespace CityDraft
         virtual ~MainWindow();
 
     private:
-        Ui::MainWindow ui;
+        Ui::MainWindow m_Ui;
+		UI::Rendering::RenderingWidget* m_Renderer;
+
     };
 
 }

@@ -4,7 +4,7 @@ root = true
 # All files
 [*]
 charset = utf-8
-end_of_line = lf
+end_of_line = crlf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
@@ -28,7 +28,7 @@ tab_width = 4
 indent_style = tab
 tab_width = 4
 
-# Markdown files – usually better to leave spaces for proper formatting
+# Markdown files â€“ usually better to leave spaces for proper formatting
 [*.md]
 trim_trailing_whitespace = false
 indent_style = space
