@@ -1,0 +1,40 @@
+# Top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# C++ source and header files (using tabs for indentation)
+[*.{cpp,h,hpp,cxx}]
+indent_style = tab
+tab_width = 4
+
+# Qt project files
+[*.{pro,pri}]
+indent_style = tab
+tab_width = 4
+
+# Visual Studio project and solution files
+[*.{vcxproj,vcxproj.filters,sln}]
+indent_style = tab
+tab_width = 4
+
+# UI and resource files (you can also use 2-space indents if preferred here)
+[*.ui]
+indent_style = tab
+tab_width = 4
+
+# Markdown files – usually better to leave spaces for proper formatting
+[*.md]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 4
+
+# CMake files (if used with Qt)
+[CMakeLists.txt]
+indent_style = tab
+tab_width = 4

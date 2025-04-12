@@ -1,0 +1,15 @@
+{
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [ "widgets", "gui" ]
+    },
+    {
+      "name": "qttools",
+      "default-features": false,
+      "features": ["designer"]
+    },
+    "gtest"
+  ]
+}
