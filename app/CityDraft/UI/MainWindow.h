@@ -20,6 +20,8 @@ namespace CityDraft::UI
 		UI::Rendering::RenderingWidget* m_Renderer;
 
 		void CreateRenderingWidget();
+
+		void TestAssetManager();
     };
 
 }

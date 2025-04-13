@@ -9,7 +9,15 @@ namespace CityDraft::Assets
 	class ImageVariantGroup
 	{
 	public:
-		virtual inline std::list<ImageAsset*> GetImageVariants() const
+		inline ImageVariantGroup(std::list<ImageAsset*> images)
+		{
+			for (ImageAsset* image : images)
+			{
+				m_ImageAssets.push_back(std::shared_ptr<ImageAsset>(image));
+			}
+		}
+
+		virtual inline std::list<CityDraft::Assets::ImageAsset*> GetImageVariants() const
 		{
 			std::list<ImageAsset*> result;
 			std::transform(m_ImageAssets.begin(), m_ImageAssets.end(), result.begin(), [](const auto& ptr) {return ptr.get(); });

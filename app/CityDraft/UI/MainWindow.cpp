@@ -1,5 +1,5 @@
 #include "MainWindow.h"
-
+#include "CityDraft/Assets/AssetManager.h"
 
 namespace CityDraft::UI
 {
@@ -32,6 +32,13 @@ namespace CityDraft::UI
 		delete placeholder;
 		
 		layout->insertWidget(index, m_Renderer);
+	}
+
+	void MainWindow::TestAssetManager()
+	{
+		std::filesystem::path path = "../../images/image.png";
+		boost::url url = CityDraft::Assets::AssetManager::ToUrl(path);
+		spdlog::info(url.c_str());
 	}
 
 
