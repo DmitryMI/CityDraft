@@ -1,15 +1,16 @@
 #pragma once
 
-#include "RenderingWidget.h"
 #include "include/core/SkCanvas.h"
-#include "include/core/SkSurface.h"
 #include "include/core/SkImageInfo.h"
-#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/core/SkSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "RenderingWidget.h"
 #include <QOpenGLExtraFunctions>
 #include <spdlog/spdlog.h>
 #include <string_view>
+#include "OpenGlUtils.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -36,10 +37,6 @@ namespace CityDraft::UI::Rendering
 		std::shared_ptr<spdlog::logger> m_GlLogger;
 
 		void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const;
-
-		static std::string_view GlMessageSourceToString(GLenum source);
-		static std::string_view GlMessageTypeToString(GLenum type);
-		static spdlog::level::level_enum GlMessageSeverityToLogLevel(GLenum severity);
 		static void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam);
 	};
 }

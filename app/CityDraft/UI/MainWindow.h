@@ -19,6 +19,7 @@ namespace CityDraft::UI
         Ui::MainWindow m_Ui;
 		UI::Rendering::RenderingWidget* m_Renderer;
 
+		void CreateRenderingWidget();
     };
 
 }
