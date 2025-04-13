@@ -18,6 +18,7 @@
     "spdlog",
     "eigen3",
     "boost-signals2",
-    "boost-url"
+    "boost-url",
+    "boost-assert"
   ]
 }

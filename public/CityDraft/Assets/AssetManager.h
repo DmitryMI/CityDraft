@@ -30,8 +30,8 @@ namespace CityDraft::Assets
 
 		static FileSystemError ReadFileBytes(const std::filesystem::path& filePath, std::vector<uint8_t>& outBytes);
 
-		static boost::url ToUrl(const std::filesystem::path& path);
-		static std::filesystem::path ToPath(const boost::url& url);
+		static boost::url AssetRelativePathToUrl(const std::filesystem::path& path);
+		static std::filesystem::path ToAssetRelativePath(const boost::url& url);
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;

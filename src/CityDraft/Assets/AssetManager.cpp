@@ -1,6 +1,7 @@
 #include "CityDraft/Assets/AssetManager.h"
 #include <fstream>
 #include <boost/throw_exception.hpp>
+#include <boost/assert.hpp>
 
 namespace CityDraft::Assets
 {
@@ -8,11 +9,14 @@ namespace CityDraft::Assets
 		m_AssetsRoot(std::filesystem::absolute(assetsRoot)),
 		m_Logger(logger)
 	{
-		
+		BOOST_ASSERT(!assetsRoot.empty());
+		BOOST_ASSERT(logger);
 	}
 
 	size_t AssetManager::LoadAssets(const std::filesystem::path& assetsDir, bool createMissingDirs)
 	{
+		BOOST_ASSERT(!assetsDir.empty());
+
 		std::filesystem::path assetsDirRelative = std::filesystem::relative(assetsDir, m_AssetsRoot);
 
 		m_Logger->info("Loading assets from {} ({})...", assetsDir.string(), assetsDirRelative.string());
@@ -40,11 +44,14 @@ namespace CityDraft::Assets
 
 	size_t AssetManager::LoadImageAssets(const std::filesystem::path& imagesDir)
 	{
+		BOOST_ASSERT(!imagesDir.empty());
+
 		m_Logger->info("Loading Images from {}", imagesDir.string());
 
 		size_t loadedNum = 0;
 		if (!std::filesystem::is_directory(imagesDir))
 		{
+			m_Logger->info("Image directory {} is empty or does not exist", imagesDir.string());
 			return 0;
 		}
 
@@ -55,6 +62,8 @@ namespace CityDraft::Assets
 				loadedNum += LoadVariantImageGroup(entry);
 			}
 		}
+
+		m_Logger->info("Loaded {} images from {}", loadedNum, imagesDir.string());
 		return loadedNum;
 	}
 
@@ -122,12 +131,14 @@ namespace CityDraft::Assets
 		return FileSystemError::Ok;
 	}
 
-	boost::url AssetManager::ToUrl(const std::filesystem::path& path)
+	boost::url AssetManager::AssetRelativePathToUrl(const std::filesystem::path& path)
 	{
+		BOOST_ASSERT(path.is_relative());
+
 		boost::system::result<boost::url_view> uriParseResult;
 
 		std::string genericString = path.generic_string();
-		std::string urlString = "file://" + genericString;
+		std::string urlString = "file://" + std::string("assets/") + genericString;
 		uriParseResult = boost::urls::parse_uri(urlString);
 		if (uriParseResult.has_value())
 		{
@@ -135,11 +146,17 @@ namespace CityDraft::Assets
 		}
 
 		return boost::url();
-		
 	}
 
-	std::filesystem::path AssetManager::ToPath(const boost::url& url)
+	std::filesystem::path AssetManager::ToAssetRelativePath(const boost::url& url)
 	{
-		return "";
+		BOOST_ASSERT(url.scheme() == "file");
+		BOOST_ASSERT(url.host() == "assets");
+		std::string pathStr = url.path();
+		BOOST_ASSERT(pathStr[0] == '/');
+		pathStr.erase(pathStr.begin());
+		std::filesystem::path path(pathStr);
+		BOOST_ASSERT(path.is_relative());
+		return path;
 	}
 }

@@ -5,7 +5,7 @@
 
 namespace CityDraft::Assets
 {
-	ImageAsset::ImageAsset(const std::filesystem::path& path) : Asset(AssetManager::ToUrl(path))
+	ImageAsset::ImageAsset(const std::filesystem::path& path) : Asset(AssetManager::AssetRelativePathToUrl(path))
 	{
 
 	}
@@ -17,6 +17,6 @@ namespace CityDraft::Assets
 
 	FileSystemError ImageAsset::GetImageBytes(std::vector<uint8_t>& outBytes) const
 	{
-		return AssetManager::ReadFileBytes(AssetManager::ToPath(m_AssetUrl), outBytes);
+		return AssetManager::ReadFileBytes(AssetManager::ToAssetRelativePath(m_AssetUrl), outBytes);
 	}
 }
