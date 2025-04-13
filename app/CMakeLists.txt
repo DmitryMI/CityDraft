@@ -1,4 +1,6 @@
 
+set(AppName CityDraft.Gui)
+
 find_package(Qt6
     COMPONENTS
         Core
@@ -14,7 +16,7 @@ find_package(spdlog REQUIRED)
 qt_standard_project_setup()
 
 qt_add_executable (
-    CityDraft 
+    ${AppName} 
     "CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
@@ -22,9 +24,9 @@ qt_add_executable (
 	"CityDraft/Logging/LogManager.cpp"
 )
 
-qt_add_resources(CityDraft "Resources.qrc")
+qt_add_resources(${AppName} "Resources.qrc")
 
-target_link_libraries(CityDraft PRIVATE 
+target_link_libraries(${AppName} PRIVATE 
     Qt6::Core
     Qt6::Gui
     Qt6::Widgets
@@ -34,16 +36,17 @@ target_link_libraries(CityDraft PRIVATE
 	Qt6::OpenGLWidgetsPrivate
 	spdlog::spdlog
 	unofficial::skia::skia
+	CityDraft
 )
 
-target_include_directories(CityDraft PRIVATE ./)
+target_include_directories(${AppName} PRIVATE ./)
 
-set_property(TARGET CityDraft PROPERTY CXX_STANDARD 20)
-set_property(TARGET CityDraft PROPERTY
+set_property(TARGET ${AppName} PROPERTY CXX_STANDARD 20)
+set_property(TARGET ${AppName} PROPERTY
   MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 qt_generate_deploy_app_script(
-    TARGET CityDraft
+    TARGET ${AppName}
     OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
