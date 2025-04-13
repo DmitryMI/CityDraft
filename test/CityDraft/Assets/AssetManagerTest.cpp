@@ -7,7 +7,7 @@ namespace CityDraft::Assets
 	{
 		std::filesystem::path path = "../../images/image.png";
 		boost::url url = AssetManager::ToUrl(path);
-		ASSERT_EQ(url.c_str(), "file://../../images/image.png");
+		ASSERT_STREQ(url.c_str(), "file://../../images/image.png");
 		
 	}
 
