@@ -29,7 +29,7 @@ namespace CityDraft::Assets
 
 		Vector2D GetImageSize() const;
 
-	private:
+	protected:
 		AssetStatus m_Status{ AssetStatus::Initialized};
 		CityDraft::Utils::StbPixels m_Pixels;
 		std::mutex m_ResourceMutex;

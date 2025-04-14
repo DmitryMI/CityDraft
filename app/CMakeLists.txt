@@ -20,9 +20,7 @@ qt_add_executable (
     "CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
-	"CityDraft/UI/Rendering/RenderingWidget.cpp"
 	"CityDraft/Logging/LogManager.cpp"
-	"CityDraft/Assets/Factory.cpp"
 	"CityDraft/Assets/SkiaAssetManager.cpp"
 	"CityDraft/Assets/SkiaImage.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
@@ -42,6 +40,9 @@ target_link_libraries(${AppName} PRIVATE
 	unofficial::skia::skia
 	CityDraft
 )
+
+find_package(Boost REQUIRED COMPONENTS assert)
+target_link_libraries(${AppName} PUBLIC Boost::assert)
 
 target_include_directories(${AppName} PRIVATE ./)
 

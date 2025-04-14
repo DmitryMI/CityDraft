@@ -6,7 +6,7 @@
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
-#include "RenderingWidget.h"
+#include <QOpenGLWidget>
 #include <QOpenGLExtraFunctions>
 #include <spdlog/spdlog.h>
 #include <string_view>
@@ -15,12 +15,18 @@
 
 namespace CityDraft::UI::Rendering
 {
-	class SkiaWidget : public RenderingWidget
+	class SkiaWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
 
 	public:
 		SkiaWidget(QWidget* parent = nullptr);
+
+		sk_sp<GrDirectContext> GetDirectContext() const;
+		QOpenGLExtraFunctions& GetGlFunctions();
+
+	signals:
+		void GraphicsInitialized(SkiaWidget* source);
 
 	protected:
 		void initializeGL() override;
@@ -33,7 +39,6 @@ namespace CityDraft::UI::Rendering
 		sk_sp<SkSurface> m_SkSurface;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
-		std::mutex m_GrContextMutex;
 
 		std::shared_ptr<spdlog::logger> m_SkiaLogger;
 		std::shared_ptr<spdlog::logger> m_GlLogger;

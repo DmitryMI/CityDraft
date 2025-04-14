@@ -2,9 +2,9 @@
 
 #include <QtWidgets/QMainWindow>
 #include "spdlog/spdlog.h"
-#include "Rendering/RenderingWidget.h"
+#include "Rendering/SkiaWidget.h"
 #include "ui_MainWindow.h"
-#include "CityDraft/Assets/AssetManager.h"
+#include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Scene.h"
 
 namespace CityDraft::UI
@@ -19,12 +19,16 @@ namespace CityDraft::UI
 
     private:
         Ui::MainWindow m_Ui;
-		UI::Rendering::RenderingWidget* m_Renderer;
-		std::shared_ptr<CityDraft::Assets::AssetManager> m_AssetManager;
+		UI::Rendering::SkiaWidget* m_RenderingWidget;
+		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
 		std::shared_ptr<CityDraft::Scene> m_Scene;
+		QString m_AssetsRootDirectory;
 
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
+
+	private slots:
+		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
     };
 
 }

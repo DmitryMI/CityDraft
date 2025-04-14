@@ -1,6 +1,9 @@
 #pragma once
 
 #include "CityDraft/Assets/Image.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include <QOpenGLExtraFunctions>
+#include <include/core/SkImage.h>
 
 namespace CityDraft::Drafts
 {
@@ -16,7 +19,12 @@ namespace CityDraft::Assets
 
 		std::shared_ptr<Drafts::Draft> CreateDraft() override;
 
-	private:
+		AssetStatus LoadAsset() override;
 
+		sk_sp<GrDirectContext> GetDirectContext() const;
+		QOpenGLExtraFunctions& GetGlFunctions();
+
+	private:
+		sk_sp<SkImage> m_GpuImage;
 	};
 }

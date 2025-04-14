@@ -8,10 +8,20 @@
 
 namespace CityDraft::UI::Rendering
 {
-	SkiaWidget::SkiaWidget(QWidget* parent) : RenderingWidget(parent)
+	SkiaWidget::SkiaWidget(QWidget* parent) : QOpenGLWidget(parent)
 	{
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
+	}
+
+	sk_sp<GrDirectContext> SkiaWidget::GetDirectContext() const
+	{
+		return m_GrContext;
+	}
+
+	QOpenGLExtraFunctions& SkiaWidget::GetGlFunctions()
+	{
+		return m_GlFuncs;
 	}
 
 	void SkiaWidget::initializeGL()
@@ -33,8 +43,8 @@ namespace CityDraft::UI::Rendering
 			this
 		);
 
+		emit GraphicsInitialized(this);
 	}
-
 
 	void SkiaWidget::resizeGL(int w, int h)
 	{
