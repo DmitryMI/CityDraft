@@ -1,3 +1,5 @@
+option(CITYDRAFT_NO_TERMINAL "Disable terminal window" OFF)
+
 
 set(AppName CityDraft.Gui)
 
@@ -15,9 +17,8 @@ find_package(spdlog REQUIRED)
 
 qt_standard_project_setup()
 
-qt_add_executable (
-    ${AppName} 
-    "CityDraft/main.cpp" 
+set(AppSources
+	"CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
 	"CityDraft/Logging/LogManager.cpp"
@@ -25,6 +26,19 @@ qt_add_executable (
 	"CityDraft/Assets/SkiaImage.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
 )
+
+if(${CITYDRAFT_NO_TERMINAL})
+	qt_add_executable (
+		${AppName}
+		WIN32
+		${AppSources}
+	)
+else()
+	qt_add_executable (
+		${AppName}
+		${AppSources}
+	)
+endif()
 
 qt_add_resources(${AppName} "Resources.qrc")
 
