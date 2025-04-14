@@ -14,6 +14,7 @@ namespace CityDraft::UI::Rendering
 		m_WidgetLogger = Logging::LogManager::CreateLogger("SkiaWidget");
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
+		setMouseTracking(true);
 	}
 
 	sk_sp<GrDirectContext> SkiaWidget::GetDirectContext() const
@@ -158,7 +159,7 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		// m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
+		m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
 	}
 
 	void SkiaWidget::PaintScene()
