@@ -30,6 +30,7 @@ namespace CityDraft::Assets
 		std::lock_guard lock(m_ResourceMutex);
 
 		auto path = m_AssetManager->ToAssetPath(m_AssetUrl);
+		m_Logger->info("Loading SkiaImage from {}...", path.string());
 		if (!std::filesystem::is_regular_file(path))
 		{
 			m_Logger->error("Failed to load asset {}: path does not point to a file", m_AssetUrl.c_str());
@@ -78,6 +79,7 @@ namespace CityDraft::Assets
 		);
 		BOOST_ASSERT(m_GpuImage);
 
+		m_Logger->info("SkiaImage loaded from {}...", path.string());
 		m_Status = AssetStatus::Loaded;
 		return m_Status;
 	}
@@ -96,5 +98,10 @@ namespace CityDraft::Assets
 		BOOST_ASSERT(skiaManager);
 
 		return skiaManager->GetGlFunctions();
+	}
+
+	sk_sp<SkImage> SkiaImage::GetGpuImage() const
+	{
+		return m_GpuImage;
 	}
 }

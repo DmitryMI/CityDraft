@@ -16,6 +16,7 @@
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Scene.h"
+#include "CityDraft/Drafts/SkiaImage.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -45,6 +46,7 @@ namespace CityDraft::UI::Rendering
 		void mouseMoveEvent(QMouseEvent* event) override;
 
 		virtual void PaintScene();
+		virtual void PaintSkiaImage(CityDraft::Drafts::SkiaImage* image);
 
 	private:
 		sk_sp<const GrGLInterface> m_GrInterface;

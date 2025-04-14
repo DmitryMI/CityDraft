@@ -16,6 +16,11 @@ namespace CityDraft::Utils
 
 		StbPixels() = default;
 		StbPixels(unsigned char* pixels, int w, int h, int c);
+		StbPixels(const StbPixels&) = delete;
+		StbPixels& operator=(const StbPixels&) = delete;
+		StbPixels(StbPixels&& other) noexcept;
+		StbPixels& operator=(StbPixels&& other) noexcept;
+
 		~StbPixels();
 
 		bool IsValid() const;

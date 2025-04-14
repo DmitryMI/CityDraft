@@ -13,9 +13,36 @@ namespace CityDraft::Utils
 		
 	}
 
+	StbPixels& StbPixels::operator=(StbPixels&& other) noexcept
+	{
+		if (this != &other)
+		{
+			if (Pixels)
+			{
+				stbi_image_free(Pixels);
+			}
+			Pixels = other.Pixels;
+			Width = other.Width;
+			Height = other.Height;
+			Channels = other.Channels;
+			other.Pixels = nullptr;
+		}
+		return *this;
+	}
+
+	StbPixels::StbPixels(StbPixels&& other) noexcept
+		: Pixels(other.Pixels), Width(other.Width), Height(other.Height), Channels(other.Channels)
+	{
+		other.Pixels = nullptr;
+	}
+
 	StbPixels::~StbPixels() 
 	{
-		stbi_image_free(Pixels);
+		if (Pixels)
+		{
+			stbi_image_free(Pixels);
+			Pixels = nullptr;
+		}
 	}
 
 	bool StbPixels::IsValid() const
@@ -28,14 +55,15 @@ namespace CityDraft::Utils
 		BOOST_ASSERT(logger);
 
 		int width, height, channels;
-		unsigned char* pixels = stbi_load("example.png", &width, &height, &channels, 4); // force RGBA
+		unsigned char* pixels = stbi_load(path.string().c_str(), &width, &height, &channels, 4); // force RGBA
 		if (!pixels)
 		{
 			logger->error("Failed to load image {}", path.string());
 			return {};
 		}
 
-		return StbPixels(pixels, width, height, channels);
+		StbPixels stbPixels(pixels, width, height, channels );
+		return stbPixels;
 	}
 }
 

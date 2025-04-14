@@ -4,6 +4,7 @@
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/core/SkColorSpace.h"
 #include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Assets/SkiaImage.h"
 
 
 namespace CityDraft::UI::Rendering
@@ -173,6 +174,38 @@ namespace CityDraft::UI::Rendering
 
 		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
 		m_WidgetLogger->debug("{} drafts on the viewport", draftsInViewportNum);
+
+		for (const auto& draft : m_ViewportDraftsBuffer)
+		{
+			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
+			if (image)
+			{
+				PaintSkiaImage(image);
+				continue;
+			}
+		}
+	}
+
+	void SkiaWidget::PaintSkiaImage(CityDraft::Drafts::SkiaImage* image)
+	{
+		CityDraft::Assets::SkiaImage* asset = dynamic_cast<CityDraft::Assets::SkiaImage*>(image->GetAsset());
+		BOOST_ASSERT(asset);
+		// TODO don't crash on assets with failed resources
+		if (asset->GetStatus() == Assets::AssetStatus::Initialized)
+		{
+			asset->LoadAsset();
+		}
+		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
+		BOOST_ASSERT(m_SkSurface);
+
+		auto skImage = asset->GetGpuImage();
+
+		SkCanvas* canvas = m_SkSurface->getCanvas();
+		BOOST_ASSERT(canvas);
+		SkPaint paint;
+		Transform2D imageTransform = image->GetTransform();
+		Vector2D imageTranslationViewportSpace = imageTransform.Translation - m_ViewportTranslation;
+		canvas->drawImage(skImage, imageTranslationViewportSpace.GetX(), imageTranslationViewportSpace.GetY(), SkSamplingOptions(), &paint);
 	}
 
 	AxisAlignedBoundingBox2D SkiaWidget::GetViewportBox() const

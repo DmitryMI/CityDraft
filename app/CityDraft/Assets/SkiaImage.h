@@ -24,6 +24,7 @@ namespace CityDraft::Assets
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
 
+		sk_sp<SkImage> GetGpuImage() const;
 	private:
 		sk_sp<SkImage> m_GpuImage;
 	};
