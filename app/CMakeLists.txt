@@ -22,6 +22,10 @@ qt_add_executable (
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
 	"CityDraft/UI/Rendering/RenderingWidget.cpp"
 	"CityDraft/Logging/LogManager.cpp"
+	"CityDraft/Assets/Factory.cpp"
+	"CityDraft/Assets/SkiaAssetManager.cpp"
+	"CityDraft/Assets/SkiaImage.cpp"
+	"CityDraft/Drafts/SkiaImage.cpp"
 )
 
 qt_add_resources(${AppName} "Resources.qrc")

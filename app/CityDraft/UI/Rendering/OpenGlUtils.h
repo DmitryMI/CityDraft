@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GL/gl.h>
+#include <spdlog/spdlog.h>
 
 namespace CityDraft::UI::Rendering
 {

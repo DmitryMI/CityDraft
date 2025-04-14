@@ -2,34 +2,30 @@
 
 #include <list>
 #include <memory>
-#include "ImageAsset.h"
+#include "Image.h"
 
 namespace CityDraft::Assets
 {
 	class ImageVariantGroup
 	{
 	public:
-		inline ImageVariantGroup(std::list<ImageAsset*> images)
+		inline ImageVariantGroup(std::list<std::shared_ptr<Image>> images):
+			m_Images(images)
 		{
-			for (ImageAsset* image : images)
-			{
-				m_ImageAssets.push_back(std::shared_ptr<ImageAsset>(image));
-			}
+			
 		}
 
-		virtual inline std::list<CityDraft::Assets::ImageAsset*> GetImageVariants() const
+		virtual inline const std::list<std::shared_ptr<Image>>& GetImageVariants() const
 		{
-			std::list<ImageAsset*> result;
-			std::transform(m_ImageAssets.begin(), m_ImageAssets.end(), result.begin(), [](const auto& ptr) {return ptr.get(); });
-			return result;
+			return m_Images;
 		}
 
-		virtual ImageAsset* GetDefaultImage() const
+		virtual std::shared_ptr<Image> GetDefaultImage() const
 		{
-			return (*m_ImageAssets.begin()).get();
+			return *(m_Images.begin());
 		}
 
 	private:
-		std::list<std::shared_ptr<ImageAsset>> m_ImageAssets;
+		std::list<std::shared_ptr<Image>> m_Images;
 	};
 }

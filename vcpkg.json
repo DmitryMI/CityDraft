@@ -16,9 +16,11 @@
       "default-features": true
     },
     "spdlog",
-    "eigen3",
     "boost-signals2",
     "boost-url",
-    "boost-assert"
+    "boost-assert",
+    "boost-geometry",
+    "boost-math",
+    "stb"
   ]
 }

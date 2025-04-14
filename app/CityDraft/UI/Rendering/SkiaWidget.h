@@ -10,6 +10,7 @@
 #include <QOpenGLExtraFunctions>
 #include <spdlog/spdlog.h>
 #include <string_view>
+#include <mutex>
 #include "OpenGlUtils.h"
 
 namespace CityDraft::UI::Rendering
@@ -32,6 +33,7 @@ namespace CityDraft::UI::Rendering
 		sk_sp<SkSurface> m_SkSurface;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
+		std::mutex m_GrContextMutex;
 
 		std::shared_ptr<spdlog::logger> m_SkiaLogger;
 		std::shared_ptr<spdlog::logger> m_GlLogger;

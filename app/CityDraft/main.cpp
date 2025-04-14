@@ -4,6 +4,7 @@
 #include "UI/MainWindow.h"
 #include "Logging/LogManager.h"
 #include "spdlog/spdlog.h"
+#include <QStandardPaths>
 
 using namespace CityDraft;
 
@@ -26,14 +27,27 @@ int main(int argc, char* argv[])
 	);
 	parser.addOption(logLevelOption);
 
+	QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+	QCommandLineOption assetsRootOption(
+		"assets-root",
+		"Set path to assets root directory",
+		"assets-root",
+		appDataPath + "/assets"
+	);
+	parser.addOption(assetsRootOption);
+
 	// Process the command line arguments
 	parser.process(app);
 
 	QString levelStr = parser.value(logLevelOption).toLower();
 	Logging::LogManager::InitLogging(levelStr);
+
+	QString assetsRoot = parser.value(assetsRootOption);
+
 	spdlog::info("CityDraft started");
 
-    UI::MainWindow mainWindow;
+    UI::MainWindow mainWindow(assetsRoot);
     mainWindow.show();
 
     return app.exec();

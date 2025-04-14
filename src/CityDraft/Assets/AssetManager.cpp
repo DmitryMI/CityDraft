@@ -11,38 +11,80 @@ namespace CityDraft::Assets
 	{
 		BOOST_ASSERT(!assetsRoot.empty());
 		BOOST_ASSERT(logger);
+
+		m_Logger->info("AssetManager initialized");
+	}
+
+	std::shared_ptr<Asset> AssetManager::GetByUrl(const boost::url& url)
+	{
+		for (const auto& variantImage : m_VariantImages)
+		{
+			for (const auto& variant : variantImage->GetImageVariants())
+			{
+				if (variant->GetUrl() == url)
+				{
+					return variant;
+				}
+			}
+		}
+
+		for (const auto& image : m_InvariantImages)
+		{
+			if (image->GetUrl() == url)
+			{
+				return image;
+			}
+		}
+
+		m_Logger->error("Asset {} was not found!", url.c_str());
+
+		return nullptr;
+	}
+
+	std::shared_ptr<Asset> AssetManager::GetByUrl(const std::string& urlStr)
+	{
+		auto urlParse = boost::urls::parse_uri(urlStr);
+		if (!urlParse.has_value())
+		{
+			m_Logger->error("GetByUrl: URL parsing failed");
+			return nullptr;
+		}
+
+		return GetByUrl(urlParse.value());
 	}
 
 	size_t AssetManager::LoadAssets(const std::filesystem::path& assetsDir, bool createMissingDirs)
 	{
 		BOOST_ASSERT(!assetsDir.empty());
 
-		std::filesystem::path assetsDirRelative = std::filesystem::relative(assetsDir, m_AssetsRoot);
+		std::filesystem::path assetsDirAbsolute = std::filesystem::absolute(assetsDir);
+		std::filesystem::path assetsDirRelative = std::filesystem::relative(assetsDir, assetsDirAbsolute);
 
 		m_Logger->info("Loading assets from {} ({})...", assetsDir.string(), assetsDirRelative.string());
 
 		size_t loadedNum = 0;
 		if (!std::filesystem::exists(assetsDirRelative))
 		{
-			std::filesystem::create_directories(assetsDirRelative);
+			std::filesystem::create_directories(assetsDirAbsolute);
 		}
 
-		std::filesystem::path imagesDir = assetsDirRelative / ImagesDir;
-		if (!std::filesystem::exists(imagesDir))
+		std::filesystem::path imagesDirRelative = assetsDirRelative / ImagesDir;
+		std::filesystem::path imagesDirAbsolute = assetsDirAbsolute / ImagesDir;
+		if (!std::filesystem::exists(imagesDirAbsolute))
 		{
 			if (createMissingDirs)
 			{
-				std::filesystem::create_directories(imagesDir);
+				std::filesystem::create_directories(imagesDirAbsolute);
 			}
 		}
 
-		loadedNum += LoadImageAssets(imagesDir);
+		loadedNum += LoadImages(imagesDirAbsolute);
 
 		m_Logger->info("Loaded {} assets from {}", loadedNum, assetsDirRelative.string());
 		return loadedNum;
 	}
 
-	size_t AssetManager::LoadImageAssets(const std::filesystem::path& imagesDir)
+	size_t AssetManager::LoadImages(const std::filesystem::path& imagesDir)
 	{
 		BOOST_ASSERT(!imagesDir.empty());
 
@@ -61,6 +103,16 @@ namespace CityDraft::Assets
 			{
 				loadedNum += LoadVariantImageGroup(entry);
 			}
+			else
+			{
+				auto image = CreateImage(entry);
+				if (image)
+				{
+					loadedNum++;
+					m_InvariantImages.push_back(image);
+				}
+			}
+
 		}
 
 		m_Logger->info("Loaded {} images from {}", loadedNum, imagesDir.string());
@@ -71,7 +123,7 @@ namespace CityDraft::Assets
 	{
 		m_Logger->info("Loading Image Variant Group from {}", variantDir.string());
 
-		std::list<ImageAsset*> images;
+		std::list<std::shared_ptr<Image>> images;
 
 		for (const auto& entry : std::filesystem::directory_iterator(variantDir))
 		{
@@ -81,8 +133,11 @@ namespace CityDraft::Assets
 				continue;
 			}
 
-			ImageAsset* image = new ImageAsset(entry.path());
-			images.push_back(image);
+			auto image = CreateImage(entry);
+			if (image)
+			{
+				images.push_back(image);
+			}
 		}
 
 		std::shared_ptr<ImageVariantGroup> group = std::make_shared<ImageVariantGroup>(images);
@@ -95,7 +150,7 @@ namespace CityDraft::Assets
 		return m_VariantImages;
 	}
 
-	const std::list<std::shared_ptr<ImageAsset>>& AssetManager::GetInvariantImages() const
+	const std::list<std::shared_ptr<Image>>& AssetManager::GetInvariantImages() const
 	{
 		return m_InvariantImages;
 	}
@@ -131,24 +186,22 @@ namespace CityDraft::Assets
 		return FileSystemError::Ok;
 	}
 
-	boost::url AssetManager::AssetRelativePathToUrl(const std::filesystem::path& path)
+	boost::url AssetManager::AssetPathToUrl(const std::filesystem::path& path)
 	{
-		BOOST_ASSERT(path.is_relative());
+		BOOST_ASSERT(path.is_absolute());
+		std::filesystem::path pathRel = std::filesystem::relative(path, m_AssetsRoot);
 
-		boost::system::result<boost::url_view> uriParseResult;
+		std::string genericString = pathRel.generic_string();
+		
+		boost::url url;
+		url.set_scheme("file");
+		url.set_host("assets");
+		url.set_encoded_path(genericString);
 
-		std::string genericString = path.generic_string();
-		std::string urlString = "file://" + std::string("assets/") + genericString;
-		uriParseResult = boost::urls::parse_uri(urlString);
-		if (uriParseResult.has_value())
-		{
-			return uriParseResult.value();
-		}
-
-		return boost::url();
+		return url;
 	}
 
-	std::filesystem::path AssetManager::ToAssetRelativePath(const boost::url& url)
+	std::filesystem::path AssetManager::ToAssetPath(const boost::url& url)
 	{
 		BOOST_ASSERT(url.scheme() == "file");
 		BOOST_ASSERT(url.host() == "assets");
@@ -156,7 +209,8 @@ namespace CityDraft::Assets
 		BOOST_ASSERT(pathStr[0] == '/');
 		pathStr.erase(pathStr.begin());
 		std::filesystem::path path(pathStr);
-		BOOST_ASSERT(path.is_relative());
-		return path;
+		std::filesystem::path pathAbs = m_AssetsRoot / path;
+
+		return pathAbs.lexically_normal();
 	}
 }

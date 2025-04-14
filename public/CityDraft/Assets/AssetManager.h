@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Asset.h"
-#include "ImageAsset.h"
+#include "Image.h"
 #include "ImageVariantGroup.h"
 #include <cstdint>
 #include <filesystem>
@@ -23,24 +23,27 @@ namespace CityDraft::Assets
 
 		size_t LoadAssets(const std::filesystem::path& assetsDir, bool createMissingDirs);
 
-		Asset* GetByUrl(const boost::url& url);
+		std::shared_ptr<Asset> GetByUrl(const boost::url& url);
+		std::shared_ptr<Asset> GetByUrl(const std::string& url);
 
 		const std::list<std::shared_ptr<ImageVariantGroup>>& GetVariantImages() const;
-		const std::list<std::shared_ptr<ImageAsset>>& GetInvariantImages() const;
+		const std::list<std::shared_ptr<Image>>& GetInvariantImages() const;
+		boost::url AssetPathToUrl(const std::filesystem::path& path);
+		std::filesystem::path ToAssetPath(const boost::url& url);
+
+		virtual std::shared_ptr<Image> CreateImage(const std::filesystem::path& imageFilePath) = 0;
 
 		static FileSystemError ReadFileBytes(const std::filesystem::path& filePath, std::vector<uint8_t>& outBytes);
-
-		static boost::url AssetRelativePathToUrl(const std::filesystem::path& path);
-		static std::filesystem::path ToAssetRelativePath(const boost::url& url);
+		
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
 		std::filesystem::path m_AssetsRoot;
 
 		std::list<std::shared_ptr<ImageVariantGroup>> m_VariantImages;
-		std::list<std::shared_ptr<ImageAsset>> m_InvariantImages;
+		std::list<std::shared_ptr<Image>> m_InvariantImages;
 
-		size_t LoadImageAssets(const std::filesystem::path& imagesDir);
+		size_t LoadImages(const std::filesystem::path& imagesDir);
 		size_t LoadVariantImageGroup(const std::filesystem::path& variantDir);
 	};
 }

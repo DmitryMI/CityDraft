@@ -1,16 +1,22 @@
 #include "MainWindow.h"
 #include "CityDraft/Assets/AssetManager.h"
+#include <QString>
+#include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Assets/Factory.h"
 
 namespace CityDraft::UI
 {
 
-	MainWindow::MainWindow(QWidget* parent): QMainWindow(parent)
+	MainWindow::MainWindow(const QString& assetsRoot, QWidget* parent): QMainWindow(parent)
 	{
 		m_Ui.setupUi(this);
 
 		CreateRenderingWidget();
+		CreateAssetManager(assetsRoot);
 
 		spdlog::info("MainWindow created");
+
+		m_Scene = Scene::LoadSceneFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
 	}
 
 	MainWindow::~MainWindow()
@@ -34,11 +40,13 @@ namespace CityDraft::UI
 		layout->insertWidget(index, m_Renderer);
 	}
 
-	void MainWindow::TestAssetManager()
+	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
-		std::filesystem::path path = "../../images/image.png";
-		boost::url url = CityDraft::Assets::AssetManager::ToUrl(path);
-		spdlog::info(url.c_str());
+		auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
+		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
+		m_AssetManager = CityDraft::Assets::Factory::CreateAssetManager("skia", assetsRootPath, assetManagerLogger);
+		BOOST_ASSERT(m_AssetManager);
+		m_AssetManager->LoadAssets(assetsRootPath, true);
 	}
 
 
