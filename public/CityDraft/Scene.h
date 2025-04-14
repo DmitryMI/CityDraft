@@ -51,6 +51,8 @@ namespace CityDraft
 		static std::shared_ptr<Scene> LoadSceneFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
 
 		virtual void UpdateObjectModel(Drafts::Draft* obj);
+		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& entries);
+		size_t QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts);
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;

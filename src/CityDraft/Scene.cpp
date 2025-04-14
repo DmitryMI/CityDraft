@@ -1,4 +1,5 @@
 #include "CityDraft/Scene.h"
+#include <algorithm>
 
 namespace CityDraft
 {
@@ -108,6 +109,23 @@ namespace CityDraft
 		auto objPtr = RemoveObjectFromRtree(obj);
 		BOOST_ASSERT(objPtr != nullptr);
 		InsertObjectToRtree(objPtr);
+	}
+
+	size_t Scene::QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<Scene::RTreeValue>& entries)
+	{
+		size_t entriesNum = entries.size();
+		m_DraftsRtree.query(boost::geometry::index::intersects(box.Data), std::back_inserter(entries));
+		return entries.size() - entriesNum;
+	}
+
+	size_t Scene::QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts)
+	{
+		size_t draftsSize = drafts.size();
+		m_DraftsRtree.query(
+			boost::geometry::index::intersects(box.Data),
+			boost::make_function_output_iterator([&drafts](const auto& entry) {drafts.push_back(std::get<1>(entry)); })
+		);
+		return drafts.size() - draftsSize;
 	}
 
 	void Scene::InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj)

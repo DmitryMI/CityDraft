@@ -53,6 +53,7 @@ namespace CityDraft::UI
 		CreateAssetManager(m_AssetsRootDirectory);
 
 		m_Scene = Scene::LoadSceneFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
+		m_RenderingWidget->SetScene(m_Scene);
 	}
 
 }

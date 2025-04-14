@@ -10,6 +10,7 @@ namespace CityDraft::UI::Rendering
 {
 	SkiaWidget::SkiaWidget(QWidget* parent) : QOpenGLWidget(parent)
 	{
+		m_WidgetLogger = Logging::LogManager::CreateLogger("SkiaWidget");
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
 	}
@@ -22,6 +23,16 @@ namespace CityDraft::UI::Rendering
 	QOpenGLExtraFunctions& SkiaWidget::GetGlFunctions()
 	{
 		return m_GlFuncs;
+	}
+
+	std::shared_ptr<CityDraft::Scene> SkiaWidget::GetScene() const
+	{
+		return m_Scene;
+	}
+
+	void SkiaWidget::SetScene(std::shared_ptr<CityDraft::Scene> scene)
+	{
+		m_Scene = scene;
 	}
 
 	void SkiaWidget::initializeGL()
@@ -97,15 +108,80 @@ namespace CityDraft::UI::Rendering
 		m_GrContext->resetContext(kAll_GrBackendState);
 
 		SkCanvas* canvas = m_SkSurface->getCanvas();
-		canvas->clear(SK_ColorGREEN);
+		canvas->clear(SK_ColorTRANSPARENT);
 
-		SkPaint paint;
-		paint.setAntiAlias(true);
-		paint.setColor(SK_ColorRED);
-		paint.setStyle(SkPaint::Style::kFill_Style);
-		canvas->drawCircle(400, 250, 100, paint);
+		PaintScene();
 
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
+	}
+
+	void SkiaWidget::mousePressEvent(QMouseEvent* event)
+	{
+		if (event->button() == Qt::LeftButton)
+		{
+			m_WidgetLogger->debug("LMB Pressed at ({}, {})", event->position().x(), event->position().y());
+		}
+		else if (event->button() == Qt::RightButton)
+		{
+			m_WidgetLogger->debug("RMB Pressed at ({}, {})", event->position().x(), event->position().y());
+		}
+		else if (event->button() == Qt::MiddleButton)
+		{
+			m_WidgetLogger->debug("MMB Pressed at ({}, {})", event->position().x(), event->position().y());
+		}
+		else
+		{
+			m_WidgetLogger->debug("Unknown Mouse Button Pressed at ({}, {})", event->position().x(), event->position().y());
+		}
+	}
+
+	void SkiaWidget::mouseReleaseEvent(QMouseEvent* event)
+	{
+		if (event->button() == Qt::LeftButton)
+		{
+			m_WidgetLogger->debug("LMB Released at ({}, {})", event->position().x(), event->position().y());
+		}
+		else if (event->button() == Qt::RightButton)
+		{
+			m_WidgetLogger->debug("RMB Released at ({}, {})", event->position().x(), event->position().y());
+		}
+		else if (event->button() == Qt::MiddleButton)
+		{
+			m_WidgetLogger->debug("MMB Released at ({}, {})", event->position().x(), event->position().y());
+		}
+		else
+		{
+			m_WidgetLogger->debug("Unknown Mouse Button Released at ({}, {})", event->position().x(), event->position().y());
+		}
+	}
+
+	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
+	{
+		// m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
+	}
+
+	void SkiaWidget::PaintScene()
+	{
+		if (!m_Scene)
+		{
+			return;
+		}
+
+		m_ViewportDraftsBuffer.clear();
+
+		auto vieportBox = GetViewportBox();
+
+		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
+		m_WidgetLogger->debug("{} drafts on the viewport", draftsInViewportNum);
+	}
+
+	AxisAlignedBoundingBox2D SkiaWidget::GetViewportBox() const
+	{
+		Vector2D scaledHalfSize{ size().width() / 2.0 / m_ViewportZoom, size().height() / 2.0 / m_ViewportZoom };
+		
+		Vector2D screenMin = m_ViewportTranslation - scaledHalfSize;
+		Vector2D screenMax = m_ViewportTranslation + scaledHalfSize;
+		return AxisAlignedBoundingBox2D(screenMin, screenMax);
 	}
 
 	void SkiaWidget::GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const

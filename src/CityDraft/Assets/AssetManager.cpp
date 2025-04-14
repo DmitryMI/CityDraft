@@ -58,17 +58,16 @@ namespace CityDraft::Assets
 		BOOST_ASSERT(!assetsDir.empty());
 
 		std::filesystem::path assetsDirAbsolute = std::filesystem::absolute(assetsDir);
-		std::filesystem::path assetsDirRelative = std::filesystem::relative(assetsDir, assetsDirAbsolute);
 
-		m_Logger->info("Loading assets from {} ({})...", assetsDir.string(), assetsDirRelative.string());
+		m_Logger->info("Loading assets from {} ({})...", assetsDir.string(), assetsDirAbsolute.string());
 
 		size_t loadedNum = 0;
-		if (!std::filesystem::exists(assetsDirRelative))
+		if (!std::filesystem::exists(assetsDirAbsolute))
 		{
 			std::filesystem::create_directories(assetsDirAbsolute);
 		}
 
-		std::filesystem::path imagesDirRelative = assetsDirRelative / ImagesDir;
+		std::filesystem::path imagesDirRelative = assetsDirAbsolute / ImagesDir;
 		std::filesystem::path imagesDirAbsolute = assetsDirAbsolute / ImagesDir;
 		if (!std::filesystem::exists(imagesDirAbsolute))
 		{
@@ -80,7 +79,7 @@ namespace CityDraft::Assets
 
 		loadedNum += LoadImages(imagesDirAbsolute);
 
-		m_Logger->info("Loaded {} assets from {}", loadedNum, assetsDirRelative.string());
+		m_Logger->info("Loaded {} assets from {}", loadedNum, assetsDirAbsolute.string());
 		return loadedNum;
 	}
 
@@ -110,12 +109,13 @@ namespace CityDraft::Assets
 				{
 					loadedNum++;
 					m_InvariantImages.push_back(image);
+					m_Logger->info("Loaded invariant image {}", entry.path().string());
 				}
 			}
 
 		}
 
-		m_Logger->info("Loaded {} images from {}", loadedNum, imagesDir.string());
+		m_Logger->info("Loaded in total {} images from {}", loadedNum, imagesDir.string());
 		return loadedNum;
 	}
 
@@ -140,6 +140,7 @@ namespace CityDraft::Assets
 			}
 		}
 
+		m_Logger->info("Loaded image variant group {} ({} images)", variantDir.string(), images.size());
 		std::shared_ptr<ImageVariantGroup> group = std::make_shared<ImageVariantGroup>(images);
 		m_VariantImages.push_back(group);
 		return images.size();

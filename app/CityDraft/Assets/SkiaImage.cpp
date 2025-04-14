@@ -11,6 +11,7 @@
 #include <include/gpu/ganesh/gl/GrGLBackendSurface.h>
 #include <include/gpu/ganesh/GrBackendSurface.h>
 #include <include/gpu/ganesh/SkImageGanesh.h>
+#include "CityDraft/Drafts/SkiaImage.h"
 
 namespace CityDraft::Assets
 {
@@ -21,7 +22,7 @@ namespace CityDraft::Assets
 
 	std::shared_ptr<Drafts::Draft> SkiaImage::CreateDraft()
 	{
-		return std::shared_ptr<Drafts::Draft>();
+		return std::make_shared<Drafts::SkiaImage>(this);
 	}
 
 	AssetStatus SkiaImage::LoadAsset()
