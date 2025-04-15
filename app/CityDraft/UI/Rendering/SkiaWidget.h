@@ -84,7 +84,7 @@ namespace CityDraft::UI::Rendering
 
 		// Viewport variables
 		double m_ViewportZoom = 1.0;
-		Vector2D m_ViewportTranslation{ 0,0 };
+		Vector2D m_ViewportCenter{ 0,0 };
 		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
 		QPointF m_CursorProjectedPosition;
 

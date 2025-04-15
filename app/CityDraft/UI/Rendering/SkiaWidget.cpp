@@ -174,8 +174,8 @@ namespace CityDraft::UI::Rendering
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
 		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
-		QPointF vieportPos = event->position() - widgetSize;
-		m_CursorProjectedPosition = vieportPos / m_ViewportZoom + QPointF(m_ViewportTranslation.GetX(), m_ViewportTranslation.GetY());
+		QPointF viewportPos = event->position() - widgetSize;
+		m_CursorProjectedPosition = viewportPos / m_ViewportZoom + QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
 
 		CursorPositionChanged(m_CursorProjectedPosition);
 
@@ -184,7 +184,7 @@ namespace CityDraft::UI::Rendering
 			QPointF eventPosition = event->position();
 			QPointF mouseDelta = m_MouseActionLastPosition - eventPosition;
 			Vector2D mouseDeltaScaled = Vector2D(mouseDelta.x(), mouseDelta.y()) / m_ViewportZoom;
-			m_ViewportTranslation += mouseDeltaScaled;
+			m_ViewportCenter += mouseDeltaScaled;
 			m_MouseActionLastPosition = eventPosition;
 			update();
 		}
@@ -223,18 +223,29 @@ namespace CityDraft::UI::Rendering
 
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		BOOST_ASSERT(canvas);
-		
+
+		canvas->save();
+		canvas->translate(size().width() / 2, size().height() / 2);
+		canvas->scale(m_ViewportZoom, m_ViewportZoom);
+		canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
+
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
 			canvas->save();
+
+			canvas->translate(draft->GetTransform().Translation.GetX(), draft->GetTransform().Translation.GetY());
+			canvas->scale(draft->GetTransform().Scale.GetX(), draft->GetTransform().Scale.GetY());
+
 			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
 			if (image)
 			{
 				PaintSkiaImage(canvas, image);
-				continue;
 			}
 			canvas->restore();
 		}
+
+		canvas->restore();
+		canvas->resetMatrix();
 	}
 
 	void SkiaWidget::PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image)
@@ -247,20 +258,18 @@ namespace CityDraft::UI::Rendering
 			asset->LoadAsset();
 		}
 		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
-		BOOST_ASSERT(m_SkSurface);
 
 		auto skImage = asset->GetGpuImage();
-		SkMatrix scaleMatrix;
-		scaleMatrix.setScale(m_ViewportZoom, m_ViewportZoom);
+		
+		Vector2D imageSize = image->GetImageSize();
 
-		canvas->setMatrix(scaleMatrix);
-
-		SkPaint paint;
-		Transform2D imageTransform = image->GetTransform();
-		Vector2D imageSize = image->GetImageSize() * m_ViewportZoom;
-		Vector2D viewportScaledSize = GetViewportProjectedSize();
-		Vector2D imageTranslationViewportSpace = imageTransform.Translation - imageSize/2 - m_ViewportTranslation + viewportScaledSize / 2;
-		canvas->drawImage(skImage, imageTranslationViewportSpace.GetX(), imageTranslationViewportSpace.GetY(), SkSamplingOptions(), &paint);
+		SkRect destRect = SkRect::MakeXYWH(
+			-imageSize.GetX() / 2.0f,
+			-imageSize.GetY() / 2.0f,
+			imageSize.GetX(),
+			imageSize.GetY()
+		);
+		canvas->drawImageRect(skImage, destRect, SkSamplingOptions());
 	}
 
 	Vector2D SkiaWidget::GetViewportProjectedSize() const
@@ -272,8 +281,8 @@ namespace CityDraft::UI::Rendering
 	{
 		Vector2D scaledSize = GetViewportProjectedSize();
 		
-		Vector2D screenMin = m_ViewportTranslation - scaledSize / 2;
-		Vector2D screenMax = m_ViewportTranslation + scaledSize / 2;
+		Vector2D screenMin = m_ViewportCenter - scaledSize / 2;
+		Vector2D screenMax = m_ViewportCenter + scaledSize / 2;
 		return AxisAlignedBoundingBox2D(screenMin, screenMax);
 	}
 
