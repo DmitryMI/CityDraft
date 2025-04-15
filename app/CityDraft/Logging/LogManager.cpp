@@ -4,6 +4,7 @@
 #include <mutex>
 #include <string>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/msvc_sink.h>
 
 namespace CityDraft::Logging
 {
@@ -25,14 +26,12 @@ namespace CityDraft::Logging
 		{
 			return logger;
 		}
-
-		//auto qtSink = std::make_shared<QtLogSink<std::mutex>>();
-		// logger = std::make_shared<spdlog::logger>(name.toStdString(), qtSink);
 		auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-
+		auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
 		std::string nameStr = name.toStdString();
 		spdlog::logger loggerNew(nameStr);
 		loggerNew.sinks().push_back(consoleSink);
+		loggerNew.sinks().push_back(msvcSink);
 		loggerNew.set_level(spdlog::get_level());
 		loggerNew.set_pattern("[%Y-%m-%d %T.%e] [%-10n] [%^%-8l%$] %v");
 		return std::make_shared<spdlog::logger>(loggerNew);

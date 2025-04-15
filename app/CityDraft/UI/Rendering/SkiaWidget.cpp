@@ -165,6 +165,10 @@ namespace CityDraft::UI::Rendering
 			m_MouseAction = MouseAction::NoAction;
 			m_WidgetLogger->debug("Panning Mode Exit");
 		}
+		else
+		{
+			m_MouseAction = MouseAction::NoAction;
+		}
 	}
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
