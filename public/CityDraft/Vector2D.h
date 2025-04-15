@@ -105,19 +105,19 @@ namespace CityDraft
 			return Vector2D{ x, y };
 		}
 
-		constexpr static bool IsNearlyZero(const Vector2D& a, double tolerance = 1E-9)
+		constexpr bool IsNearlyZero(double tolerance = 1E-9)
 		{
-			return boost::math::ccmath::abs(a.GetX()) < tolerance && boost::math::ccmath::abs(a.GetY()) < tolerance;
+			return boost::math::ccmath::abs(GetX()) < tolerance && boost::math::ccmath::abs(GetY()) < tolerance;
 		}
 
 		constexpr bool operator ==(const Vector2D& b)
 		{
-			return IsNearlyZero(*this - b);
+			return (*this - b).IsNearlyZero();
 		}
 
 		constexpr bool operator !=(const Vector2D& b)
 		{
-			return !IsNearlyZero(*this - b);
+			return !(*this - b).IsNearlyZero();
 		}
 	};
 }

@@ -2,6 +2,7 @@
 #include "CityDraft/Assets/AssetManager.h"
 #include <QString>
 #include "CityDraft/Logging/LogManager.h"
+#include <qstatusbar.h>
 
 namespace CityDraft::UI
 {
@@ -13,7 +14,7 @@ namespace CityDraft::UI
 		m_Ui.setupUi(this);
 
 		CreateRenderingWidget();
-
+		CreateStatusBar();
 		spdlog::info("MainWindow created");
 	}
 
@@ -28,6 +29,7 @@ namespace CityDraft::UI
 
 		m_RenderingWidget = new Rendering::SkiaWidget(this);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged, this, &MainWindow::OnCursorProjectedPositionChanged);
 
 		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
 		int index = layout->indexOf(placeholder);
@@ -44,6 +46,18 @@ namespace CityDraft::UI
 		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssets(assetsRootPath, true);
+	}
+
+	void MainWindow::CreateStatusBar()
+	{
+		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
+		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
+	}
+
+	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition)
+	{
+		QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.x(), projectedPosition.y());
+		m_CursorProjectedPosition->setText(msg);
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)

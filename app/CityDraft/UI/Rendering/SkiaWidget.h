@@ -1,17 +1,14 @@
 #pragma once
 
-#include "include/core/SkCanvas.h"
-#include "include/core/SkImageInfo.h"
+
+
 #include "include/core/SkSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
-#include <QOpenGLWidget>
-#include <QOpenGLExtraFunctions>
+#include <qopenglwidget.h>
+#include <qopenglextrafunctions.h>
 #include <spdlog/spdlog.h>
-#include <string_view>
-#include <mutex>
-#include "OpenGlUtils.h"
 #include <QMouseEvent>
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
@@ -33,8 +30,11 @@ namespace CityDraft::UI::Rendering
 		std::shared_ptr<CityDraft::Scene> GetScene() const;
 		void SetScene(std::shared_ptr<CityDraft::Scene> scene);
 
+		QPointF GetCursorProjectedPosition() const;
+
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
+		void CursorPositionChanged(const QPointF& projectedPosition);
 
 	protected:
 		void initializeGL() override;
@@ -63,6 +63,7 @@ namespace CityDraft::UI::Rendering
 		double m_ViewportZoom = 1.0;
 		Vector2D m_ViewportTranslation{ 0,0 };
 		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
+		QPointF m_CursorProjectedPosition;
 
 		AxisAlignedBoundingBox2D GetViewportBox() const;
 		void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const;

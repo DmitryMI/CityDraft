@@ -6,6 +6,7 @@
 #include "ui_MainWindow.h"
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Scene.h"
+#include <qlabel.h>
 
 namespace CityDraft::UI
 {
@@ -18,17 +19,26 @@ namespace CityDraft::UI
         virtual ~MainWindow();
 
     private:
+
+		// Widgets
         Ui::MainWindow m_Ui;
-		UI::Rendering::SkiaWidget* m_RenderingWidget;
+		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
+		QLabel* m_CursorProjectedPosition = nullptr;
+
+		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
 		std::shared_ptr<CityDraft::Scene> m_Scene;
+
+		// Config
 		QString m_AssetsRootDirectory;
 
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
+		void CreateStatusBar();
 
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
+		void OnCursorProjectedPositionChanged(const QPointF& projectedPosition);
     };
 
 }

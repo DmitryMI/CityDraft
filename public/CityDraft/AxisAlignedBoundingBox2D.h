@@ -46,5 +46,15 @@ namespace CityDraft
 		{
 			return (GetMax() + GetMin()) / 2;
 		}
+
+		constexpr bool operator ==(const AxisAlignedBoundingBox2D& b)
+		{
+			return (GetMin() - b.GetMin()).IsNearlyZero() && (GetMax() - b.GetMax()).IsNearlyZero();
+		}
+
+		constexpr bool operator !=(const AxisAlignedBoundingBox2D& b)
+		{
+			return !(GetMin() - b.GetMin()).IsNearlyZero() || !(GetMax() - b.GetMax()).IsNearlyZero();
+		}
 	};
 }

@@ -1,11 +1,12 @@
 #include "SkiaWidget.h"
+#include "include/core/SkCanvas.h"
 #include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
 #include "include/gpu/ganesh/gl/GrGLDirectContext.h"
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/core/SkColorSpace.h"
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/Assets/SkiaImage.h"
-
+#include "OpenGlUtils.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -35,6 +36,11 @@ namespace CityDraft::UI::Rendering
 	void SkiaWidget::SetScene(std::shared_ptr<CityDraft::Scene> scene)
 	{
 		m_Scene = scene;
+	}
+
+	QPointF SkiaWidget::GetCursorProjectedPosition() const
+	{
+		return m_CursorProjectedPosition;
 	}
 
 	void SkiaWidget::initializeGL()
@@ -159,7 +165,10 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		// m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
+		QPointF vieportPos = event->position();
+		m_CursorProjectedPosition = vieportPos / m_ViewportZoom + QPointF(m_ViewportTranslation.GetX(), m_ViewportTranslation.GetY());
+
+		CursorPositionChanged(m_CursorProjectedPosition);
 	}
 
 	void SkiaWidget::PaintScene()
