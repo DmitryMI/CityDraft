@@ -14,9 +14,18 @@
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Scene.h"
 #include "CityDraft/Drafts/SkiaImage.h"
+#include <QWheelEvent>
 
 namespace CityDraft::UI::Rendering
 {
+	enum class MouseAction
+	{
+		NoAction,
+		DraftDragging,
+		Selection,
+		ViewportPanning
+	};
+
 	class SkiaWidget : public QOpenGLWidget
 	{
 		Q_OBJECT
@@ -44,9 +53,10 @@ namespace CityDraft::UI::Rendering
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;
 		void mouseMoveEvent(QMouseEvent* event) override;
+		void wheelEvent(QWheelEvent* event) override;
 
 		virtual void PaintScene();
-		virtual void PaintSkiaImage(CityDraft::Drafts::SkiaImage* image);
+		virtual void PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image);
 
 	private:
 		sk_sp<const GrGLInterface> m_GrInterface;

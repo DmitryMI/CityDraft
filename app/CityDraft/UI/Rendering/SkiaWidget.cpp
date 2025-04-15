@@ -171,6 +171,18 @@ namespace CityDraft::UI::Rendering
 		CursorPositionChanged(m_CursorProjectedPosition);
 	}
 
+	void SkiaWidget::wheelEvent(QWheelEvent* event)
+	{
+		int delta = event->angleDelta().y();
+		m_ViewportZoom += 0.0001 * delta;
+		if (m_ViewportZoom == 0)
+		{
+			m_ViewportZoom = 0.0001;
+		}
+		m_WidgetLogger->debug("Zoom changed to {}", m_ViewportZoom);
+		update();
+	}
+
 	void SkiaWidget::PaintScene()
 	{
 		if (!m_Scene)
@@ -189,19 +201,24 @@ namespace CityDraft::UI::Rendering
 			vieportBox.GetMax().GetX(),
 			vieportBox.GetMax().GetY()
 			);
+
+		SkCanvas* canvas = m_SkSurface->getCanvas();
+		BOOST_ASSERT(canvas);
 		
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
+			canvas->save();
 			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
 			if (image)
 			{
-				PaintSkiaImage(image);
+				PaintSkiaImage(canvas, image);
 				continue;
 			}
+			canvas->restore();
 		}
 	}
 
-	void SkiaWidget::PaintSkiaImage(CityDraft::Drafts::SkiaImage* image)
+	void SkiaWidget::PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image)
 	{
 		CityDraft::Assets::SkiaImage* asset = dynamic_cast<CityDraft::Assets::SkiaImage*>(image->GetAsset());
 		BOOST_ASSERT(asset);
@@ -214,19 +231,22 @@ namespace CityDraft::UI::Rendering
 		BOOST_ASSERT(m_SkSurface);
 
 		auto skImage = asset->GetGpuImage();
+		SkMatrix scaleMatrix;
+		scaleMatrix.setScale(m_ViewportZoom, m_ViewportZoom);
 
-		SkCanvas* canvas = m_SkSurface->getCanvas();
-		BOOST_ASSERT(canvas);
+		canvas->setMatrix(scaleMatrix);
+
 		SkPaint paint;
 		Transform2D imageTransform = image->GetTransform();
-		Vector2D imageSize = image->GetImageSize();
+		Vector2D imageSize = image->GetImageSize() * m_ViewportZoom;
 		Vector2D imageTranslationViewportSpace = imageTransform.Translation - m_ViewportTranslation - imageSize/2;
+		// SkRect destRect = SkRect::MakeIWH(imageSize.GetX(), imageSize.GetY());
 		canvas->drawImage(skImage, imageTranslationViewportSpace.GetX(), imageTranslationViewportSpace.GetY(), SkSamplingOptions(), &paint);
 	}
 
 	AxisAlignedBoundingBox2D SkiaWidget::GetViewportBox() const
 	{
-		Vector2D scaledSize{ size().width()  / m_ViewportZoom, size().height() / m_ViewportZoom };
+		Vector2D scaledSize{ size().width() / m_ViewportZoom, size().height() / m_ViewportZoom };
 		
 		Vector2D screenMin = m_ViewportTranslation;
 		Vector2D screenMax = m_ViewportTranslation + scaledSize;
