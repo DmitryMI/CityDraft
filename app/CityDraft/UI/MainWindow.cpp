@@ -13,6 +13,8 @@ namespace CityDraft::UI
 	{
 		m_Ui.setupUi(this);
 
+		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
+
 		CreateRenderingWidget();
 		CreateStatusBar();
 		spdlog::info("MainWindow created");
@@ -27,7 +29,7 @@ namespace CityDraft::UI
 	{
 		QWidget* placeholder = m_Ui.renderingWidgetPlaceholder;
 
-		m_RenderingWidget = new Rendering::SkiaWidget(this);
+		m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged, this, &MainWindow::OnCursorProjectedPositionChanged);
 

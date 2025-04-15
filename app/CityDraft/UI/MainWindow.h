@@ -7,6 +7,7 @@
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Scene.h"
 #include <qlabel.h>
+#include "CityDraft/Input/Factory.h"
 
 namespace CityDraft::UI
 {
@@ -31,6 +32,9 @@ namespace CityDraft::UI
 
 		// Config
 		QString m_AssetsRootDirectory;
+
+		// Input
+		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
 
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);

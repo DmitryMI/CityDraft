@@ -10,8 +10,11 @@
 
 namespace CityDraft::UI::Rendering
 {
-	SkiaWidget::SkiaWidget(QWidget* parent) : QOpenGLWidget(parent)
+	SkiaWidget::SkiaWidget(std::shared_ptr<CityDraft::Input::IKeyBindingProvider> keyBindingProvider, QWidget* parent) :
+		QOpenGLWidget(parent),
+		m_KeyBindingProvider(keyBindingProvider)
 	{
+		BOOST_ASSERT(m_KeyBindingProvider);
 		m_WidgetLogger = Logging::LogManager::CreateLogger("SkiaWidget");
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
@@ -125,17 +128,29 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mousePressEvent(QMouseEvent* event)
 	{
-		if (event->button() == Qt::LeftButton)
+		if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton())
 		{
-			m_WidgetLogger->debug("LMB Pressed at ({}, {})", event->position().x(), event->position().y());
+			m_WidgetLogger->debug("Selection Button Pressed at ({}, {})", event->position().x(), event->position().y());
+			if (m_MouseAction == MouseAction::NoAction)
+			{
+				m_MouseAction = MouseAction::Selection;
+				m_MouseActionLastPosition = event->position();
+				m_WidgetLogger->debug("Selection Mode Enter");
+			}
 		}
 		else if (event->button() == Qt::RightButton)
 		{
 			m_WidgetLogger->debug("RMB Pressed at ({}, {})", event->position().x(), event->position().y());
 		}
-		else if (event->button() == Qt::MiddleButton)
+		else if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton())
 		{
-			m_WidgetLogger->debug("MMB Pressed at ({}, {})", event->position().x(), event->position().y());
+			m_WidgetLogger->debug("Viewport Panning Button Pressed at ({}, {})", event->position().x(), event->position().y());
+			if (m_MouseAction == MouseAction::NoAction)
+			{
+				m_MouseAction = MouseAction::ViewportPanning;
+				m_MouseActionLastPosition = event->position();
+				m_WidgetLogger->debug("Panning Mode Enter");
+			}
 		}
 		else
 		{
@@ -145,30 +160,30 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
-		if (event->button() == Qt::LeftButton)
+		if (m_MouseAction == MouseAction::ViewportPanning)
 		{
-			m_WidgetLogger->debug("LMB Released at ({}, {})", event->position().x(), event->position().y());
-		}
-		else if (event->button() == Qt::RightButton)
-		{
-			m_WidgetLogger->debug("RMB Released at ({}, {})", event->position().x(), event->position().y());
-		}
-		else if (event->button() == Qt::MiddleButton)
-		{
-			m_WidgetLogger->debug("MMB Released at ({}, {})", event->position().x(), event->position().y());
-		}
-		else
-		{
-			m_WidgetLogger->debug("Unknown Mouse Button Released at ({}, {})", event->position().x(), event->position().y());
+			m_MouseAction = MouseAction::NoAction;
+			m_WidgetLogger->debug("Panning Mode Exit");
 		}
 	}
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		QPointF vieportPos = event->position();
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+		QPointF vieportPos = event->position() - widgetSize;
 		m_CursorProjectedPosition = vieportPos / m_ViewportZoom + QPointF(m_ViewportTranslation.GetX(), m_ViewportTranslation.GetY());
 
 		CursorPositionChanged(m_CursorProjectedPosition);
+
+		if (m_MouseAction == MouseAction::ViewportPanning)
+		{
+			QPointF eventPosition = event->position();
+			QPointF mouseDelta = m_MouseActionLastPosition - eventPosition;
+			Vector2D mouseDeltaScaled = Vector2D(mouseDelta.x(), mouseDelta.y()) / m_ViewportZoom;
+			m_ViewportTranslation += mouseDeltaScaled;
+			m_MouseActionLastPosition = eventPosition;
+			update();
+		}
 	}
 
 	void SkiaWidget::wheelEvent(QWheelEvent* event)
@@ -239,17 +254,22 @@ namespace CityDraft::UI::Rendering
 		SkPaint paint;
 		Transform2D imageTransform = image->GetTransform();
 		Vector2D imageSize = image->GetImageSize() * m_ViewportZoom;
-		Vector2D imageTranslationViewportSpace = imageTransform.Translation - m_ViewportTranslation - imageSize/2;
-		// SkRect destRect = SkRect::MakeIWH(imageSize.GetX(), imageSize.GetY());
+		Vector2D viewportScaledSize = GetViewportProjectedSize();
+		Vector2D imageTranslationViewportSpace = imageTransform.Translation - imageSize/2 - m_ViewportTranslation + viewportScaledSize / 2;
 		canvas->drawImage(skImage, imageTranslationViewportSpace.GetX(), imageTranslationViewportSpace.GetY(), SkSamplingOptions(), &paint);
+	}
+
+	Vector2D SkiaWidget::GetViewportProjectedSize() const
+	{
+		return { size().width() / m_ViewportZoom, size().height() / m_ViewportZoom };
 	}
 
 	AxisAlignedBoundingBox2D SkiaWidget::GetViewportBox() const
 	{
-		Vector2D scaledSize{ size().width() / m_ViewportZoom, size().height() / m_ViewportZoom };
+		Vector2D scaledSize = GetViewportProjectedSize();
 		
-		Vector2D screenMin = m_ViewportTranslation;
-		Vector2D screenMax = m_ViewportTranslation + scaledSize;
+		Vector2D screenMin = m_ViewportTranslation - scaledSize / 2;
+		Vector2D screenMax = m_ViewportTranslation + scaledSize / 2;
 		return AxisAlignedBoundingBox2D(screenMin, screenMax);
 	}
 

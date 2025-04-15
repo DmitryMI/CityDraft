@@ -2,7 +2,7 @@
 
 #include <QMouseEvent>
 
-namespace Input
+namespace CityDraft::Input
 {
 	class IKeyBindingProvider
 	{
