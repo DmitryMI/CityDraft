@@ -4,6 +4,8 @@
 #include "include/gpu/ganesh/GrDirectContext.h"
 #include <QOpenGLExtraFunctions>
 #include <include/core/SkImage.h>
+#include "CityDraft/Utils/ImageLoader.h"
+#include <QPixmap>
 
 namespace CityDraft::Drafts
 {
@@ -19,13 +21,19 @@ namespace CityDraft::Assets
 
 		std::shared_ptr<Drafts::Draft> CreateDraft() override;
 
-		AssetStatus LoadAsset() override;
+		void LoadAssetInternal() override;
 
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
 
 		sk_sp<SkImage> GetGpuImage() const;
+
+		Vector2D GetImageSize() const override;
 	private:
 		sk_sp<SkImage> m_GpuImage;
+		QPixmap m_QtImage;
+
+		void CreateGpuImage(const Utils::StbPixels& stbPixels);
+		void CreateQtImage(const Utils::StbPixels& stbPixels);
 	};
 }

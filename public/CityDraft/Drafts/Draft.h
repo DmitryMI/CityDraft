@@ -6,6 +6,7 @@
 #include "CityDraft/Layer.h"
 #include <string>
 #include <memory>
+#include <boost/signals2.hpp>
 
 namespace CityDraft
 {
@@ -45,12 +46,25 @@ namespace CityDraft::Drafts
 			return m_Transform.Translation;
 		}
 
-		virtual void SetTranslation(const Vector2D& translation);
+		virtual inline void OnAssetLoaded(Assets::Asset* asset, bool loadingOk)
+		{
 
+		}
+
+		virtual void SetTranslation(const Vector2D& translation);
+		
 		inline const Transform2D& GetTransform() const
 		{
 			return m_Transform;
 		}
+
+		inline Scene* GetScene() const
+		{
+			return m_Scene;
+		}
+
+	protected:
+		boost::signals2::connection m_AssetLoadedConnection;
 
 	private:
 		Layer* m_Layer = nullptr;

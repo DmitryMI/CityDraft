@@ -18,20 +18,7 @@ namespace CityDraft::Assets
 
 		Image(const std::filesystem::path& path, AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger);
 
-		FileSystemError GetImageBytes(std::vector<uint8_t>& outBytes) const;
-
-		inline AssetStatus GetStatus() const override
-		{
-			return m_Status;
-		}
-
-		AssetStatus LoadAsset() override;
-
-		Vector2D GetImageSize() const;
-
-	protected:
-		AssetStatus m_Status{ AssetStatus::Initialized};
-		CityDraft::Utils::StbPixels m_Pixels;
-		std::mutex m_ResourceMutex;
+		virtual FileSystemError GetImageBytes(std::vector<uint8_t>& outBytes) const;
+		virtual Vector2D GetImageSize() const = 0;
 	};
 }

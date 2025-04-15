@@ -98,6 +98,13 @@ namespace CityDraft
 			return *this;
 		}
 
+		constexpr Vector2D operator/(double scalar) const
+		{
+			double x = GetX() / scalar;
+			double y = GetY() / scalar;
+			return Vector2D{ x, y };
+		}
+
 		constexpr static bool IsNearlyZero(const Vector2D& a, double tolerance = 1E-9)
 		{
 			return boost::math::ccmath::abs(a.GetX()) < tolerance && boost::math::ccmath::abs(a.GetY()) < tolerance;

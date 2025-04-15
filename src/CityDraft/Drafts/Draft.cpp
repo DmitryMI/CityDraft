@@ -7,6 +7,8 @@ namespace CityDraft::Drafts
 		m_Asset(asset)
 	{
 		BOOST_ASSERT(asset);
+
+		m_AssetLoadedConnection = asset->ConnectToAssetLoadedEvent(std::bind(&Draft::OnAssetLoaded, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool Draft::IsPointInside(const Vector2D& point)

@@ -26,5 +26,25 @@ namespace CityDraft
 		{
 			return Data;
 		}
+
+		constexpr Vector2D GetMin() const
+		{
+			return Data.min_corner();
+		}
+
+		constexpr Vector2D GetMax() const
+		{
+			return Data.max_corner();
+		}
+
+		constexpr Vector2D GetSize() const
+		{
+			return GetMax() - GetMin();
+		}
+
+		constexpr Vector2D GetCenter() const
+		{
+			return (GetMax() + GetMin()) / 2;
+		}
 	};
 }

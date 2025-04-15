@@ -159,7 +159,7 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
+		// m_WidgetLogger->debug("Mouse moved to ({}, {})", event->position().x(), event->position().y());
 	}
 
 	void SkiaWidget::PaintScene()
@@ -172,10 +172,15 @@ namespace CityDraft::UI::Rendering
 		m_ViewportDraftsBuffer.clear();
 
 		auto vieportBox = GetViewportBox();
-
 		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
-		m_WidgetLogger->debug("{} drafts on the viewport", draftsInViewportNum);
 
+		m_WidgetLogger->debug("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
+			vieportBox.GetMin().GetX(),
+			vieportBox.GetMin().GetY(),
+			vieportBox.GetMax().GetX(),
+			vieportBox.GetMax().GetY()
+			);
+		
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
 			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
@@ -205,16 +210,17 @@ namespace CityDraft::UI::Rendering
 		BOOST_ASSERT(canvas);
 		SkPaint paint;
 		Transform2D imageTransform = image->GetTransform();
-		Vector2D imageTranslationViewportSpace = imageTransform.Translation - m_ViewportTranslation;
+		Vector2D imageSize = image->GetImageSize();
+		Vector2D imageTranslationViewportSpace = imageTransform.Translation - m_ViewportTranslation - imageSize/2;
 		canvas->drawImage(skImage, imageTranslationViewportSpace.GetX(), imageTranslationViewportSpace.GetY(), SkSamplingOptions(), &paint);
 	}
 
 	AxisAlignedBoundingBox2D SkiaWidget::GetViewportBox() const
 	{
-		Vector2D scaledHalfSize{ size().width() / 2.0 / m_ViewportZoom, size().height() / 2.0 / m_ViewportZoom };
+		Vector2D scaledSize{ size().width()  / m_ViewportZoom, size().height() / m_ViewportZoom };
 		
-		Vector2D screenMin = m_ViewportTranslation - scaledHalfSize;
-		Vector2D screenMax = m_ViewportTranslation + scaledHalfSize;
+		Vector2D screenMin = m_ViewportTranslation;
+		Vector2D screenMax = m_ViewportTranslation + scaledSize;
 		return AxisAlignedBoundingBox2D(screenMin, screenMax);
 	}
 

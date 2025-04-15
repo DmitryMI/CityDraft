@@ -1,6 +1,5 @@
 #include "SkiaImage.h"
 #include "CityDraft/Assets/AssetManager.h"
-#include "CityDraft/Utils/ImageLoader.h"
 #include "CityDraft/Drafts/SkiaImage.h"
 #include <QOpenGLExtraFunctions>
 #include "include/gpu/ganesh/GrDirectContext.h"
@@ -25,7 +24,7 @@ namespace CityDraft::Assets
 		return std::make_shared<Drafts::SkiaImage>(this);
 	}
 
-	AssetStatus SkiaImage::LoadAsset()
+	void SkiaImage::LoadAssetInternal()
 	{
 		std::lock_guard lock(m_ResourceMutex);
 
@@ -35,53 +34,22 @@ namespace CityDraft::Assets
 		{
 			m_Logger->error("Failed to load asset {}: path does not point to a file", m_AssetUrl.c_str());
 			m_Status = AssetStatus::LoadingFailed;
-			return m_Status;
+			return;
 		}
 
-		m_Pixels = CityDraft::Utils::ImageLoader::LoadImage(path, 4, m_Logger);
-		if (!m_Pixels.IsValid())
+		auto stbPixels = CityDraft::Utils::ImageLoader::LoadImage(path, 4, m_Logger);
+		if (!stbPixels.IsValid())
 		{
 			m_Status = AssetStatus::LoadingFailed;
-			return m_Status;
+			return;
 		}
-
-		m_Logger->info("Read raw pixels from {}. Width: {}, Height: {}, Channels: {}", path.string(), m_Pixels.Width, m_Pixels.Height, m_Pixels.Channels);
-
-		sk_sp<GrDirectContext> skiaContext = GetDirectContext();
-		BOOST_ASSERT(skiaContext);
-		QOpenGLExtraFunctions& gl = GetGlFunctions();
-
-		m_Logger->info("Creating OpenGL texture for {}...", path.string());
-
-		GLuint textureId;
-		gl.glGenTextures(1, &textureId);
-		gl.glBindTexture(GL_TEXTURE_2D, textureId);
-
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Pixels.Width, m_Pixels.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_Pixels.Pixels);
-
-		GrGLTextureInfo textureInfo;
-		textureInfo.fID = textureId;
-		textureInfo.fFormat = GL_RGBA8;
-		textureInfo.fTarget = GL_TEXTURE_2D;
-
-		auto backendTexture = GrBackendTextures::MakeGL(m_Pixels.Width, m_Pixels.Height, skgpu::Mipmapped::kNo, textureInfo);
-
-		m_GpuImage = SkImages::AdoptTextureFrom(skiaContext.get(),
-			backendTexture,
-			GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin,
-			SkColorType::kRGBA_8888_SkColorType,
-			SkAlphaType::kPremul_SkAlphaType
-		);
-		BOOST_ASSERT(m_GpuImage);
-
+		m_Logger->info("Read raw pixels from {}. Width: {}, Height: {}, Channels: {}", path.string(), stbPixels.Width, stbPixels.Height, stbPixels.Channels);
+		CreateGpuImage(stbPixels);
+		CreateQtImage(stbPixels);
+		
 		m_Logger->info("SkiaImage loaded from {}...", path.string());
 		m_Status = AssetStatus::Loaded;
-		return m_Status;
+		return;
 	}
 
 	sk_sp<GrDirectContext> SkiaImage::GetDirectContext() const
@@ -103,5 +71,59 @@ namespace CityDraft::Assets
 	sk_sp<SkImage> SkiaImage::GetGpuImage() const
 	{
 		return m_GpuImage;
+	}
+
+	Vector2D SkiaImage::GetImageSize() const
+	{
+		if (!m_GpuImage)
+		{
+			m_Logger->error("Trying to get size of unloaded image.");
+			return { 0, 0 };
+		}
+		return Vector2D(m_GpuImage->dimensions().fWidth, m_GpuImage->dimensions().fHeight);
+	}
+
+	void SkiaImage::CreateGpuImage(const Utils::StbPixels& stbPixels)
+	{
+		sk_sp<GrDirectContext> skiaContext = GetDirectContext();
+		BOOST_ASSERT(skiaContext);
+		QOpenGLExtraFunctions& gl = GetGlFunctions();
+
+		GLuint textureId;
+		gl.glGenTextures(1, &textureId);
+		gl.glBindTexture(GL_TEXTURE_2D, textureId);
+
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, stbPixels.Width, stbPixels.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, stbPixels.Pixels);
+
+		GrGLTextureInfo textureInfo;
+		textureInfo.fID = textureId;
+		textureInfo.fFormat = GL_RGBA8;
+		textureInfo.fTarget = GL_TEXTURE_2D;
+
+		auto backendTexture = GrBackendTextures::MakeGL(stbPixels.Width, stbPixels.Height, skgpu::Mipmapped::kNo, textureInfo);
+
+		m_GpuImage = SkImages::AdoptTextureFrom(skiaContext.get(),
+			backendTexture,
+			GrSurfaceOrigin::kTopLeft_GrSurfaceOrigin,
+			SkColorType::kRGBA_8888_SkColorType,
+			SkAlphaType::kPremul_SkAlphaType
+		);
+		BOOST_ASSERT(m_GpuImage);
+
+	}
+
+	void SkiaImage::CreateQtImage(const Utils::StbPixels& pixels)
+	{
+		QImage image(pixels.Pixels, pixels.Width, pixels.Height, QImage::Format_RGBA8888);
+
+		// Copy it into a Qt-managed QImage (to avoid dependency on STB memory)
+		QImage copy = image.copy();
+
+		m_QtImage = QPixmap::fromImage(copy);
 	}
 }

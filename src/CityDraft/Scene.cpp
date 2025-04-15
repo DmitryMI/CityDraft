@@ -89,7 +89,7 @@ namespace CityDraft
 
 		auto building2 = building20redAsset->CreateDraft();
 		BOOST_ASSERT(building2);
-		building2->SetTranslation(Vector2D(256, 300));
+		building2->SetTranslation(Vector2D(200, 300));
 
 		auto tower1 = tower2blueAsset->CreateDraft();
 		BOOST_ASSERT(tower1);
@@ -130,7 +130,14 @@ namespace CityDraft
 
 	void Scene::InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj)
 	{
-		m_DraftsRtree.insert(std::make_pair(obj->GetAxisAlignedBoundingBox(), obj));
+		auto bbox = obj->GetAxisAlignedBoundingBox();
+		m_Logger->debug("Inserting Draft [({},{}), ({},{})] to the RTree",
+			bbox.GetMin().GetX(),
+			bbox.GetMin().GetY(),
+			bbox.GetMax().GetX(),
+			bbox.GetMax().GetY()
+			);
+		m_DraftsRtree.insert(std::make_pair(bbox, obj));
 	}
 
 	bool Scene::RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj)
