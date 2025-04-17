@@ -46,6 +46,28 @@ namespace CityDraft::UI::Rendering
 		return m_CursorProjectedPosition;
 	}
 
+	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
+	{
+		m_Canvas->save();
+		m_Canvas->translate(transform.Translation.GetX(), transform.Translation.GetY());
+		m_Canvas->scale(transform.Scale.GetX(), transform.Scale.GetY());
+
+		BOOST_ASSERT(asset);
+		// TODO don't crash on assets with failed resources
+		if (asset->GetStatus() == Assets::AssetStatus::Initialized)
+		{
+			asset->LoadAsset();
+		}
+		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
+
+		if (CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
+		{
+			Paint(imageAsset, transform);
+		}
+
+		m_Canvas->restore();
+	}
+
 	void SkiaWidget::initializeGL()
 	{
 		if (!isValid())
@@ -102,6 +124,8 @@ namespace CityDraft::UI::Rendering
 		{
 			m_SkiaLogger->critical("Failed to create m_SkSurface");
 		}
+
+		m_Canvas = m_SkSurface->getCanvas();
 	}
 
 	void SkiaWidget::paintGL()
@@ -118,8 +142,7 @@ namespace CityDraft::UI::Rendering
 
 		m_GrContext->resetContext(kAll_GrBackendState);
 
-		SkCanvas* canvas = m_SkSurface->getCanvas();
-		canvas->clear(SK_ColorTRANSPARENT);
+		m_Canvas->clear(SK_ColorTRANSPARENT);
 
 		PaintScene();
 
@@ -231,36 +254,26 @@ namespace CityDraft::UI::Rendering
 
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
-			canvas->save();
-
-			canvas->translate(draft->GetTransform().Translation.GetX(), draft->GetTransform().Translation.GetY());
-			canvas->scale(draft->GetTransform().Scale.GetX(), draft->GetTransform().Scale.GetY());
-
-			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
-			if (image)
-			{
-				PaintSkiaImage(canvas, image);
-			}
-			canvas->restore();
+			Paint(draft->GetAsset(), draft->GetTransform());
 		}
 
 		canvas->restore();
 		canvas->resetMatrix();
 	}
 
-	void SkiaWidget::PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image)
-	{
-		CityDraft::Assets::SkiaImage* asset = dynamic_cast<CityDraft::Assets::SkiaImage*>(image->GetAsset());
-		BOOST_ASSERT(asset);
-		// TODO don't crash on assets with failed resources
-		if (asset->GetStatus() == Assets::AssetStatus::Initialized)
-		{
-			asset->LoadAsset();
-		}
-		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
 
-		auto skImage = asset->GetGpuImage();
-		
+	void SkiaWidget::Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform)
+	{
+		BOOST_ASSERT(image);
+		// TODO don't crash on assets with failed resources
+		if (image->GetStatus() == Assets::AssetStatus::Initialized)
+		{
+			image->LoadAsset();
+		}
+		BOOST_ASSERT(image->GetStatus() == Assets::AssetStatus::Loaded);
+
+		auto skImage = image->GetGpuImage();
+
 		Vector2D imageSize = image->GetImageSize();
 
 		SkRect destRect = SkRect::MakeXYWH(
@@ -269,7 +282,7 @@ namespace CityDraft::UI::Rendering
 			imageSize.GetX(),
 			imageSize.GetY()
 		);
-		canvas->drawImageRect(skImage, destRect, SkSamplingOptions());
+		m_Canvas->drawImageRect(skImage, destRect, SkSamplingOptions());
 	}
 
 	Vector2D SkiaWidget::GetViewportProjectedSize() const

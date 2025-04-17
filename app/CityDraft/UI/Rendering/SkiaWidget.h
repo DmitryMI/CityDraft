@@ -2,20 +2,22 @@
 
 
 
+#include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Drafts/SkiaImage.h"
+#include "CityDraft/Input/IKeyBindingProvider.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/Vector2D.h"
 #include "include/core/SkSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
-#include <qopenglwidget.h>
-#include <qopenglextrafunctions.h>
-#include <spdlog/spdlog.h>
+#include "IRenderer.h"
 #include <QMouseEvent>
-#include "CityDraft/Vector2D.h"
-#include "CityDraft/AxisAlignedBoundingBox2D.h"
-#include "CityDraft/Scene.h"
-#include "CityDraft/Drafts/SkiaImage.h"
-#include "CityDraft/Input/IKeyBindingProvider.h"
+#include <qopenglextrafunctions.h>
+#include <qopenglwidget.h>
 #include <QWheelEvent>
+#include <spdlog/spdlog.h>
 
 namespace CityDraft::UI::Rendering
 {
@@ -27,7 +29,7 @@ namespace CityDraft::UI::Rendering
 		ViewportPanning
 	};
 
-	class SkiaWidget : public QOpenGLWidget
+	class SkiaWidget : public QOpenGLWidget, public IRenderer
 	{
 		Q_OBJECT
 
@@ -37,10 +39,12 @@ namespace CityDraft::UI::Rendering
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
 
-		std::shared_ptr<CityDraft::Scene> GetScene() const;
+		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void SetScene(std::shared_ptr<CityDraft::Scene> scene);
 
 		QPointF GetCursorProjectedPosition() const;
+
+		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
 
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
@@ -61,7 +65,7 @@ namespace CityDraft::UI::Rendering
 
 		// Drawing
 		virtual void PaintScene();
-		virtual void PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image);
+		virtual void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
 
 		// Utility
 		Vector2D GetViewportProjectedSize() const;
@@ -71,6 +75,7 @@ namespace CityDraft::UI::Rendering
 		sk_sp<const GrGLInterface> m_GrInterface;
 		sk_sp<GrDirectContext> m_GrContext;
 		sk_sp<SkSurface> m_SkSurface;
+		SkCanvas* m_Canvas;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
 
