@@ -10,6 +10,11 @@ namespace CityDraft::Input::Instruments
 	{
 	}
 
+	Instrument::~Instrument()
+	{
+		
+	}
+
 	void Instrument::OnPaint()
 	{
 	}

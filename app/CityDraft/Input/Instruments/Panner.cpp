@@ -8,6 +8,12 @@ namespace CityDraft::Input::Instruments
 	Panner::Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent):
 		Instrument(keyBindingProvider, renderer, parent)
 	{
+		GetLogger()->debug("Created");
+	}
+
+	Panner::~Panner()
+	{
+		GetLogger()->debug("Destroyed");
 	}
 
 	EventChainAction Panner::OnRendererMouseButton(QMouseEvent* event, bool pressed)

@@ -53,7 +53,7 @@ namespace CityDraft::UI
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
 		void OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
-		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument);
+		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
     };
 
 }

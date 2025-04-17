@@ -4,6 +4,7 @@
 #include "CityDraft/Logging/LogManager.h"
 #include <qstatusbar.h>
 #include "CityDraft/Input/Instruments/Panner.h"
+#include "CityDraft/Input/Instruments/Selector.h"
 #include <algorithm>
 
 namespace CityDraft::UI
@@ -55,11 +56,13 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateStatusBar()
 	{
-		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
-		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
-
 		m_ActiveInstrumentsLabel = new QLabel("[]");
+		m_ActiveInstrumentsLabel->setMinimumWidth(200);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
+
+		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
+		m_CursorProjectedPosition->setMinimumWidth(200);
+		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -107,6 +110,18 @@ namespace CityDraft::UI
 				return;
 			}
 		}
+		else if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton() && pressed)
+		{
+			auto* selector = new CityDraft::Input::Instruments::Selector(m_KeyBindingProvider.get(), m_RenderingWidget, this);
+			m_ActiveInstruments.push_back(selector);
+			UpdateActiveInstrumentsLabel();
+			connect(selector, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+			auto action = selector->OnRendererMouseButton(event, pressed);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
 	}
 
 	void MainWindow::OnRenderingWidgetMouseMoveEvent(QMouseEvent* event)
@@ -127,11 +142,12 @@ namespace CityDraft::UI
 		}
 	}
 
-	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument)
+	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
 		BOOST_ASSERT(instrument);
 		size_t erasedNum = std::erase_if(m_ActiveInstruments, [instrument](const auto& ptr) {return ptr == instrument; });
 		BOOST_ASSERT(erasedNum == 1);
+		instrument->deleteLater();
 		UpdateActiveInstrumentsLabel();
 	}
 

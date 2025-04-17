@@ -8,10 +8,10 @@ namespace CityDraft::Input::Instruments
 	{
 	public:
 		Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent = nullptr);
-
+		virtual ~Panner() override;
 		inline QString GetName() const override
 		{
-			return "Panner";
+			return "Panning";
 		}
 
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
@@ -19,5 +19,7 @@ namespace CityDraft::Input::Instruments
 
 	protected:
 		QPointF m_LastMousePosition;
+
+		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); } ;
 	};
 }

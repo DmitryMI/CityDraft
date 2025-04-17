@@ -28,6 +28,9 @@ set(AppSources
 	"CityDraft/Input/Factory.cpp"
 	"CityDraft/Input/Instruments/Instrument.cpp"
 	"CityDraft/Input/Instruments/Panner.cpp"
+	"CityDraft/Input/Instruments/Selector.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

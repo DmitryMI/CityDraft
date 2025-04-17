@@ -15,7 +15,10 @@ namespace CityDraft::UI::Rendering
 		using MouseMovedSignal = boost::signals2::signal<void(QMouseEvent*)>;
 
 		virtual std::shared_ptr<CityDraft::Scene> GetScene() const = 0;
+
+		// Drawing
 		virtual void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) = 0;
+		virtual void PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) = 0;
 
 		virtual const Vector2D GetViewportCenter() const = 0;
 		virtual double GetViewportZoom() const = 0;

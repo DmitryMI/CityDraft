@@ -7,6 +7,8 @@
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/Assets/SkiaImage.h"
 #include "OpenGlUtils.h"
+#include "SkiaPainters/Image.h"
+#include "SkiaPainters/Rect.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -49,24 +51,22 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
 	{
-		m_Canvas->save();
-		m_Canvas->translate(transform.Translation.GetX(), transform.Translation.GetY());
-		m_Canvas->scale(transform.Scale.GetX(), transform.Scale.GetY());
-
-		BOOST_ASSERT(asset);
-		// TODO don't crash on assets with failed resources
-		if (asset->GetStatus() == Assets::AssetStatus::Initialized)
-		{
-			asset->LoadAsset();
-		}
-		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
-
 		if (CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
 		{
 			Paint(imageAsset, transform);
 		}
+		else
+		{
+			BOOST_ASSERT(false);
+		}
+	}
 
-		m_Canvas->restore();
+	void SkiaWidget::PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
+	{
+		Vector2D min = Project(pixelMin);
+		Vector2D max = Project(pixelMax);
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, color, thickness);
+		PaintOrQueue(painter);
 	}
 
 	const Vector2D SkiaWidget::GetViewportCenter() const
@@ -162,13 +162,28 @@ namespace CityDraft::UI::Rendering
 			return;
 		}
 
+		m_IsGlPainting = true;
+
 		m_GrContext->resetContext(kAll_GrBackendState);
 
 		m_Canvas->clear(SK_ColorTRANSPARENT);
+		m_Canvas->save();
+		m_Canvas->translate(size().width() / 2, size().height() / 2);
+		m_Canvas->scale(m_ViewportZoom, m_ViewportZoom);
+		m_Canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
 
 		PaintScene();
 
+		while (!m_QueuedPainters.empty())
+		{
+			auto painter = m_QueuedPainters.front();
+			m_QueuedPainters.pop();
+			painter->Paint(m_Canvas);
+		}
+
+		m_IsGlPainting = false;
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
+		m_Canvas->restore();
 	}
 
 	void SkiaWidget::mousePressEvent(QMouseEvent* event)
@@ -220,42 +235,28 @@ namespace CityDraft::UI::Rendering
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		BOOST_ASSERT(canvas);
 
-		canvas->save();
-		canvas->translate(size().width() / 2, size().height() / 2);
-		canvas->scale(m_ViewportZoom, m_ViewportZoom);
-		canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
-
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
 			Paint(draft->GetAsset(), draft->GetTransform());
 		}
-
-		canvas->restore();
-		canvas->resetMatrix();
 	}
-
 
 	void SkiaWidget::Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform)
 	{
-		BOOST_ASSERT(image);
-		// TODO don't crash on assets with failed resources
-		if (image->GetStatus() == Assets::AssetStatus::Initialized)
+		auto painter = std::make_shared<SkiaPainters::Image>(image, transform);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter)
+	{
+		if (m_IsGlPainting)
 		{
-			image->LoadAsset();
+			painter->Paint(m_Canvas);
 		}
-		BOOST_ASSERT(image->GetStatus() == Assets::AssetStatus::Loaded);
-
-		auto skImage = image->GetGpuImage();
-
-		Vector2D imageSize = image->GetImageSize();
-
-		SkRect destRect = SkRect::MakeXYWH(
-			-imageSize.GetX() / 2.0f,
-			-imageSize.GetY() / 2.0f,
-			imageSize.GetX(),
-			imageSize.GetY()
-		);
-		m_Canvas->drawImageRect(skImage, destRect, SkSamplingOptions());
+		else
+		{
+			m_QueuedPainters.push(painter);
+		}
 	}
 
 	Vector2D SkiaWidget::GetViewportProjectedSize() const

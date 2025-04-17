@@ -4,7 +4,6 @@
 
 #include "CityDraft/Assets/SkiaImage.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
-#include "CityDraft/Drafts/SkiaImage.h"
 #include "CityDraft/Input/IKeyBindingProvider.h"
 #include "CityDraft/Scene.h"
 #include "CityDraft/Vector2D.h"
@@ -18,6 +17,8 @@
 #include <qopenglwidget.h>
 #include <QWheelEvent>
 #include <spdlog/spdlog.h>
+#include "SkiaPainters/Painter.h"
+#include <queue>
 
 namespace CityDraft::UI::Rendering
 {
@@ -28,6 +29,7 @@ namespace CityDraft::UI::Rendering
 		Selection,
 		ViewportPanning
 	};
+
 
 	class SkiaWidget : public QOpenGLWidget, public IRenderer
 	{
@@ -46,6 +48,7 @@ namespace CityDraft::UI::Rendering
 		// IRenderer
 		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
+		void PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) override;
 		const Vector2D GetViewportCenter() const override;
 		double GetViewportZoom() const override;
 		void SetViewportTransform(const Vector2D& center, double zoom) override;
@@ -70,8 +73,9 @@ namespace CityDraft::UI::Rendering
 		void wheelEvent(QWheelEvent* event) override;
 
 		// Drawing
-		virtual void PaintScene();
-		virtual void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
+		void PaintScene();
+		void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
+		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
 
 		// Utility
 		Vector2D GetViewportProjectedSize() const;
@@ -84,6 +88,7 @@ namespace CityDraft::UI::Rendering
 		SkCanvas* m_Canvas;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
+		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;
 
 		// Loggers
 		std::shared_ptr<spdlog::logger> m_WidgetLogger;
@@ -97,6 +102,9 @@ namespace CityDraft::UI::Rendering
 		double m_ViewportZoom = 1.0;
 		Vector2D m_ViewportCenter{ 0,0 };
 		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
+
+		// State
+		bool m_IsGlPainting = false;
 
 		AxisAlignedBoundingBox2D GetViewportBox() const;
 		void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const;
