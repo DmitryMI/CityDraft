@@ -55,7 +55,7 @@ namespace CityDraft::UI
 		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
 		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
 		BOOST_ASSERT(m_AssetManager);
-		m_AssetManager->LoadAssets(assetsRootPath, true);
+		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
 	}
 
 	void MainWindow::CreateStatusBar()

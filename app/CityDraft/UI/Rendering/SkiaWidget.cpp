@@ -216,7 +216,7 @@ namespace CityDraft::UI::Rendering
 		{
 			m_ViewportZoom = 0.0001;
 		}
-		m_WidgetLogger->debug("Zoom changed to {}", m_ViewportZoom);
+		m_WidgetLogger->trace("Zoom changed to {}", m_ViewportZoom);
 		update();
 	}
 
