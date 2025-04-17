@@ -14,6 +14,8 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 
+#include "Rendering/ImageSelectionWidget.h"
+
 namespace CityDraft::UI
 {
 
@@ -76,6 +78,34 @@ namespace CityDraft::UI
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
+	void MainWindow::CreateImageSelectionWidget()
+	{
+		m_ImageSelectionWidget = new ImageSelectionWidget(this);
+		m_ImageSelectionWidget->setFixedWidth(200);
+
+		std::vector<std::shared_ptr<Assets::Image>> imageAssets;
+
+		for (const auto& image : m_AssetManager->GetInvariantImages()) {
+			imageAssets.push_back(image);
+		}
+		for (const auto& group : m_AssetManager->GetVariantImages()) {
+			for (const auto& imageVariant : group->GetImageVariants()) {
+				imageAssets.push_back(imageVariant);
+			}
+		}
+
+		m_ImageSelectionWidget->loadImagesFromAssets(imageAssets);
+
+		QWidget* placeholder = m_Ui.imageSelectionPlaceholder;
+		auto* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
+
+		const int index = layout->indexOf(placeholder);
+		layout->removeWidget(placeholder);
+		delete placeholder;
+
+		layout->insertWidget(index, m_ImageSelectionWidget);
+	}
+
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
 		auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
@@ -83,6 +113,7 @@ namespace CityDraft::UI
 		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
+		CreateImageSelectionWidget();
 	}
 
 	void MainWindow::CreateStatusBar()

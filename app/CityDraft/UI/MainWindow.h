@@ -20,6 +20,7 @@
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include "CityDraft/Input/ISelectionManager.h"
 #include <set>
+#include "Rendering/ImageSelectionWidget.h"
 
 namespace CityDraft::UI
 {
@@ -44,6 +45,7 @@ namespace CityDraft::UI
 		// Widgets
         Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
+    	ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -67,6 +69,7 @@ namespace CityDraft::UI
 
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
+    	void CreateImageSelectionWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 		void CreateInstruments();
