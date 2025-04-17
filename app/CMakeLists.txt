@@ -26,6 +26,8 @@ set(AppSources
 	"CityDraft/Assets/SkiaImage.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
 	"CityDraft/Input/Factory.cpp"
+	"CityDraft/Input/Instruments/Instrument.cpp"
+	"CityDraft/Input/Instruments/Panner.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

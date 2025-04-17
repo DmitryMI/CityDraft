@@ -34,21 +34,27 @@ namespace CityDraft::UI::Rendering
 		Q_OBJECT
 
 	public:
-		SkiaWidget(std::shared_ptr<CityDraft::Input::IKeyBindingProvider> keyBindingProvider, QWidget* parent = nullptr);
+		SkiaWidget(QWidget* parent = nullptr);
 
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
 
-		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void SetScene(std::shared_ptr<CityDraft::Scene> scene);
 
-		QPointF GetCursorProjectedPosition() const;
+		Vector2D Project(const QPointF& pixelCoord) const;
 
+		// IRenderer
+		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
+		const Vector2D GetViewportCenter() const override;
+		double GetViewportZoom() const override;
+		void SetViewportTransform(const Vector2D& center, double zoom) override;
+		void Repaint() override;
 
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
-		void CursorPositionChanged(const QPointF& projectedPosition);
+		void MouseButtonEvent(QMouseEvent* event, bool pressed);
+		void MouseMoveEvent(QMouseEvent* event);
 
 	protected:
 
@@ -91,12 +97,6 @@ namespace CityDraft::UI::Rendering
 		double m_ViewportZoom = 1.0;
 		Vector2D m_ViewportCenter{ 0,0 };
 		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
-		QPointF m_CursorProjectedPosition;
-
-		// Input
-		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
-		MouseAction m_MouseAction = MouseAction::NoAction;
-		QPointF m_MouseActionLastPosition;
 
 		AxisAlignedBoundingBox2D GetViewportBox() const;
 		void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const;

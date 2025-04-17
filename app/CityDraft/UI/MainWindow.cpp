@@ -3,6 +3,8 @@
 #include <QString>
 #include "CityDraft/Logging/LogManager.h"
 #include <qstatusbar.h>
+#include "CityDraft/Input/Instruments/Panner.h"
+#include <algorithm>
 
 namespace CityDraft::UI
 {
@@ -29,9 +31,10 @@ namespace CityDraft::UI
 	{
 		QWidget* placeholder = m_Ui.renderingWidgetPlaceholder;
 
-		m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
+		m_RenderingWidget = new Rendering::SkiaWidget(this);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
-		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged, this, &MainWindow::OnCursorProjectedPositionChanged);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
 
 		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
 		int index = layout->indexOf(placeholder);
@@ -54,12 +57,82 @@ namespace CityDraft::UI
 	{
 		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
+
+		m_ActiveInstrumentsLabel = new QLabel("[]");
+		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
 	}
 
-	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition)
+	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
-		QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.x(), projectedPosition.y());
+		QString message = "[";
+		
+		for (const auto& instrument : m_ActiveInstruments)
+		{
+			message += instrument->GetName() + ", ";
+		}
+		if (m_ActiveInstruments.size() > 0)
+		{
+			message.removeLast();
+			message.removeLast();
+		}
+		message += "]";
+		m_ActiveInstrumentsLabel->setText(message);
+	}
+
+	void MainWindow::OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed)
+	{
+		BOOST_ASSERT(m_KeyBindingProvider);
+
+		auto activeInstrumentsCopy = m_ActiveInstruments;
+
+		for (auto& instrument : activeInstrumentsCopy)
+		{
+			BOOST_ASSERT(instrument);
+			auto action = instrument->OnRendererMouseButton(event, pressed);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+
+		if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton() && pressed)
+		{
+			auto* panner = new CityDraft::Input::Instruments::Panner(m_KeyBindingProvider.get(), m_RenderingWidget, this);
+			m_ActiveInstruments.push_back(panner);
+			UpdateActiveInstrumentsLabel();
+			connect(panner, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+			auto action = panner->OnRendererMouseButton(event, pressed);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+	}
+
+	void MainWindow::OnRenderingWidgetMouseMoveEvent(QMouseEvent* event)
+	{
+		Vector2D projectedPosition = m_RenderingWidget->Project(event->position());
+		QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.GetX(), projectedPosition.GetY());
 		m_CursorProjectedPosition->setText(msg);
+
+		auto activeInstrumentsCopy = m_ActiveInstruments;
+		for (auto& instrument : activeInstrumentsCopy)
+		{
+			BOOST_ASSERT(instrument);
+			auto action = instrument->OnRendererMouseMove(event);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+	}
+
+	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument)
+	{
+		BOOST_ASSERT(instrument);
+		size_t erasedNum = std::erase_if(m_ActiveInstruments, [instrument](const auto& ptr) {return ptr == instrument; });
+		BOOST_ASSERT(erasedNum == 1);
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)

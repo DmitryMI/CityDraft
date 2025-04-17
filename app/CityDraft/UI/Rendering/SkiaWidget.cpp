@@ -10,11 +10,9 @@
 
 namespace CityDraft::UI::Rendering
 {
-	SkiaWidget::SkiaWidget(std::shared_ptr<CityDraft::Input::IKeyBindingProvider> keyBindingProvider, QWidget* parent) :
-		QOpenGLWidget(parent),
-		m_KeyBindingProvider(keyBindingProvider)
+	SkiaWidget::SkiaWidget(QWidget* parent) :
+		QOpenGLWidget(parent)
 	{
-		BOOST_ASSERT(m_KeyBindingProvider);
 		m_WidgetLogger = Logging::LogManager::CreateLogger("SkiaWidget");
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
@@ -41,9 +39,12 @@ namespace CityDraft::UI::Rendering
 		m_Scene = scene;
 	}
 
-	QPointF SkiaWidget::GetCursorProjectedPosition() const
+	Vector2D SkiaWidget::Project(const QPointF& pixelCoord) const
 	{
-		return m_CursorProjectedPosition;
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+		QPointF viewportPos = pixelCoord - widgetSize;
+		QPointF projected = viewportPos / m_ViewportZoom + QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
+		return Vector2D(projected.x(), projected.y());
 	}
 
 	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
@@ -66,6 +67,27 @@ namespace CityDraft::UI::Rendering
 		}
 
 		m_Canvas->restore();
+	}
+
+	const Vector2D SkiaWidget::GetViewportCenter() const
+	{
+		return m_ViewportCenter;
+	}
+
+	double SkiaWidget::GetViewportZoom() const
+	{
+		return m_ViewportZoom;
+	}
+
+	void SkiaWidget::SetViewportTransform(const Vector2D& center, double zoom)
+	{
+		m_ViewportCenter = center;
+		m_ViewportZoom = zoom;
+	}
+
+	void SkiaWidget::Repaint()
+	{
+		update();
 	}
 
 	void SkiaWidget::initializeGL()
@@ -151,66 +173,17 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::mousePressEvent(QMouseEvent* event)
 	{
-		if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton())
-		{
-			m_WidgetLogger->debug("Selection Button Pressed at ({}, {})", event->position().x(), event->position().y());
-			if (m_MouseAction == MouseAction::NoAction)
-			{
-				m_MouseAction = MouseAction::Selection;
-				m_MouseActionLastPosition = event->position();
-				m_WidgetLogger->debug("Selection Mode Enter");
-			}
-		}
-		else if (event->button() == Qt::RightButton)
-		{
-			m_WidgetLogger->debug("RMB Pressed at ({}, {})", event->position().x(), event->position().y());
-		}
-		else if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton())
-		{
-			m_WidgetLogger->debug("Viewport Panning Button Pressed at ({}, {})", event->position().x(), event->position().y());
-			if (m_MouseAction == MouseAction::NoAction)
-			{
-				m_MouseAction = MouseAction::ViewportPanning;
-				m_MouseActionLastPosition = event->position();
-				m_WidgetLogger->debug("Panning Mode Enter");
-			}
-		}
-		else
-		{
-			m_WidgetLogger->debug("Unknown Mouse Button Pressed at ({}, {})", event->position().x(), event->position().y());
-		}
+		emit MouseButtonEvent(event, true);
 	}
 
 	void SkiaWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
-		if (m_MouseAction == MouseAction::ViewportPanning)
-		{
-			m_MouseAction = MouseAction::NoAction;
-			m_WidgetLogger->debug("Panning Mode Exit");
-		}
-		else
-		{
-			m_MouseAction = MouseAction::NoAction;
-		}
+		emit MouseButtonEvent(event, false);
 	}
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
-		QPointF viewportPos = event->position() - widgetSize;
-		m_CursorProjectedPosition = viewportPos / m_ViewportZoom + QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
-
-		CursorPositionChanged(m_CursorProjectedPosition);
-
-		if (m_MouseAction == MouseAction::ViewportPanning)
-		{
-			QPointF eventPosition = event->position();
-			QPointF mouseDelta = m_MouseActionLastPosition - eventPosition;
-			Vector2D mouseDeltaScaled = Vector2D(mouseDelta.x(), mouseDelta.y()) / m_ViewportZoom;
-			m_ViewportCenter += mouseDeltaScaled;
-			m_MouseActionLastPosition = eventPosition;
-			update();
-		}
+		emit MouseMoveEvent(event);
 	}
 
 	void SkiaWidget::wheelEvent(QWheelEvent* event)
