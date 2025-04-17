@@ -65,6 +65,11 @@ namespace CityDraft::UI::Rendering
 	{
 		Vector2D min = Project(pixelMin);
 		Vector2D max = Project(pixelMax);
+		PaintRect(min, max, color, thickness);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness)
+	{
 		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, color, thickness);
 		PaintOrQueue(painter);
 	}
@@ -181,6 +186,8 @@ namespace CityDraft::UI::Rendering
 			painter->Paint(m_Canvas);
 		}
 
+		emit GraphicsPainting(this);
+
 		m_IsGlPainting = false;
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
 		m_Canvas->restore();
@@ -225,7 +232,7 @@ namespace CityDraft::UI::Rendering
 		auto vieportBox = GetViewportBox();
 		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
 
-		m_WidgetLogger->debug("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
+		m_WidgetLogger->trace("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
 			vieportBox.GetMin().GetX(),
 			vieportBox.GetMin().GetY(),
 			vieportBox.GetMax().GetX(),

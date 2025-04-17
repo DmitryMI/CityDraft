@@ -11,6 +11,10 @@
 #include <qlabel.h>
 #include <QtWidgets/QMainWindow>
 #include "CityDraft/Input/Instruments/Instrument.h"
+#include "CityDraft/Input/Instruments/Selector.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include <set>
+#include <spdlog/spdlog.h>
 
 namespace CityDraft::UI
 {
@@ -23,6 +27,7 @@ namespace CityDraft::UI
         virtual ~MainWindow();
 
     private:
+		std::shared_ptr<spdlog::logger> m_Logger;
 
 		// Widgets
         Ui::MainWindow m_Ui;
@@ -46,11 +51,21 @@ namespace CityDraft::UI
 
 	private:
 		std::list<CityDraft::Input::Instruments::Instrument*> m_ActiveInstruments;
+		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
 
 		void UpdateActiveInstrumentsLabel();
+		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
+		void HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color);
+
+		// Selection
+		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
+		void VisualizeOngoingSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
+		void VisualizeSelection();
+		void FinishSelection(CityDraft::Input::Instruments::Selector* selector);
 
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
+		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);
 		void OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);

@@ -5,6 +5,7 @@
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/UI/Rendering/IRenderer.h"
 #include <QColor>
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
 
 namespace CityDraft::Input::Instruments
 {
@@ -31,6 +32,7 @@ namespace CityDraft::Input::Instruments
 		if (pressed)
 		{
 			m_FirstMousePosition = event->position();
+			m_LastMousePosition = event->position();
 		}
 		else
 		{
@@ -48,6 +50,17 @@ namespace CityDraft::Input::Instruments
 		BOOST_ASSERT(m_Renderer);
 		m_Renderer->PaintRect(m_FirstMousePosition, currentPosition, QColor(66, 133, 244), 1);
 		m_Renderer->Repaint();
+		m_LastMousePosition = currentPosition;
 		return EventChainAction::Next;
+	}
+
+	AxisAlignedBoundingBox2D Selector::GetProjectedSelectionBox() const
+	{
+		Vector2D first = m_Renderer->Project(m_FirstMousePosition);
+		Vector2D second = m_Renderer->Project(m_LastMousePosition);
+		Vector2D min{ fmin(first.GetX(), second.GetX()), fmin(first.GetY(), second.GetY()) };
+		Vector2D max{ fmax(first.GetX(), second.GetX()), fmax(first.GetY(), second.GetY()) };
+		AxisAlignedBoundingBox2D bbox{ min, max };
+		return bbox;
 	}
 }

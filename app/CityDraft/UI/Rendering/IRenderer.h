@@ -19,10 +19,13 @@ namespace CityDraft::UI::Rendering
 		// Drawing
 		virtual void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) = 0;
 		virtual void PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) = 0;
+		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness) = 0;
+		virtual void Repaint() = 0;
 
+		// Model
+		virtual Vector2D Project(const QPointF& pixelCoord) const = 0;
 		virtual const Vector2D GetViewportCenter() const = 0;
 		virtual double GetViewportZoom() const = 0;
 		virtual void SetViewportTransform(const Vector2D& center, double zoom) = 0;
-		virtual void Repaint() = 0;
 	};
 }

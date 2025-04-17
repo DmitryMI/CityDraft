@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Instrument.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
 
 namespace CityDraft::Input::Instruments
 {
@@ -17,8 +18,11 @@ namespace CityDraft::Input::Instruments
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
 
+		AxisAlignedBoundingBox2D GetProjectedSelectionBox() const;
+
 	protected:
 		QPointF m_FirstMousePosition;
+		QPointF m_LastMousePosition;
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); };
 	};
