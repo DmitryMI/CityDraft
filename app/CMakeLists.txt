@@ -71,4 +71,8 @@ qt_generate_deploy_app_script(
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 
+if(MSVC)
+	target_compile_options(CityDraft PUBLIC /EHa)
+endif()
+
 install(SCRIPT ${deploy_script})
