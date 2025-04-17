@@ -1,3 +1,5 @@
 .vs
 out
 CMakeUserPresets.json
+cmake-build-debug
+.idea

@@ -8,6 +8,7 @@
 #include "CityDraft/Scene.h"
 #include <qlabel.h>
 #include "CityDraft/Input/Factory.h"
+#include "Rendering/ImageSelectionWidget.h"
 
 namespace CityDraft::UI
 {
@@ -24,6 +25,7 @@ namespace CityDraft::UI
 		// Widgets
         Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
+    	ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 
 		// CityDraft Objects
@@ -37,6 +39,7 @@ namespace CityDraft::UI
 		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
 
 		void CreateRenderingWidget();
+    	void CreateImageSelectionWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 

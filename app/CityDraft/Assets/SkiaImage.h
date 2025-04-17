@@ -27,7 +27,7 @@ namespace CityDraft::Assets
 		QOpenGLExtraFunctions& GetGlFunctions();
 
 		sk_sp<SkImage> GetGpuImage() const;
-
+		const QPixmap& GetPixmap() const;
 		Vector2D GetImageSize() const override;
 	private:
 		sk_sp<SkImage> m_GpuImage;

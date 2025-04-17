@@ -21,6 +21,7 @@ set(AppSources
 	"CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
+	"CityDraft/UI/Rendering/ImageSelectionWidget.cpp"
 	"CityDraft/Logging/LogManager.cpp"
 	"CityDraft/Assets/SkiaAssetManager.cpp"
 	"CityDraft/Assets/SkiaImage.cpp"

@@ -73,6 +73,11 @@ namespace CityDraft::Assets
 		return m_GpuImage;
 	}
 
+	const QPixmap& SkiaImage::GetPixmap() const
+	{
+		return m_QtImage;
+	}
+
 	Vector2D SkiaImage::GetImageSize() const
 	{
 		if (!m_GpuImage)
