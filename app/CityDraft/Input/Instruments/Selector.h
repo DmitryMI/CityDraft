@@ -8,7 +8,7 @@ namespace CityDraft::Input::Instruments
 	class Selector : public Instrument
 	{
 	public:
-		Selector(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
+		Selector(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
 		virtual ~Selector() override;
 		inline QString GetName() const override
 		{

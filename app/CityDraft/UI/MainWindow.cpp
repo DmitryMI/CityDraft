@@ -25,7 +25,6 @@ namespace CityDraft::UI
 
 		CreateRenderingWidget();
 		CreateStatusBar();
-		CreateInstruments();
 
 		m_Logger->info("MainWindow created");
 	}
@@ -76,7 +75,7 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateStatusBar()
 	{
-		m_ActiveInstrumentsLabel = new QLabel("[]");
+		m_ActiveInstrumentsLabel = new QLabel("");
 		m_ActiveInstrumentsLabel->setMinimumWidth(200);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
 
@@ -94,10 +93,21 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateInstruments()
 	{
+		BOOST_ASSERT(m_Scene);
+		for (auto* instrument : m_ActiveInstruments)
+		{
+			DeactivateInstrument(instrument);
+		}
+		for (auto* instrument : m_InactiveInstruments)
+		{
+			instrument->deleteLater();
+		}
+		m_InactiveInstruments.clear();
+
 		m_InactiveInstruments.push_back(
-			new CityDraft::Input::Instruments::Selector(m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+			new CityDraft::Input::Instruments::Selector(m_Scene.get(), m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
 		m_InactiveInstruments.push_back(
-			new CityDraft::Input::Instruments::Panner(m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+			new CityDraft::Input::Instruments::Panner(m_Scene.get(), m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
 
 		for (auto* instrument : m_InactiveInstruments)
 		{
@@ -107,7 +117,7 @@ namespace CityDraft::UI
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
-		QString message = "[";
+		QString message = "";
 		
 		for (const auto& instrument : m_ActiveInstruments)
 		{
@@ -118,7 +128,6 @@ namespace CityDraft::UI
 			message.removeLast();
 			message.removeLast();
 		}
-		message += "]";
 		m_ActiveInstrumentsLabel->setText(message);
 	}
 
@@ -276,6 +285,7 @@ namespace CityDraft::UI
 
 		m_Scene = Scene::LoadSceneFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
 		m_RenderingWidget->SetScene(m_Scene);
+		CreateInstruments();
 	}
 
 }

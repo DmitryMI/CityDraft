@@ -3,12 +3,14 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Instrument::Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent) :
+	Instrument::Instrument(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent) :
+		m_Scene(scene),
 		m_KeyBindingProvider(keyBindingProvider),
 		m_Renderer(renderer),
 		m_UndoStack(undoStack),
 		QObject(parent)
 	{
+		BOOST_ASSERT(scene);
 		BOOST_ASSERT(m_KeyBindingProvider);
 		BOOST_ASSERT(m_Renderer);
 		BOOST_ASSERT(m_UndoStack);

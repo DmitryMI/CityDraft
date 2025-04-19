@@ -5,8 +5,8 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Panner::Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent):
-		Instrument(keyBindingProvider, renderer, undoStack, parent)
+	Panner::Panner(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent):
+		Instrument(scene, keyBindingProvider, renderer, undoStack, parent)
 	{
 		GetLogger()->debug("Created");
 	}

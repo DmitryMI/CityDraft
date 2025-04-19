@@ -19,6 +19,11 @@ namespace CityDraft::Input
 	class IKeyBindingProvider;
 }
 
+namespace CityDraft
+{
+	class Scene;
+}
+
 
 namespace CityDraft::Input::Instruments
 {
@@ -40,7 +45,7 @@ namespace CityDraft::Input::Instruments
 	{
 		Q_OBJECT;
 	public:
-		Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
+		Instrument(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
 		virtual ~Instrument();
 		virtual QString GetName() const = 0;
 		virtual void OnPaint();
@@ -56,6 +61,7 @@ namespace CityDraft::Input::Instruments
 		void Finished(Instrument* instrument, FinishStatus status = FinishStatus::Ok);
 
 	protected:
+		CityDraft::Scene* m_Scene = nullptr;
 		IKeyBindingProvider* m_KeyBindingProvider = nullptr;
 		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
 		QUndoStack* m_UndoStack = nullptr;
