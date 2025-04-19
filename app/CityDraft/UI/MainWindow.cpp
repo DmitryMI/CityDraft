@@ -108,6 +108,7 @@ namespace CityDraft::UI
 
 		CityDraft::Input::Instruments::InstrumentDependencies dependencies;
 		dependencies.Scene = m_Scene.get();
+		dependencies.SelectionManager = this;
 		dependencies.KeyBindingProvider = m_KeyBindingProvider.get();
 		dependencies.ColorsProvider = m_ColorsProvider.get();
 		dependencies.Parent = this;
@@ -186,16 +187,22 @@ namespace CityDraft::UI
 
 	}
 
-	void MainWindow::FinishSelection(CityDraft::Input::Instruments::Selector* selector)
+	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
 	{
-		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		selector->GetSelectedDrafts(drafts);
+		return m_SelectedDrafts;
+	}
+
+	void MainWindow::ClearSelectedDrafts()
+	{
+		m_SelectedDrafts.clear();
+	}
+
+	void MainWindow::AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
+	{
 		for (const auto& draft : drafts)
 		{
 			m_SelectedDrafts.insert(draft);
 		}
-
-		m_Logger->info("Selected {} drafts", m_SelectedDrafts.size());
 	}
 
 	void MainWindow::OnGraphicsPainting(UI::Rendering::SkiaWidget* widget)
@@ -256,10 +263,6 @@ namespace CityDraft::UI
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
 		BOOST_ASSERT(instrument);
-		if (auto* selector = dynamic_cast<CityDraft::Input::Instruments::Selector*>(instrument))
-		{
-			FinishSelection(selector);
-		}
 		m_Logger->info("{} finished", instrument->GetName().toStdString());
 
 		DeactivateInstrument(instrument);

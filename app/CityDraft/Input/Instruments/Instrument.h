@@ -22,6 +22,7 @@ namespace CityDraft::UI::Colors
 namespace CityDraft::Input
 {
 	class IKeyBindingProvider;
+	class ISelectionManager;
 }
 
 namespace CityDraft
@@ -48,6 +49,7 @@ namespace CityDraft::Input::Instruments
 	struct InstrumentDependencies
 	{
 		CityDraft::Scene* Scene;
+		CityDraft::Input::ISelectionManager* SelectionManager;
 		CityDraft::Input::IKeyBindingProvider* KeyBindingProvider;
 		CityDraft::UI::Colors::IColorsProvider* ColorsProvider;
 		CityDraft::UI::Rendering::IRenderer* Renderer;
@@ -76,6 +78,7 @@ namespace CityDraft::Input::Instruments
 
 	protected:
 		CityDraft::Scene* m_Scene = nullptr;
+		CityDraft::Input::ISelectionManager* m_SelectionManager;
 		IKeyBindingProvider* m_KeyBindingProvider = nullptr;
 		CityDraft::UI::Colors::IColorsProvider* m_ColorsProvider;
 		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;

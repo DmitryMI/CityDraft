@@ -18,16 +18,22 @@
 #include <QUndoStack>
 #include <QMenu>
 #include "CityDraft/UI/Colors/IColorsProvider.h"
+#include "CityDraft/Input/ISelectionManager.h"
 
 namespace CityDraft::UI
 {
-    class MainWindow : public QMainWindow
+    class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
     {
         Q_OBJECT
 
     public:
         MainWindow(const QString& assetsRoot, QWidget* parent = nullptr);
         virtual ~MainWindow();
+
+		// ISelectionManager
+		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
+		void ClearSelectedDrafts() override;
+		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
 
     private:
 		std::shared_ptr<spdlog::logger> m_Logger;
@@ -101,7 +107,7 @@ namespace CityDraft::UI
 		// Selection
 		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
 		void VisualizeSelection();
-		void FinishSelection(CityDraft::Input::Instruments::Selector* selector);
+		
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;

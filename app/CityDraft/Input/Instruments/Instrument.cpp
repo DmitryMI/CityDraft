@@ -5,6 +5,7 @@ namespace CityDraft::Input::Instruments
 {
 	Instrument::Instrument(const InstrumentDependencies& dependencies) :
 		m_Scene(dependencies.Scene),
+		m_SelectionManager(dependencies.SelectionManager),
 		m_KeyBindingProvider(dependencies.KeyBindingProvider),
 		m_ColorsProvider(dependencies.ColorsProvider),
 		m_Renderer(dependencies.Renderer),
@@ -12,6 +13,7 @@ namespace CityDraft::Input::Instruments
 		QObject(dependencies.Parent)
 	{
 		BOOST_ASSERT(m_Scene);
+		BOOST_ASSERT(m_SelectionManager);
 		BOOST_ASSERT(m_KeyBindingProvider);
 		BOOST_ASSERT(m_ColorsProvider);
 		BOOST_ASSERT(m_Renderer);

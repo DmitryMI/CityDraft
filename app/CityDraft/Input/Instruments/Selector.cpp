@@ -7,6 +7,7 @@
 #include <QColor>
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
+#include "CityDraft/Input/ISelectionManager.h"
 
 namespace CityDraft::Input::Instruments
 {
@@ -39,6 +40,14 @@ namespace CityDraft::Input::Instruments
 		else
 		{
 			m_Renderer->Repaint();
+			const auto& bbox = GetProjectedSelectionBox();
+			std::vector<std::shared_ptr<Drafts::Draft>> drafts;
+			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+			if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
+			{
+				m_SelectionManager->GetSelectedDrafts();
+			}
+			m_SelectionManager->AddDraftsToSelection(drafts);
 			emit Finished(this);
 		}
 

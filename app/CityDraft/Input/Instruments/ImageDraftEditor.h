@@ -22,5 +22,8 @@ namespace CityDraft::Input::Instruments
 	protected:
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("ImageDraftEditor"); };
+
+	private:
+
 	};
 }
