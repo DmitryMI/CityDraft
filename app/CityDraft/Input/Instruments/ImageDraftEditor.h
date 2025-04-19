@@ -37,6 +37,7 @@ namespace CityDraft::Input::Instruments
 	private:
 		Tool m_Tool = Tool::None;
 		bool m_ToolInUse = false;
+		QPointF m_FirstPoint;
 		QPointF m_PreviousPoint;
 
 		void PaintRotatorCircle();

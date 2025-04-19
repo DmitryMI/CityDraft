@@ -125,5 +125,33 @@ namespace CityDraft
 		{
 			return !(*this - b).IsNearlyZero();
 		}
+
+		constexpr double GetSizeSquared() const
+		{
+			return GetX() * GetX() + GetY() * GetY();
+		}
+
+		inline double GetSize() const
+		{
+			return sqrt(GetSizeSquared());
+		}
+
+		constexpr static double Dot(const Vector2D& a, const Vector2D& b)
+		{
+			return a.GetX() * b.GetX() + a.GetY() * b.GetY();
+		}
+
+		constexpr static double Cross(const Vector2D& a, const Vector2D& b)
+		{
+			return a.GetX() * b.GetY() - a.GetY() * b.GetX();
+		}
+
+		static inline double GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
+		{
+			double dot = Dot(a, b);
+			double cross = Cross(a, b);
+			double angle = std::atan2(cross, dot);
+			return angle;
+		}
 	};
 }

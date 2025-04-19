@@ -27,6 +27,7 @@ namespace CityDraft::Input::Instruments
 			{
 				m_ToolInUse = true;
 				m_PreviousPoint = event->position();
+				m_FirstPoint = m_PreviousPoint;
 				return EventChainAction::Stop;
 			}
 		}
@@ -52,6 +53,7 @@ namespace CityDraft::Input::Instruments
 			DetectTransformationTool(event);
 			m_Renderer->Repaint();
 			m_PreviousPoint = event->position();
+			m_FirstPoint = m_PreviousPoint;
 			return EventChainAction::Next;
 		}
 
@@ -208,6 +210,17 @@ namespace CityDraft::Input::Instruments
 
 	void ImageDraftEditor::Rotate(QMouseEvent* event)
 	{
+		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
+
+		Vector2D center = bbox.GetCenter();
+		Vector2D first = m_Renderer->Project(m_PreviousPoint);
+		Vector2D second = m_Renderer->Project(event->position());
+
+		Vector2D v1 = first - center;
+		Vector2D v2 = second - center;
+		
+		double angle = Vector2D::GetAngleBetweenPoints(v1, v2);
+		GetLogger()->info("Angle: {}", angle * 180.0 / M_PI);
 	}
 
 	void ImageDraftEditor::Scale(QMouseEvent* event)
