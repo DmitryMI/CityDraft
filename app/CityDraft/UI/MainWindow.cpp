@@ -7,6 +7,7 @@
 #include "CityDraft/Input/Instruments/Selector.h"
 #include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/UI/Colors/Factory.h"
 
 namespace CityDraft::UI
 {
@@ -22,6 +23,7 @@ namespace CityDraft::UI
 		CreateUndoRedoStack(m_EditMenu);
 		
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
+		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
 		CreateStatusBar();
@@ -104,10 +106,18 @@ namespace CityDraft::UI
 		}
 		m_InactiveInstruments.clear();
 
+		CityDraft::Input::Instruments::InstrumentDependencies dependencies;
+		dependencies.Scene = m_Scene.get();
+		dependencies.KeyBindingProvider = m_KeyBindingProvider.get();
+		dependencies.ColorsProvider = m_ColorsProvider.get();
+		dependencies.Parent = this;
+		dependencies.UndoStack = m_UndoStack;
+		dependencies.Renderer = m_RenderingWidget;
+
 		m_InactiveInstruments.push_back(
-			new CityDraft::Input::Instruments::Selector(m_Scene.get(), m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+			new CityDraft::Input::Instruments::Selector(dependencies));
 		m_InactiveInstruments.push_back(
-			new CityDraft::Input::Instruments::Panner(m_Scene.get(), m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+			new CityDraft::Input::Instruments::Panner(dependencies));
 
 		for (auto* instrument : m_InactiveInstruments)
 		{
@@ -145,17 +155,6 @@ namespace CityDraft::UI
 		}
 	}
 
-	void MainWindow::HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color)
-	{
-		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		m_Scene->QueryDraftsOnAllLayers(box, drafts);
-		for (const auto& draft : drafts)
-		{
-			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_RenderingWidget->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), color, 1);
-		}
-	}
-
 	void MainWindow::DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
 	{
 		BOOST_ASSERT(instrument);
@@ -177,12 +176,6 @@ namespace CityDraft::UI
 		}
 	}
 
-	void MainWindow::VisualizeOngoingSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector)
-	{
-		auto selectionBox = selector->GetProjectedSelectionBox();
-		HighlightDraftsInBox(selectionBox, QColor(255, 191, 0, 153));
-	}
-
 	void MainWindow::VisualizeSelection()
 	{
 		for (const auto& draft : m_SelectedDrafts)
@@ -195,9 +188,8 @@ namespace CityDraft::UI
 
 	void MainWindow::FinishSelection(CityDraft::Input::Instruments::Selector* selector)
 	{
-		auto selectionBox = selector->GetProjectedSelectionBox();
 		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		m_Scene->QueryDraftsOnAllLayers(selectionBox, drafts);
+		selector->GetSelectedDrafts(drafts);
 		for (const auto& draft : drafts)
 		{
 			m_SelectedDrafts.insert(draft);
@@ -209,6 +201,10 @@ namespace CityDraft::UI
 	void MainWindow::OnGraphicsPainting(UI::Rendering::SkiaWidget* widget)
 	{
 		VisualizeSelection();
+		for (const auto& instrument : m_ActiveInstruments)
+		{
+			instrument->OnPaint();
+		}
 	}
 
 	void MainWindow::OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed)
@@ -255,14 +251,6 @@ namespace CityDraft::UI
 		m_CursorProjectedPosition->setText(msg);
 
 		ProcessInstrumentsMouseMoveEvent(event);
-
-		for (const auto& instrument : m_ActiveInstruments)
-		{
-			if (auto* selector = dynamic_cast<CityDraft::Input::Instruments::Selector*>(instrument))
-			{
-				VisualizeOngoingSelection(event, selector);
-			}
-		}
 	}
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)

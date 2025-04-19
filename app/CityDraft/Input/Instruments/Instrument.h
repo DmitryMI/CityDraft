@@ -14,6 +14,11 @@ namespace CityDraft::UI::Rendering
 	class IRenderer;
 }
 
+namespace CityDraft::UI::Colors
+{
+	class IColorsProvider;
+}
+
 namespace CityDraft::Input
 {
 	class IKeyBindingProvider;
@@ -23,7 +28,6 @@ namespace CityDraft
 {
 	class Scene;
 }
-
 
 namespace CityDraft::Input::Instruments
 {
@@ -41,11 +45,21 @@ namespace CityDraft::Input::Instruments
 		Error
 	};
 
+	struct InstrumentDependencies
+	{
+		CityDraft::Scene* Scene;
+		CityDraft::Input::IKeyBindingProvider* KeyBindingProvider;
+		CityDraft::UI::Colors::IColorsProvider* ColorsProvider;
+		CityDraft::UI::Rendering::IRenderer* Renderer;
+		QUndoStack* UndoStack;
+		QObject* Parent;
+	};
+
 	class Instrument : public QObject
 	{
 		Q_OBJECT;
 	public:
-		Instrument(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
+		Instrument(const InstrumentDependencies& dependencies);
 		virtual ~Instrument();
 		virtual QString GetName() const = 0;
 		virtual void OnPaint();
@@ -54,7 +68,7 @@ namespace CityDraft::Input::Instruments
 
 		void SetRenderer(CityDraft::UI::Rendering::IRenderer* renderer);
 		CityDraft::UI::Rendering::IRenderer* GetRenderer() const;
-		virtual void SetActive(bool active);
+		void SetActive(bool active);
 		bool IsActive() const;
 
 	signals:
@@ -63,6 +77,7 @@ namespace CityDraft::Input::Instruments
 	protected:
 		CityDraft::Scene* m_Scene = nullptr;
 		IKeyBindingProvider* m_KeyBindingProvider = nullptr;
+		CityDraft::UI::Colors::IColorsProvider* m_ColorsProvider;
 		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
 		QUndoStack* m_UndoStack = nullptr;
 		bool m_IsActive = false;
@@ -71,5 +86,7 @@ namespace CityDraft::Input::Instruments
 		{
 			return CityDraft::Logging::LogManager::CreateLogger("Instrument");
 		};
+
+		virtual inline void OnActiveFlagChanged() {};
 	};
 }

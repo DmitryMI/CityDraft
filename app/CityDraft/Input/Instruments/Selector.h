@@ -2,13 +2,14 @@
 
 #include "Instrument.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Drafts/Draft.h"
 
 namespace CityDraft::Input::Instruments
 {
 	class Selector : public Instrument
 	{
 	public:
-		Selector(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
+		Selector(const InstrumentDependencies& dependencies);
 		virtual ~Selector() override;
 		inline QString GetName() const override
 		{
@@ -17,8 +18,10 @@ namespace CityDraft::Input::Instruments
 
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
+		void OnPaint() override;
 
 		AxisAlignedBoundingBox2D GetProjectedSelectionBox() const;
+		size_t GetSelectedDrafts(std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts) const;
 
 	protected:
 		QPointF m_FirstMousePosition;

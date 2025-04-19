@@ -6,11 +6,12 @@
 #include "CityDraft/UI/Rendering/IRenderer.h"
 #include <QColor>
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/UI/Colors/IColorsProvider.h"
 
 namespace CityDraft::Input::Instruments
 {
-	Selector::Selector(CityDraft::Scene* scene, IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent):
-		Instrument(scene, keyBindingProvider, renderer, undoStack, parent)
+	Selector::Selector(const InstrumentDependencies& dependencies):
+		Instrument(dependencies)
 	{
 		GetLogger()->debug("Created");
 	}
@@ -57,6 +58,18 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Next;
 	}
 
+	void Selector::OnPaint()
+	{
+		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
+		AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
+		m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+		for (const auto& draft : drafts)
+		{
+			auto draftBbox = draft->GetAxisAlignedBoundingBox();
+			m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1);
+		}
+	}
+
 	AxisAlignedBoundingBox2D Selector::GetProjectedSelectionBox() const
 	{
 		Vector2D first = m_Renderer->Project(m_FirstMousePosition);
@@ -65,5 +78,14 @@ namespace CityDraft::Input::Instruments
 		Vector2D max{ fmax(first.GetX(), second.GetX()), fmax(first.GetY(), second.GetY()) };
 		AxisAlignedBoundingBox2D bbox{ min, max };
 		return bbox;
+	}
+
+	size_t Selector::GetSelectedDrafts(std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts) const
+	{
+		size_t draftsNum = drafts.size();
+		AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
+		m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+
+		return drafts.size() - draftsNum;
 	}
 }

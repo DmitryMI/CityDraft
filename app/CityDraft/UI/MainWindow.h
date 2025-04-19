@@ -17,6 +17,7 @@
 #include <spdlog/spdlog.h>
 #include <QUndoStack>
 #include <QMenu>
+#include "CityDraft/UI/Colors/IColorsProvider.h"
 
 namespace CityDraft::UI
 {
@@ -44,6 +45,7 @@ namespace CityDraft::UI
 
 		// Config
 		QString m_AssetsRootDirectory;
+		std::shared_ptr<CityDraft::UI::Colors::IColorsProvider> m_ColorsProvider;
 
 		// Input
 		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
@@ -98,10 +100,8 @@ namespace CityDraft::UI
 		
 		// Selection
 		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
-		void VisualizeOngoingSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
 		void VisualizeSelection();
 		void FinishSelection(CityDraft::Input::Instruments::Selector* selector);
-		void HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color);
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;
