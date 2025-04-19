@@ -18,7 +18,8 @@ namespace CityDraft::UI
 		m_Ui.setupUi(this);
 
 		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
-		m_UndoStack = new QUndoStack(this);
+		CreateMenuBar();
+		CreateUndoRedoStack(m_EditMenu);
 		
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
 
@@ -32,6 +33,18 @@ namespace CityDraft::UI
 	MainWindow::~MainWindow()
 	{
 		
+	}
+
+	void MainWindow::CreateUndoRedoStack(QMenu* menu)
+	{
+		BOOST_ASSERT(menu);
+		m_UndoStack = new QUndoStack(this);
+		QAction* undoAction = m_UndoStack->createUndoAction(this, tr("&Undo"));
+		QAction* redoAction = m_UndoStack->createRedoAction(this, tr("&Redo"));
+		menu->addAction(undoAction);
+		menu->addAction(redoAction);
+		undoAction->setShortcut(QKeySequence::Undo);
+		redoAction->setShortcut(QKeySequence::Redo);
 	}
 
 	void MainWindow::CreateRenderingWidget()
@@ -70,6 +83,13 @@ namespace CityDraft::UI
 		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		m_CursorProjectedPosition->setMinimumWidth(200);
 		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
+	}
+
+	void MainWindow::CreateMenuBar()
+	{
+		QMenuBar* menuBar = new QMenuBar(this);
+		setMenuBar(menuBar);
+		m_EditMenu = menuBar->addMenu(tr("&Edit"));
 	}
 
 	void MainWindow::CreateInstruments()

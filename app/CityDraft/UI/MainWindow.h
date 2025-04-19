@@ -16,6 +16,7 @@
 #include <set>
 #include <spdlog/spdlog.h>
 #include <QUndoStack>
+#include <QMenu>
 
 namespace CityDraft::UI
 {
@@ -35,6 +36,7 @@ namespace CityDraft::UI
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
+		QMenu* m_EditMenu;
 
 		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
@@ -49,10 +51,11 @@ namespace CityDraft::UI
 		std::list<CityDraft::Input::Instruments::Instrument*> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
 
-
+		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
+		void CreateMenuBar();
 
 		void CreateInstruments();
 		void UpdateActiveInstrumentsLabel();
