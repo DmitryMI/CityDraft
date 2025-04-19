@@ -6,6 +6,7 @@
 #include <boost/signals2.hpp>
 #include <qobject.h>
 #include <spdlog/spdlog.h>
+#include <QUndoStack>
 #include "CityDraft/Logging/LogManager.h"
 
 namespace CityDraft::UI::Rendering
@@ -39,7 +40,7 @@ namespace CityDraft::Input::Instruments
 	{
 		Q_OBJECT;
 	public:
-		Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent = nullptr);
+		Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
 		virtual ~Instrument();
 		virtual QString GetName() const = 0;
 		virtual void OnPaint();
@@ -48,13 +49,17 @@ namespace CityDraft::Input::Instruments
 
 		void SetRenderer(CityDraft::UI::Rendering::IRenderer* renderer);
 		CityDraft::UI::Rendering::IRenderer* GetRenderer() const;
+		virtual void SetActive(bool active);
+		bool IsActive() const;
 
 	signals:
 		void Finished(Instrument* instrument, FinishStatus status = FinishStatus::Ok);
 
 	protected:
-		IKeyBindingProvider* m_KeyBindingProvider;
-		CityDraft::UI::Rendering::IRenderer* m_Renderer;
+		IKeyBindingProvider* m_KeyBindingProvider = nullptr;
+		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
+		QUndoStack* m_UndoStack = nullptr;
+		bool m_IsActive = false;
 
 		virtual inline std::shared_ptr<spdlog::logger> GetLogger()
 		{

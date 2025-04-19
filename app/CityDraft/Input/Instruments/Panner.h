@@ -7,7 +7,7 @@ namespace CityDraft::Input::Instruments
 	class Panner : public Instrument
 	{
 	public:
-		Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent = nullptr);
+		Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent = nullptr);
 		virtual ~Panner() override;
 		inline QString GetName() const override
 		{

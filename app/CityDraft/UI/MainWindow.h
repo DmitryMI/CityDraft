@@ -15,6 +15,7 @@
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include <set>
 #include <spdlog/spdlog.h>
+#include <QUndoStack>
 
 namespace CityDraft::UI
 {
@@ -44,24 +45,63 @@ namespace CityDraft::UI
 
 		// Input
 		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
+		std::list<CityDraft::Input::Instruments::Instrument*> m_InactiveInstruments;
+		std::list<CityDraft::Input::Instruments::Instrument*> m_ActiveInstruments;
+		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
+
 
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 
-	private:
-		std::list<CityDraft::Input::Instruments::Instrument*> m_ActiveInstruments;
-		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
-
+		void CreateInstruments();
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
-		void HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color);
 
+		template<typename T>
+		T* TransitInstrument(std::list<CityDraft::Input::Instruments::Instrument*>& from, std::list<CityDraft::Input::Instruments::Instrument*>& to)
+		{
+			auto iter = std::find_if(from.begin(), from.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
+			BOOST_ASSERT(iter != from.end());
+			T* instrument = dynamic_cast<T*>(*iter);
+			BOOST_ASSERT(instrument);
+			from.erase(iter);
+			to.push_back(instrument);
+			
+			UpdateActiveInstrumentsLabel();
+			return instrument;
+		}
+
+		template<typename T>
+		T* ActivateInstrument()
+		{
+			T* instrument = TransitInstrument<T>(m_InactiveInstruments, m_ActiveInstruments);
+			BOOST_ASSERT(!instrument->IsActive());
+			instrument->SetActive(true);
+			return instrument;
+		}
+
+		template<typename T>
+		T* DeactivateInstrument()
+		{
+			T* instrument = TransitInstrument<T>(m_ActiveInstruments, m_InactiveInstruments);
+			BOOST_ASSERT(instrument->IsActive());
+			instrument->SetActive(false);
+			return instrument;
+		}
+
+		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
+
+		
 		// Selection
 		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
 		void VisualizeOngoingSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
 		void VisualizeSelection();
 		void FinishSelection(CityDraft::Input::Instruments::Selector* selector);
+		void HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color);
+
+		// Undo-Redo
+		QUndoStack* m_UndoStack;
 
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);

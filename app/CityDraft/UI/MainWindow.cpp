@@ -15,14 +15,17 @@ namespace CityDraft::UI
 		QMainWindow(parent),
 		m_AssetsRootDirectory(assetsRoot)
 	{
-		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
-
 		m_Ui.setupUi(this);
 
+		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
+		m_UndoStack = new QUndoStack(this);
+		
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
 
 		CreateRenderingWidget();
 		CreateStatusBar();
+		CreateInstruments();
+
 		m_Logger->info("MainWindow created");
 	}
 
@@ -69,6 +72,19 @@ namespace CityDraft::UI
 		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
 	}
 
+	void MainWindow::CreateInstruments()
+	{
+		m_InactiveInstruments.push_back(
+			new CityDraft::Input::Instruments::Selector(m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+		m_InactiveInstruments.push_back(
+			new CityDraft::Input::Instruments::Panner(m_KeyBindingProvider.get(), m_RenderingWidget, m_UndoStack, this));
+
+		for (auto* instrument : m_InactiveInstruments)
+		{
+			connect(instrument, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+		}
+	}
+
 	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
 		QString message = "[";
@@ -109,6 +125,19 @@ namespace CityDraft::UI
 			auto draftBbox = draft->GetAxisAlignedBoundingBox();
 			m_RenderingWidget->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), color, 1);
 		}
+	}
+
+	void MainWindow::DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
+	{
+		BOOST_ASSERT(instrument);
+		BOOST_ASSERT(instrument->IsActive());
+
+		auto iter = std::find_if(m_ActiveInstruments.begin(), m_ActiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
+		BOOST_ASSERT(iter != m_ActiveInstruments.end());
+		m_ActiveInstruments.erase(iter);
+		m_InactiveInstruments.push_back(instrument);
+		instrument->SetActive(false);
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector)
@@ -171,10 +200,7 @@ namespace CityDraft::UI
 
 		if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton() && pressed)
 		{
-			auto* panner = new CityDraft::Input::Instruments::Panner(m_KeyBindingProvider.get(), m_RenderingWidget, this);
-			m_ActiveInstruments.push_back(panner);
-			UpdateActiveInstrumentsLabel();
-			connect(panner, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+			auto* panner = ActivateInstrument<CityDraft::Input::Instruments::Panner>();
 			auto action = panner->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
@@ -183,10 +209,7 @@ namespace CityDraft::UI
 		}
 		else if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton() && pressed)
 		{
-			auto* selector = new CityDraft::Input::Instruments::Selector(m_KeyBindingProvider.get(), m_RenderingWidget, this);
-			m_ActiveInstruments.push_back(selector);
-			UpdateActiveInstrumentsLabel();
-			connect(selector, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+			auto* selector = ActivateInstrument<CityDraft::Input::Instruments::Selector>();
 			StartSelection(event, selector);
 			auto action = selector->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
@@ -215,16 +238,14 @@ namespace CityDraft::UI
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
+		BOOST_ASSERT(instrument);
 		if (auto* selector = dynamic_cast<CityDraft::Input::Instruments::Selector*>(instrument))
 		{
 			FinishSelection(selector);
 		}
+		m_Logger->info("{} finished", instrument->GetName().toStdString());
 
-		BOOST_ASSERT(instrument);
-		size_t erasedNum = std::erase_if(m_ActiveInstruments, [instrument](const auto& ptr) {return ptr == instrument; });
-		BOOST_ASSERT(erasedNum == 1);
-		instrument->deleteLater();
-		UpdateActiveInstrumentsLabel();
+		DeactivateInstrument(instrument);
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)

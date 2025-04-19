@@ -9,8 +9,8 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Selector::Selector(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent):
-		Instrument(keyBindingProvider, renderer, parent)
+	Selector::Selector(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent):
+		Instrument(keyBindingProvider, renderer, undoStack, parent)
 	{
 		GetLogger()->debug("Created");
 	}
@@ -22,6 +22,7 @@ namespace CityDraft::Input::Instruments
 
 	EventChainAction Selector::OnRendererMouseButton(QMouseEvent* event, bool pressed)
 	{
+		BOOST_ASSERT(IsActive());
 		BOOST_ASSERT(m_KeyBindingProvider);
 
 		if (event->button() != m_KeyBindingProvider->GetMouseSelectionButton())
@@ -45,6 +46,8 @@ namespace CityDraft::Input::Instruments
 
 	EventChainAction Selector::OnRendererMouseMove(QMouseEvent* event)
 	{
+		BOOST_ASSERT(IsActive());
+
 		QPointF currentPosition = event->position();
 
 		BOOST_ASSERT(m_Renderer);

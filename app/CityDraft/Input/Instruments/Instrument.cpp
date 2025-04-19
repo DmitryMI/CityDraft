@@ -3,11 +3,15 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Instrument::Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent) :
+	Instrument::Instrument(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QUndoStack* undoStack, QObject* parent) :
 		m_KeyBindingProvider(keyBindingProvider),
 		m_Renderer(renderer),
+		m_UndoStack(undoStack),
 		QObject(parent)
 	{
+		BOOST_ASSERT(m_KeyBindingProvider);
+		BOOST_ASSERT(m_Renderer);
+		BOOST_ASSERT(m_UndoStack);
 	}
 
 	Instrument::~Instrument()
@@ -38,6 +42,29 @@ namespace CityDraft::Input::Instruments
 	CityDraft::UI::Rendering::IRenderer* Instrument::GetRenderer() const
 	{
 		return m_Renderer;
+	}
+
+	void Instrument::SetActive(bool active)
+	{
+		if (active == m_IsActive)
+		{
+			return;
+		}
+
+		m_IsActive = active;
+		if (active)
+		{
+			GetLogger()->info("Activated");
+		}
+		else
+		{
+			GetLogger()->info("Deactivated");
+		}
+	}
+
+	bool Instrument::IsActive() const
+	{
+		return m_IsActive;
 	}
 
 }
