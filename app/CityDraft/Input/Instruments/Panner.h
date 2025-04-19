@@ -20,6 +20,6 @@ namespace CityDraft::Input::Instruments
 	protected:
 		QPointF m_LastMousePosition;
 
-		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); } ;
+		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Panner"); } ;
 	};
 }
