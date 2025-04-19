@@ -26,9 +26,12 @@ namespace CityDraft::Input::Instruments
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("ImageDraftEditor"); };
 		void OnActiveFlagChanged() override;
 	private:
-		bool m_CursorNearRotator = false;
+		bool m_RotatorActive = false;
+		bool m_DragActive = false;
+		bool m_ScaleActive = false;
 
 		void PaintRotatorCircle();
+		void DetectTransformationTool(QMouseEvent* event);
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
 	};
 }

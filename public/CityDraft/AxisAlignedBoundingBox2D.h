@@ -57,6 +57,13 @@ namespace CityDraft
 			return !(GetMin() - b.GetMin()).IsNearlyZero() || !(GetMax() - b.GetMax()).IsNearlyZero();
 		}
 
+		constexpr bool Contains(const Vector2D& point)
+		{
+			return
+				GetMin().GetX() <= point.GetX() && point.GetX() <= GetMax().GetX() &&
+				GetMin().GetY() <= point.GetY() && point.GetY() <= GetMax().GetY();
+		}
+
 		inline void GetCircumcircle(Vector2D& center, double& radius)
 		{
 			center = GetCenter();

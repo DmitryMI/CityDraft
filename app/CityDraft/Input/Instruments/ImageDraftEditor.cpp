@@ -27,29 +27,8 @@ namespace CityDraft::Input::Instruments
 			return EventChainAction::Next;
 		}
 
-		QObject* parentObj = parent();
-		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
-		BOOST_ASSERT(parentWidget);
 
-		auto bbox = GetSelectionBoundingBox();
-		Vector2D center;
-		double radius;
-		bbox.GetCircumcircle(center, radius);
-		QPointF centerPixel = m_Renderer->Deproject(center);
-		double radiusPixel = radius * m_Renderer->GetViewportZoom();
-		QPointF delta = event->position() - centerPixel;
-		
-		double distanceSquared = delta.x() * delta.x() + delta.y() * delta.y();
-		if (fabs(sqrt(distanceSquared) - radiusPixel) < RotatorPixelDistance)
-		{
-			m_CursorNearRotator = true;
-			parentWidget->setCursor(Qt::CrossCursor);
-		}
-		else
-		{
-			m_CursorNearRotator = false;
-			parentWidget->unsetCursor();
-		}
+		DetectTransformationTool(event);
 
 		m_Renderer->Repaint();
 
@@ -84,7 +63,7 @@ namespace CityDraft::Input::Instruments
 		m_Renderer->PaintRect(bbox.GetMin(), bbox.GetMax(), m_ColorsProvider->GetDraftScaleBoxColor(), 2.0 / m_Renderer->GetViewportZoom());
 
 		QColor circleColor;
-		if (m_CursorNearRotator)
+		if (m_RotatorActive)
 		{
 			circleColor = m_ColorsProvider->GetDraftRotationCircleHighlightedColor();
 		}
@@ -93,6 +72,43 @@ namespace CityDraft::Input::Instruments
 			circleColor = m_ColorsProvider->GetDraftRotationCircleColor();
 		}
 		m_Renderer->PaintCircle(center, radius, circleColor, 2.0 / m_Renderer->GetViewportZoom());
+	}
+
+	void ImageDraftEditor::DetectTransformationTool(QMouseEvent* event)
+	{
+		m_RotatorActive = false;
+		m_DragActive = false;
+		m_ScaleActive = false;
+
+		QObject* parentObj = parent();
+		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
+		BOOST_ASSERT(parentWidget);
+
+		auto bbox = GetSelectionBoundingBox();
+		Vector2D center;
+		double radius;
+		bbox.GetCircumcircle(center, radius);
+		QPointF centerPixel = m_Renderer->Deproject(center);
+		double radiusPixel = radius * m_Renderer->GetViewportZoom();
+		QPointF delta = event->position() - centerPixel;
+
+		double distanceSquared = delta.x() * delta.x() + delta.y() * delta.y();
+		if (fabs(sqrt(distanceSquared) - radiusPixel) < RotatorPixelDistance)
+		{
+			m_RotatorActive = true;
+			parentWidget->setCursor(Qt::CrossCursor);
+			return;
+		}
+
+		Vector2D cursorProjected = m_Renderer->Project(event->position());
+		if (bbox.Contains(cursorProjected))
+		{
+			m_DragActive = true;
+			parentWidget->setCursor(Qt::SizeAllCursor);
+			return;
+		}
+
+		parentWidget->unsetCursor();
 	}
 
 	AxisAlignedBoundingBox2D ImageDraftEditor::GetSelectionBoundingBox() const
