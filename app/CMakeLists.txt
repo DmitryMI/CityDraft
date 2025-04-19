@@ -36,6 +36,8 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
+        CityDraft/UI/FlowLayout.h
+		CityDraft/UI/FlowLayout.cpp
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

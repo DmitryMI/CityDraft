@@ -22,6 +22,9 @@
 #include <set>
 #include "Rendering/ImageSelectionWidget.h"
 
+#include <QLabel>
+#include <memory>
+
 namespace CityDraft::UI
 {
 	
@@ -43,9 +46,9 @@ namespace CityDraft::UI
 		std::shared_ptr<spdlog::logger> m_Logger;
 
 		// Widgets
-        Ui::MainWindow m_Ui;
+		Ui::MainWindow m_Ui{};
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
-    	ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
+		ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -71,6 +74,7 @@ namespace CityDraft::UI
 		void CreateRenderingWidget();
     	void CreateImageSelectionWidget();
 		void CreateAssetManager(const QString& assetsRoot);
+		void LoadImagesToSelectionWidget() const;
 		void CreateStatusBar();
 		void CreateInstruments();
 

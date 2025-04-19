@@ -1,6 +1,5 @@
 #include "MainWindow.h"
 #include "CityDraft/Assets/AssetManager.h"
-#include <QString>
 #include "CityDraft/Logging/LogManager.h"
 #include <qstatusbar.h>
 #include "CityDraft/Input/Instruments/Panner.h"
@@ -14,10 +13,11 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 
-#include "Rendering/ImageSelectionWidget.h"
+namespace CityDraft::UI {
 
-namespace CityDraft::UI
-{
+MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
+    : QMainWindow(parent),
+      m_AssetsRootDirectory(std::move(assetsRoot)) {
 
 	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent):
 		QMainWindow(parent),
@@ -42,10 +42,43 @@ namespace CityDraft::UI
 		m_Logger->info("MainWindow created");
 	}
 
-	MainWindow::~MainWindow()
-	{
-		
-	}
+MainWindow::~MainWindow() = default;
+
+void MainWindow::ReplacePlaceholdersWithSplitter() {
+    m_ImageSelectionWidget = new ImageSelectionWidget(this);
+    m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
+
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized,
+            this, &MainWindow::OnGraphicsInitialized);
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged,
+            this, &MainWindow::OnCursorProjectedPositionChanged);
+
+    auto* splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->addWidget(m_ImageSelectionWidget);
+    splitter->addWidget(m_RenderingWidget);
+
+    splitter->setStretchFactor(0, 0);
+    splitter->setStretchFactor(1, 1);
+    splitter->setCollapsible(0, false);
+    splitter->setCollapsible(1, false);
+    splitter->setSizes({230, 774});
+
+    QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+    QWidget* renderPlaceholder = m_Ui.renderingWidgetPlaceholder;
+
+    auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+    if (!layout) {
+        qWarning("Placeholder layout is not a QBoxLayout!");
+        return;
+    }
+
+    layout->removeWidget(imagePlaceholder);
+    layout->removeWidget(renderPlaceholder);
+    delete imagePlaceholder;
+    delete renderPlaceholder;
+
+    layout->addWidget(splitter);
+}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
 	{
@@ -78,21 +111,18 @@ namespace CityDraft::UI
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
-	void MainWindow::CreateImageSelectionWidget()
-	{
-		m_ImageSelectionWidget = new ImageSelectionWidget(this);
-		m_ImageSelectionWidget->setFixedWidth(200);
+void MainWindow::LoadImagesToSelectionWidget() const
+{
+    std::vector<std::shared_ptr<Assets::Image>> imageAssets;
 
-		std::vector<std::shared_ptr<Assets::Image>> imageAssets;
-
-		for (const auto& image : m_AssetManager->GetInvariantImages()) {
-			imageAssets.push_back(image);
-		}
-		for (const auto& group : m_AssetManager->GetVariantImages()) {
-			for (const auto& imageVariant : group->GetImageVariants()) {
-				imageAssets.push_back(imageVariant);
-			}
-		}
+    for (const auto& image : m_AssetManager->GetInvariantImages()) {
+        imageAssets.push_back(image);
+    }
+    for (const auto& group : m_AssetManager->GetVariantImages()) {
+        for (const auto& imageVariant : group->GetImageVariants()) {
+            imageAssets.push_back(imageVariant);
+        }
+    }
 
 		m_ImageSelectionWidget->loadImagesFromAssets(imageAssets);
 
