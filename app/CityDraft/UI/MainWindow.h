@@ -70,6 +70,25 @@ namespace CityDraft::UI
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
 
 		template<typename T>
+		T* FindInstrument()
+		{
+			auto iter = std::find_if(m_InactiveInstruments.begin(), m_InactiveInstruments.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
+			if (iter != m_InactiveInstruments.end())
+			{
+				return dynamic_cast<T*>(*iter);
+			}
+
+			iter = std::find_if(m_ActiveInstruments.begin(), m_ActiveInstruments.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
+			if (iter != m_ActiveInstruments.end())
+			{
+				return dynamic_cast<T*>(*iter);
+			}
+
+			BOOST_ASSERT(false);
+			return nullptr;
+		}
+
+		template<typename T>
 		T* TransitInstrument(std::list<CityDraft::Input::Instruments::Instrument*>& from, std::list<CityDraft::Input::Instruments::Instrument*>& to)
 		{
 			auto iter = std::find_if(from.begin(), from.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
@@ -101,13 +120,12 @@ namespace CityDraft::UI
 			return instrument;
 		}
 
+		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 
 		
 		// Selection
 		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
-		void VisualizeSelection();
-		
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;

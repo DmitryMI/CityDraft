@@ -45,7 +45,7 @@ namespace CityDraft::Input::Instruments
 			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
 			if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
 			{
-				m_SelectionManager->GetSelectedDrafts();
+				m_SelectionManager->ClearSelectedDrafts();
 			}
 			m_SelectionManager->AddDraftsToSelection(drafts);
 			emit Finished(this);
@@ -61,7 +61,7 @@ namespace CityDraft::Input::Instruments
 		QPointF currentPosition = event->position();
 
 		BOOST_ASSERT(m_Renderer);
-		m_Renderer->PaintRect(m_FirstMousePosition, currentPosition, QColor(66, 133, 244), 1);
+		m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, QColor(66, 133, 244), 1.0);
 		m_Renderer->Repaint();
 		m_LastMousePosition = currentPosition;
 		return EventChainAction::Next;
@@ -75,7 +75,7 @@ namespace CityDraft::Input::Instruments
 		for (const auto& draft : drafts)
 		{
 			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1);
+			m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1.0 / m_Renderer->GetViewportZoom());
 		}
 	}
 

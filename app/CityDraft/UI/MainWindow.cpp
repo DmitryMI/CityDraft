@@ -8,6 +8,7 @@
 #include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/UI/Colors/Factory.h"
+#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
 
 namespace CityDraft::UI
 {
@@ -119,6 +120,8 @@ namespace CityDraft::UI
 			new CityDraft::Input::Instruments::Selector(dependencies));
 		m_InactiveInstruments.push_back(
 			new CityDraft::Input::Instruments::Panner(dependencies));
+		m_InactiveInstruments.push_back(
+			new CityDraft::Input::Instruments::ImageDraftEditor(dependencies));
 
 		for (auto* instrument : m_InactiveInstruments)
 		{
@@ -156,6 +159,19 @@ namespace CityDraft::UI
 		}
 	}
 
+	void MainWindow::ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
+	{
+		BOOST_ASSERT(instrument);
+		BOOST_ASSERT(!instrument->IsActive());
+
+		auto iter = std::find_if(m_InactiveInstruments.begin(), m_InactiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
+		BOOST_ASSERT(iter != m_InactiveInstruments.end());
+		m_InactiveInstruments.erase(iter);
+		m_ActiveInstruments.push_back(instrument);
+		instrument->SetActive(true);
+		UpdateActiveInstrumentsLabel();
+	}
+
 	void MainWindow::DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
 	{
 		BOOST_ASSERT(instrument);
@@ -177,16 +193,6 @@ namespace CityDraft::UI
 		}
 	}
 
-	void MainWindow::VisualizeSelection()
-	{
-		for (const auto& draft : m_SelectedDrafts)
-		{
-			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_RenderingWidget->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), QColor(30, 144, 255, 204), 1);
-		}
-
-	}
-
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
 	{
 		return m_SelectedDrafts;
@@ -195,19 +201,34 @@ namespace CityDraft::UI
 	void MainWindow::ClearSelectedDrafts()
 	{
 		m_SelectedDrafts.clear();
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+		if (editor->IsActive())
+		{
+			DeactivateInstrument(editor);
+		}
 	}
 
 	void MainWindow::AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
 	{
+		if (drafts.size() == 0)
+		{
+			return;
+		}
+
 		for (const auto& draft : drafts)
 		{
 			m_SelectedDrafts.insert(draft);
+		}
+
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+		if (!editor->IsActive())
+		{
+			ActivateInstrument(editor);
 		}
 	}
 
 	void MainWindow::OnGraphicsPainting(UI::Rendering::SkiaWidget* widget)
 	{
-		VisualizeSelection();
 		for (const auto& instrument : m_ActiveInstruments)
 		{
 			instrument->OnPaint();

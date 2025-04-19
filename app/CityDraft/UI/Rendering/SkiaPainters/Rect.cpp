@@ -17,14 +17,12 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		SkColor skColor = SkColorSetARGB(m_Color.alpha(), m_Color.red(), m_Color.green(), m_Color.blue());
 
 		auto matrix = canvas->getLocalToDeviceAs3x3();
-		double scaleX = matrix.getScaleX();
-		double scaleY = matrix.getScaleY();
-		BOOST_ASSERT(scaleX == scaleY);
 
 		SkPaint paint;
 		paint.setColor(skColor);
+		paint.setAntiAlias(true);
 		paint.setStyle(SkPaint::kStroke_Style);
-		paint.setStrokeWidth(m_Thickness / scaleX);
+		paint.setStrokeWidth(m_Thickness);
 
 		double rectWidth = m_Max.GetX() - m_Min.GetX();
 		double rectHeight = m_Max.GetY() - m_Min.GetY();

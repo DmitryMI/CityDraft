@@ -33,6 +33,7 @@ set(AppSources
 	"CityDraft/Input/Instruments/ImageDraftEditor.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

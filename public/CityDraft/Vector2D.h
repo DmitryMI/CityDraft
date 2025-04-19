@@ -15,6 +15,12 @@ namespace CityDraft
 
 		UnderlyingType Data;
 
+		constexpr Vector2D() : Data{ 0, 0 }
+		{
+
+		}
+
+
 		constexpr Vector2D(double X, double Y) : Data{X, Y}
 		{
 

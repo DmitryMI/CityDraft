@@ -9,6 +9,7 @@
 #include "OpenGlUtils.h"
 #include "SkiaPainters/Image.h"
 #include "SkiaPainters/Rect.h"
+#include "SkiaPainters/Circle.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -61,16 +62,22 @@ namespace CityDraft::UI::Rendering
 		}
 	}
 
-	void SkiaWidget::PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
+	void SkiaWidget::PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
 	{
 		Vector2D min = Project(pixelMin);
 		Vector2D max = Project(pixelMax);
-		PaintRect(min, max, color, thickness);
+		PaintRect(min, max, color, thickness / GetViewportZoom());
 	}
 
 	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness)
 	{
 		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, color, thickness);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness)
+	{
+		auto painter = std::make_shared<SkiaPainters::Circle>(pos, radius, color, thickness);
 		PaintOrQueue(painter);
 	}
 
