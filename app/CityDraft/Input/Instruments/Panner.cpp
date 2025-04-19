@@ -5,7 +5,7 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Panner::Panner(const InstrumentDependencies& dependencies):
+	Panner::Panner(const Dependencies& dependencies):
 		Instrument(dependencies)
 	{
 		GetLogger()->debug("Created");

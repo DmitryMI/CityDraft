@@ -107,7 +107,7 @@ namespace CityDraft::UI
 		}
 		m_InactiveInstruments.clear();
 
-		CityDraft::Input::Instruments::InstrumentDependencies dependencies;
+		CityDraft::Input::Instruments::Dependencies dependencies;
 		dependencies.Scene = m_Scene.get();
 		dependencies.SelectionManager = this;
 		dependencies.KeyBindingProvider = m_KeyBindingProvider.get();
@@ -116,11 +116,11 @@ namespace CityDraft::UI
 		dependencies.UndoStack = m_UndoStack;
 		dependencies.Renderer = m_RenderingWidget;
 
-		m_InactiveInstruments.push_back(
+		m_InactiveInstruments.insert(
 			new CityDraft::Input::Instruments::Selector(dependencies));
-		m_InactiveInstruments.push_back(
+		m_InactiveInstruments.insert(
 			new CityDraft::Input::Instruments::Panner(dependencies));
-		m_InactiveInstruments.push_back(
+		m_InactiveInstruments.insert(
 			new CityDraft::Input::Instruments::ImageDraftEditor(dependencies));
 
 		for (auto* instrument : m_InactiveInstruments)
@@ -167,7 +167,7 @@ namespace CityDraft::UI
 		auto iter = std::find_if(m_InactiveInstruments.begin(), m_InactiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
 		BOOST_ASSERT(iter != m_InactiveInstruments.end());
 		m_InactiveInstruments.erase(iter);
-		m_ActiveInstruments.push_back(instrument);
+		m_ActiveInstruments.insert(instrument);
 		instrument->SetActive(true);
 		UpdateActiveInstrumentsLabel();
 	}
@@ -180,17 +180,9 @@ namespace CityDraft::UI
 		auto iter = std::find_if(m_ActiveInstruments.begin(), m_ActiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
 		BOOST_ASSERT(iter != m_ActiveInstruments.end());
 		m_ActiveInstruments.erase(iter);
-		m_InactiveInstruments.push_back(instrument);
+		m_InactiveInstruments.insert(instrument);
 		instrument->SetActive(false);
 		UpdateActiveInstrumentsLabel();
-	}
-
-	void MainWindow::StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector)
-	{
-		if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
-		{
-			m_SelectedDrafts.clear();
-		}
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
@@ -263,7 +255,6 @@ namespace CityDraft::UI
 		else if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton() && pressed)
 		{
 			auto* selector = ActivateInstrument<CityDraft::Input::Instruments::Selector>();
-			StartSelection(event, selector);
 			auto action = selector->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{

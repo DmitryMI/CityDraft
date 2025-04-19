@@ -11,7 +11,7 @@ namespace CityDraft::Input::Instruments
 	public:
 		constexpr static double RotatorPixelDistance = 10;
 
-		ImageDraftEditor(const InstrumentDependencies& dependencies);
+		ImageDraftEditor(const Dependencies& dependencies);
 		inline QString GetName() const override
 		{
 			return "Image Draft Edit";
@@ -29,6 +29,7 @@ namespace CityDraft::Input::Instruments
 		bool m_RotatorActive = false;
 		bool m_DragActive = false;
 		bool m_ScaleActive = false;
+		bool m_ToolInUse = false;
 
 		void PaintRotatorCircle();
 		void DetectTransformationTool(QMouseEvent* event);

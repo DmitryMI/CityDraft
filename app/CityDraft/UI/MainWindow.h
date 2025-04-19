@@ -19,9 +19,12 @@
 #include <QMenu>
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include "CityDraft/Input/ISelectionManager.h"
+#include <set>
 
 namespace CityDraft::UI
 {
+	
+
     class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
     {
         Q_OBJECT
@@ -55,8 +58,8 @@ namespace CityDraft::UI
 
 		// Input
 		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
-		std::list<CityDraft::Input::Instruments::Instrument*> m_InactiveInstruments;
-		std::list<CityDraft::Input::Instruments::Instrument*> m_ActiveInstruments;
+		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_InactiveInstruments;
+		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
 
 		void CreateUndoRedoStack(QMenu* menu);
@@ -72,31 +75,30 @@ namespace CityDraft::UI
 		template<typename T>
 		T* FindInstrument()
 		{
-			auto iter = std::find_if(m_InactiveInstruments.begin(), m_InactiveInstruments.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
-			if (iter != m_InactiveInstruments.end())
+			auto iterInactive = std::find_if(m_InactiveInstruments.cbegin(), m_InactiveInstruments.cend(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
+			if (iterInactive != m_InactiveInstruments.end())
 			{
-				return dynamic_cast<T*>(*iter);
+				return dynamic_cast<T*>(*iterInactive);
 			}
-
-			iter = std::find_if(m_ActiveInstruments.begin(), m_ActiveInstruments.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
-			if (iter != m_ActiveInstruments.end())
+			auto iterActive = std::find_if(m_ActiveInstruments.cbegin(), m_ActiveInstruments.cend(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
+			if (iterActive != m_ActiveInstruments.end())
 			{
-				return dynamic_cast<T*>(*iter);
+				return dynamic_cast<T*>(*iterActive);
 			}
 
 			BOOST_ASSERT(false);
 			return nullptr;
 		}
 
-		template<typename T>
-		T* TransitInstrument(std::list<CityDraft::Input::Instruments::Instrument*>& from, std::list<CityDraft::Input::Instruments::Instrument*>& to)
+		template<typename T, typename ContainerFrom, typename ContainerTo>
+		T* TransitInstrument(ContainerFrom& from, ContainerTo& to)
 		{
 			auto iter = std::find_if(from.begin(), from.end(), [](auto* instrument) {return dynamic_cast<T*>(instrument) != nullptr; });
 			BOOST_ASSERT(iter != from.end());
 			T* instrument = dynamic_cast<T*>(*iter);
 			BOOST_ASSERT(instrument);
 			from.erase(iter);
-			to.push_back(instrument);
+			to.insert(instrument);
 			
 			UpdateActiveInstrumentsLabel();
 			return instrument;
@@ -122,10 +124,6 @@ namespace CityDraft::UI
 
 		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
-
-		
-		// Selection
-		void StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector);
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;

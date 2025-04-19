@@ -32,7 +32,6 @@ namespace CityDraft
 
 namespace CityDraft::Input::Instruments
 {
-	
 	enum class EventChainAction
 	{
 		Next,
@@ -46,7 +45,7 @@ namespace CityDraft::Input::Instruments
 		Error
 	};
 
-	struct InstrumentDependencies
+	struct Dependencies
 	{
 		CityDraft::Scene* Scene;
 		CityDraft::Input::ISelectionManager* SelectionManager;
@@ -61,12 +60,15 @@ namespace CityDraft::Input::Instruments
 	{
 		Q_OBJECT;
 	public:
-		Instrument(const InstrumentDependencies& dependencies);
+		
+
+		Instrument(const Dependencies& dependencies);
 		virtual ~Instrument();
 		virtual QString GetName() const = 0;
 		virtual void OnPaint();
 		virtual EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed);
 		virtual EventChainAction OnRendererMouseMove(QMouseEvent* event);
+		virtual int GetPriority() const { return 0; }
 
 		void SetRenderer(CityDraft::UI::Rendering::IRenderer* renderer);
 		CityDraft::UI::Rendering::IRenderer* GetRenderer() const;
@@ -91,5 +93,18 @@ namespace CityDraft::Input::Instruments
 		};
 
 		virtual inline void OnActiveFlagChanged() {};
+	};
+
+	struct Comparator
+	{
+		bool operator()(const Instrument* a, const Instrument* b) const
+		{
+			if (a->GetPriority() != b->GetPriority())
+			{
+				return a->GetPriority() > b->GetPriority();
+			}
+			BOOST_ASSERT(a->GetName() != b->GetName());
+			return a->GetName() < b->GetName();
+		}
 	};
 }

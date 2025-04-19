@@ -3,7 +3,7 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Instrument::Instrument(const InstrumentDependencies& dependencies) :
+	Instrument::Instrument(const Dependencies& dependencies) :
 		m_Scene(dependencies.Scene),
 		m_SelectionManager(dependencies.SelectionManager),
 		m_KeyBindingProvider(dependencies.KeyBindingProvider),

@@ -6,7 +6,7 @@
 
 namespace CityDraft::Input::Instruments
 {
-    ImageDraftEditor::ImageDraftEditor(const InstrumentDependencies& dependencies):
+    ImageDraftEditor::ImageDraftEditor(const Dependencies& dependencies):
 		Instrument(dependencies)
     {
     }
@@ -15,6 +15,19 @@ namespace CityDraft::Input::Instruments
 	{
 		BOOST_ASSERT(IsActive());
 
+		if (pressed)
+		{
+			if (m_DragActive || m_RotatorActive || m_ScaleActive)
+			{
+				m_ToolInUse = true;
+				return EventChainAction::Stop;
+			}
+		}
+		else
+		{
+			m_ToolInUse = false;
+		}
+		
 		return EventChainAction();
 	}
 
@@ -27,10 +40,14 @@ namespace CityDraft::Input::Instruments
 			return EventChainAction::Next;
 		}
 
-
 		DetectTransformationTool(event);
 
 		m_Renderer->Repaint();
+
+		if (m_DragActive || m_RotatorActive || m_ScaleActive || m_ToolInUse)
+		{
+			return EventChainAction::Stop;
+		}
 
 		return EventChainAction::Next;
 	}

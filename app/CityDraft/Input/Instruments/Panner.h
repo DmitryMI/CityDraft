@@ -7,8 +7,12 @@ namespace CityDraft::Input::Instruments
 	class Panner : public Instrument
 	{
 	public:
-		Panner(const InstrumentDependencies& dependencies);
+		constexpr static int Priority = -90;
+
+		Panner(const Dependencies& dependencies);
 		virtual ~Panner() override;
+		virtual int GetPriority() const { return Priority; }
+
 		inline QString GetName() const override
 		{
 			return "Panning";

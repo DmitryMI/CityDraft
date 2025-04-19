@@ -9,8 +9,12 @@ namespace CityDraft::Input::Instruments
 	class Selector : public Instrument
 	{
 	public:
-		Selector(const InstrumentDependencies& dependencies);
+		constexpr static int Priority = -100;
+
+		Selector(const Dependencies& dependencies);
 		virtual ~Selector() override;
+		virtual int GetPriority() const { return Priority; }
+
 		inline QString GetName() const override
 		{
 			return "Selecting";

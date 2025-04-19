@@ -11,7 +11,7 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Selector::Selector(const InstrumentDependencies& dependencies):
+	Selector::Selector(const Dependencies& dependencies):
 		Instrument(dependencies)
 	{
 		GetLogger()->debug("Created");
