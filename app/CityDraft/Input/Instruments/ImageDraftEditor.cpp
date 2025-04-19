@@ -2,6 +2,7 @@
 #include "CityDraft/Input/ISelectionManager.h"
 #include "CityDraft/UI/Rendering/IRenderer.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
+#include <QWidget>
 
 namespace CityDraft::Input::Instruments
 {
@@ -21,9 +22,38 @@ namespace CityDraft::Input::Instruments
 	{
 		BOOST_ASSERT(IsActive());
 
+		if (m_SelectionManager->GetSelectedDrafts().size() == 0)
+		{
+			return EventChainAction::Next;
+		}
 
+		QObject* parentObj = parent();
+		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
+		BOOST_ASSERT(parentWidget);
 
-		return EventChainAction();
+		auto bbox = GetSelectionBoundingBox();
+		Vector2D center;
+		double radius;
+		bbox.GetCircumcircle(center, radius);
+		QPointF centerPixel = m_Renderer->Deproject(center);
+		double radiusPixel = radius * m_Renderer->GetViewportZoom();
+		QPointF delta = event->position() - centerPixel;
+		
+		double distanceSquared = delta.x() * delta.x() + delta.y() * delta.y();
+		if (fabs(sqrt(distanceSquared) - radiusPixel) < RotatorPixelDistance)
+		{
+			m_CursorNearRotator = true;
+			parentWidget->setCursor(Qt::CrossCursor);
+		}
+		else
+		{
+			m_CursorNearRotator = false;
+			parentWidget->unsetCursor();
+		}
+
+		m_Renderer->Repaint();
+
+		return EventChainAction::Next;
 	}
 
 	void ImageDraftEditor::OnPaint()
@@ -37,12 +67,32 @@ namespace CityDraft::Input::Instruments
 		PaintRotatorCircle();
 	}
 
+	void ImageDraftEditor::OnActiveFlagChanged()
+	{
+		QObject* parentObj = parent();
+		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
+		BOOST_ASSERT(parentWidget);
+		parentWidget->unsetCursor();
+	}
+
 	void ImageDraftEditor::PaintRotatorCircle()
 	{
 		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
-		double radius = 0.5f * sqrt(bbox.GetSize().GetX() * bbox.GetSize().GetX() + bbox.GetSize().GetY() * bbox.GetSize().GetY());
+		Vector2D center;
+		double radius;
+		bbox.GetCircumcircle(center, radius);
 		m_Renderer->PaintRect(bbox.GetMin(), bbox.GetMax(), m_ColorsProvider->GetDraftScaleBoxColor(), 2.0 / m_Renderer->GetViewportZoom());
-		m_Renderer->PaintCircle(bbox.GetCenter(), radius, m_ColorsProvider->GetDraftRotationCircleColor(), 2.0 / m_Renderer->GetViewportZoom());
+
+		QColor circleColor;
+		if (m_CursorNearRotator)
+		{
+			circleColor = m_ColorsProvider->GetDraftRotationCircleHighlightedColor();
+		}
+		else
+		{
+			circleColor = m_ColorsProvider->GetDraftRotationCircleColor();
+		}
+		m_Renderer->PaintCircle(center, radius, circleColor, 2.0 / m_Renderer->GetViewportZoom());
 	}
 
 	AxisAlignedBoundingBox2D ImageDraftEditor::GetSelectionBoundingBox() const

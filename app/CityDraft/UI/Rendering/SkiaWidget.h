@@ -54,6 +54,7 @@ namespace CityDraft::UI::Rendering
 		void SetViewportTransform(const Vector2D& center, double zoom) override;
 		void Repaint() override;
 		Vector2D Project(const QPointF& pixelCoord) const override;
+		QPointF Deproject(const Vector2D& pixelCoord) const override;
 
 
 	signals:

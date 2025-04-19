@@ -50,6 +50,17 @@ namespace CityDraft::UI::Rendering
 		return Vector2D(projected.x(), projected.y());
 	}
 
+	QPointF SkiaWidget::Deproject(const Vector2D& pixelCoord) const
+	{
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+
+		QPointF projected = QPointF(pixelCoord.GetX(), pixelCoord.GetY());
+		projected -= QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
+		projected *= m_ViewportZoom;
+		projected += widgetSize;
+		return projected;
+	}
+
 	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
 	{
 		if (CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))

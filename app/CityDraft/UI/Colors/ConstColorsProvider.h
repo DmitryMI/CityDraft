@@ -10,5 +10,6 @@ namespace CityDraft::UI::Colors
 		QColor GetDraftPreSelectionBoxColor() override { return QColor(255, 191, 0, 153); }
 		QColor GetDraftScaleBoxColor() override { return QColor(220, 235, 255, 160); }
 		QColor GetDraftRotationCircleColor() override { return QColor(255, 138, 101, 160); };
+		QColor GetDraftRotationCircleHighlightedColor() override { return QColor(255, 168, 131, 250); };
 	};
 }

@@ -9,7 +9,7 @@ namespace CityDraft::Input::Instruments
 	class ImageDraftEditor : public Instrument
 	{
 	public:
-		constexpr static double RotatorRadiusExpansion = 10;
+		constexpr static double RotatorPixelDistance = 10;
 
 		ImageDraftEditor(const InstrumentDependencies& dependencies);
 		inline QString GetName() const override
@@ -24,8 +24,10 @@ namespace CityDraft::Input::Instruments
 	protected:
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("ImageDraftEditor"); };
-
+		void OnActiveFlagChanged() override;
 	private:
+		bool m_CursorNearRotator = false;
+
 		void PaintRotatorCircle();
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
 	};

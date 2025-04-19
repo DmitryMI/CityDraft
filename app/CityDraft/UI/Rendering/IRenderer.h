@@ -25,6 +25,7 @@ namespace CityDraft::UI::Rendering
 
 		// Model
 		virtual Vector2D Project(const QPointF& pixelCoord) const = 0;
+		virtual QPointF Deproject(const Vector2D& pixelCoord) const = 0;
 		virtual const Vector2D GetViewportCenter() const = 0;
 		virtual double GetViewportZoom() const = 0;
 		virtual void SetViewportTransform(const Vector2D& center, double zoom) = 0;

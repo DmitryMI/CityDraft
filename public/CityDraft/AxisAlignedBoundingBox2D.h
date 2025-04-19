@@ -56,5 +56,11 @@ namespace CityDraft
 		{
 			return !(GetMin() - b.GetMin()).IsNearlyZero() || !(GetMax() - b.GetMax()).IsNearlyZero();
 		}
+
+		inline void GetCircumcircle(Vector2D& center, double& radius)
+		{
+			center = GetCenter();
+			radius = 0.5f * sqrt(GetSize().GetX() * GetSize().GetX() + GetSize().GetY() * GetSize().GetY());
+		}
 	};
 }
