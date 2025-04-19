@@ -1,31 +1,31 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
 #include "spdlog/spdlog.h"
 #include "Rendering/SkiaWidget.h"
 #include "ui_MainWindow.h"
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Scene.h"
-#include <qlabel.h>
 #include "CityDraft/Input/Factory.h"
 #include "Rendering/ImageSelectionWidget.h"
 
+#include <QLabel>
+#include <memory>
+
 namespace CityDraft::UI
 {
-    class MainWindow : public QMainWindow
-    {
-        Q_OBJECT
+	class MainWindow : public QMainWindow
+	{
+		Q_OBJECT
 
-    public:
-        MainWindow(const QString& assetsRoot, QWidget* parent = nullptr);
-        virtual ~MainWindow();
+	public:
+		MainWindow(QString assetsRoot, QWidget* parent = nullptr);
+		virtual ~MainWindow();
 
-    private:
-
+	private:
 		// Widgets
-        Ui::MainWindow m_Ui;
+		Ui::MainWindow m_Ui{};
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
-    	ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
+		ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 
 		// CityDraft Objects
@@ -38,14 +38,14 @@ namespace CityDraft::UI
 		// Input
 		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
 
-		void CreateRenderingWidget();
-    	void CreateImageSelectionWidget();
+		// Initialization helpers
+		void ReplacePlaceholdersWithSplitter();
 		void CreateAssetManager(const QString& assetsRoot);
+		void LoadImagesToSelectionWidget() const;
 		void CreateStatusBar();
 
 	private slots:
-		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
-		void OnCursorProjectedPositionChanged(const QPointF& projectedPosition);
-    };
-
+		void OnGraphicsInitialized(const UI::Rendering::SkiaWidget* widget);
+		void OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const;
+	};
 }

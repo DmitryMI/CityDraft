@@ -1,3 +1,7 @@
+//
+// Created by mariiakorolevaa on 19.04.2025.
+//
+
 #pragma once
 
 #include <QScrollArea>
@@ -5,6 +9,7 @@
 #include <QSignalMapper>
 
 #include "CityDraft/Assets/Image.h"
+#include "CityDraft/UI/FlowLayout.h"
 
 namespace CityDraft::Assets
 {
@@ -18,10 +23,10 @@ class ImageSelectionWidget final : public QWidget
 public:
 	explicit ImageSelectionWidget(QWidget* parent = nullptr);
 	void loadImagesFromAssets(const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& images);
-
-	signals:
+	void resizeEvent(QResizeEvent* event) override;
+signals:
 		void imageSelected(const QString& imagePath);
 
 private:
-	QVBoxLayout* imagesLayout;
+	FlowLayout* imagesLayout;
 };
