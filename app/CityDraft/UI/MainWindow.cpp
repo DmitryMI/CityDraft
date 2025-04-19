@@ -275,7 +275,7 @@ namespace CityDraft::UI
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
 		BOOST_ASSERT(instrument);
-		m_Logger->info("{} finished", instrument->GetName().toStdString());
+		m_Logger->debug("{} finished", instrument->GetName().toStdString());
 
 		DeactivateInstrument(instrument);
 	}

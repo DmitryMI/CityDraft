@@ -9,7 +9,13 @@ namespace CityDraft::Input::Instruments
     ImageDraftEditor::ImageDraftEditor(const Dependencies& dependencies):
 		Instrument(dependencies)
     {
+		GetLogger()->debug("Created");
     }
+
+	ImageDraftEditor::~ImageDraftEditor()
+	{
+		GetLogger()->debug("Destroyed");
+	}
 
 	EventChainAction ImageDraftEditor::OnRendererMouseButton(QMouseEvent* event, bool pressed)
 	{
@@ -17,9 +23,10 @@ namespace CityDraft::Input::Instruments
 
 		if (pressed)
 		{
-			if (m_DragActive || m_RotatorActive || m_ScaleActive)
+			if (m_Tool != Tool::None)
 			{
 				m_ToolInUse = true;
+				m_PreviousPoint = event->position();
 				return EventChainAction::Stop;
 			}
 		}
@@ -40,16 +47,33 @@ namespace CityDraft::Input::Instruments
 			return EventChainAction::Next;
 		}
 
-		DetectTransformationTool(event);
-
-		m_Renderer->Repaint();
-
-		if (m_DragActive || m_RotatorActive || m_ScaleActive || m_ToolInUse)
+		if (!m_ToolInUse)
 		{
-			return EventChainAction::Stop;
+			DetectTransformationTool(event);
+			m_Renderer->Repaint();
+			m_PreviousPoint = event->position();
+			return EventChainAction::Next;
 		}
 
-		return EventChainAction::Next;
+		switch (m_Tool)
+		{
+		case Tool::None:
+			BOOST_ASSERT(false);
+			break;
+		case Tool::Drag:
+			Drag(event);
+			break;
+		case Tool::Rotate:
+			Rotate(event);
+			break;
+		case Tool::Scale:
+			Scale(event);
+			break;
+		}
+
+		m_PreviousPoint = event->position();
+		m_Renderer->Repaint();
+		return EventChainAction::Stop;
 	}
 
 	void ImageDraftEditor::OnPaint()
@@ -80,7 +104,7 @@ namespace CityDraft::Input::Instruments
 		m_Renderer->PaintRect(bbox.GetMin(), bbox.GetMax(), m_ColorsProvider->GetDraftScaleBoxColor(), 2.0 / m_Renderer->GetViewportZoom());
 
 		QColor circleColor;
-		if (m_RotatorActive)
+		if (m_Tool == Tool::Rotate)
 		{
 			circleColor = m_ColorsProvider->GetDraftRotationCircleHighlightedColor();
 		}
@@ -93,9 +117,7 @@ namespace CityDraft::Input::Instruments
 
 	void ImageDraftEditor::DetectTransformationTool(QMouseEvent* event)
 	{
-		m_RotatorActive = false;
-		m_DragActive = false;
-		m_ScaleActive = false;
+		m_Tool = Tool::None;
 
 		QObject* parentObj = parent();
 		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
@@ -112,7 +134,7 @@ namespace CityDraft::Input::Instruments
 		double distanceSquared = delta.x() * delta.x() + delta.y() * delta.y();
 		if (fabs(sqrt(distanceSquared) - radiusPixel) < RotatorPixelDistance)
 		{
-			m_RotatorActive = true;
+			m_Tool = Tool::Rotate;
 			parentWidget->setCursor(Qt::CrossCursor);
 			return;
 		}
@@ -120,7 +142,7 @@ namespace CityDraft::Input::Instruments
 		Vector2D cursorProjected = m_Renderer->Project(event->position());
 		if (bbox.Contains(cursorProjected))
 		{
-			m_DragActive = true;
+			m_Tool = Tool::Drag;
 			parentWidget->setCursor(Qt::SizeAllCursor);
 			return;
 		}
@@ -168,6 +190,28 @@ namespace CityDraft::Input::Instruments
 		}
 		AxisAlignedBoundingBox2D bbox{ min, max };
 		return bbox;
+	}
+
+	void ImageDraftEditor::Drag(QMouseEvent* event)
+	{
+		Vector2D first = m_Renderer->Project(m_PreviousPoint);
+		Vector2D second = m_Renderer->Project(event->position());
+		Vector2D delta = second - first;
+
+		for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
+		{
+			Transform2D transform = draft->GetTransform();
+			transform.Translation += delta;
+			draft->SetTransform(transform);
+		}
+	}
+
+	void ImageDraftEditor::Rotate(QMouseEvent* event)
+	{
+	}
+
+	void ImageDraftEditor::Scale(QMouseEvent* event)
+	{
 	}
 
 }

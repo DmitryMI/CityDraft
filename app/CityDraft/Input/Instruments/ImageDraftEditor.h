@@ -9,9 +9,18 @@ namespace CityDraft::Input::Instruments
 	class ImageDraftEditor : public Instrument
 	{
 	public:
+		enum class Tool
+		{
+			None,
+			Drag,
+			Rotate,
+			Scale
+		};
+
 		constexpr static double RotatorPixelDistance = 10;
 
 		ImageDraftEditor(const Dependencies& dependencies);
+		virtual ~ImageDraftEditor() override;
 		inline QString GetName() const override
 		{
 			return "Image Draft Edit";
@@ -26,13 +35,16 @@ namespace CityDraft::Input::Instruments
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("ImageDraftEditor"); };
 		void OnActiveFlagChanged() override;
 	private:
-		bool m_RotatorActive = false;
-		bool m_DragActive = false;
-		bool m_ScaleActive = false;
+		Tool m_Tool = Tool::None;
 		bool m_ToolInUse = false;
+		QPointF m_PreviousPoint;
 
 		void PaintRotatorCircle();
 		void DetectTransformationTool(QMouseEvent* event);
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
+
+		void Drag(QMouseEvent* event);
+		void Rotate(QMouseEvent* event);
+		void Scale(QMouseEvent* event);
 	};
 }

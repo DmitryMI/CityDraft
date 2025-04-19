@@ -60,11 +60,11 @@ namespace CityDraft::Input::Instruments
 		m_IsActive = active;
 		if (active)
 		{
-			GetLogger()->info("Activated");
+			GetLogger()->debug("Activated");
 		}
 		else
 		{
-			GetLogger()->info("Deactivated");
+			GetLogger()->debug("Deactivated");
 		}
 		OnActiveFlagChanged();
 	}
