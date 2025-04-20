@@ -52,11 +52,13 @@ namespace CityDraft::Drafts
 		}
 
 		virtual void SetTranslation(const Vector2D& translation);
-		
+
 		inline const Transform2D& GetTransform() const
 		{
 			return m_Transform;
 		}
+
+		virtual void SetTransform(const Transform2D& transform);
 
 		inline Scene* GetScene() const
 		{

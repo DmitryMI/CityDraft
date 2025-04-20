@@ -5,8 +5,8 @@
 
 namespace CityDraft::Input::Instruments
 {
-	Panner::Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent):
-		Instrument(keyBindingProvider, renderer, parent)
+	Panner::Panner(const Dependencies& dependencies):
+		Instrument(dependencies)
 	{
 		GetLogger()->debug("Created");
 	}
@@ -18,6 +18,8 @@ namespace CityDraft::Input::Instruments
 
 	EventChainAction Panner::OnRendererMouseButton(QMouseEvent* event, bool pressed)
 	{
+		BOOST_ASSERT(IsActive());
+
 		BOOST_ASSERT(m_KeyBindingProvider);
 
 		if (event->button() != m_KeyBindingProvider->GetMouseViewportPanningButton())
@@ -39,6 +41,8 @@ namespace CityDraft::Input::Instruments
 
 	EventChainAction Panner::OnRendererMouseMove(QMouseEvent* event)
 	{
+		BOOST_ASSERT(IsActive());
+
 		QPointF currentPos = event->position();
 		QPointF delta = currentPos - m_LastMousePosition;
 		m_LastMousePosition = currentPos;

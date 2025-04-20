@@ -46,13 +46,17 @@ namespace CityDraft::UI::Rendering
 		// IRenderer
 		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
-		void PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) override;
-		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness) override;
+		void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor) override;
+		void PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness) override;
 		const Vector2D GetViewportCenter() const override;
 		double GetViewportZoom() const override;
 		void SetViewportTransform(const Vector2D& center, double zoom) override;
 		void Repaint() override;
 		Vector2D Project(const QPointF& pixelCoord) const override;
+		QPointF Deproject(const Vector2D& pixelCoord) const override;
 
 
 	signals:

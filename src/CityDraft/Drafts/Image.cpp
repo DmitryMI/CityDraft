@@ -5,7 +5,7 @@
 
 namespace CityDraft::Drafts
 {
-	Vector2D Image::GetImageSize() const
+	Vector2D Image::GetImageOriginalSize() const
 	{
 		BOOST_ASSERT(GetAsset());
 		CityDraft::Assets::Image* image = dynamic_cast<CityDraft::Assets::Image*>(GetAsset());
@@ -17,13 +17,45 @@ namespace CityDraft::Drafts
 
 	AxisAlignedBoundingBox2D Image::GetAxisAlignedBoundingBox() const
 	{
-		Vector2D imageSize = GetImageSize();
-		Vector2D imageSizeScaled = Vector2D(
-			imageSize.GetX() * GetTransform().Scale.GetX(),
-			imageSize.GetY() * GetTransform().Scale.GetY()
-		);
-		Vector2D translation = GetTranslation();
-		return AxisAlignedBoundingBox2D(translation - imageSizeScaled * 0.5, translation + imageSizeScaled * 0.5);
+		Vector2D imageSize = GetImageOriginalSize();
+		const Transform2D& transform = GetTransform();
+
+		double halfWidth = 0.5 * imageSize.GetX() * transform.Scale.GetX();
+		double halfHeight = 0.5 * imageSize.GetY() * transform.Scale.GetY();
+
+		std::array<Vector2D, 4> corners =
+		{
+			Vector2D{-halfWidth, -halfHeight},
+			Vector2D{ halfWidth, -halfHeight},
+			Vector2D{ halfWidth,  halfHeight},
+			Vector2D{-halfWidth,  halfHeight}
+		};
+
+		double cosA = std::cos(transform.Rotation);
+		double sinA = std::sin(transform.Rotation);
+
+		Vector2D min = { std::numeric_limits<double>::max(), std::numeric_limits<double>::max() };
+		Vector2D max = { std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest() };
+
+		for (const Vector2D& corner : corners)
+		{
+			double rotatedX = corner.GetX() * cosA - corner.GetY() * sinA;
+			double rotatedY = corner.GetX() * sinA + corner.GetY() * cosA;
+
+			double worldX = rotatedX + transform.Translation.GetX();
+			double worldY = rotatedY + transform.Translation.GetY();
+
+			min = Vector2D{
+				std::min(min.GetX(), worldX),
+				std::min(min.GetY(), worldY)
+			};
+			max = Vector2D{
+				std::max(max.GetX(), worldX),
+				std::max(max.GetY(), worldY)
+			};
+		}
+
+		return AxisAlignedBoundingBox2D(min, max);
 	}
 
 

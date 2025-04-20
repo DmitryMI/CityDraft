@@ -7,8 +7,12 @@ namespace CityDraft::Input::Instruments
 	class Panner : public Instrument
 	{
 	public:
-		Panner(IKeyBindingProvider* keyBindingProvider, CityDraft::UI::Rendering::IRenderer* renderer, QObject* parent = nullptr);
+		constexpr static int Priority = -90;
+
+		Panner(const Dependencies& dependencies);
 		virtual ~Panner() override;
+		virtual int GetPriority() const { return Priority; }
+
 		inline QString GetName() const override
 		{
 			return "Panning";
@@ -20,6 +24,6 @@ namespace CityDraft::Input::Instruments
 	protected:
 		QPointF m_LastMousePosition;
 
-		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); } ;
+		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Panner"); } ;
 	};
 }

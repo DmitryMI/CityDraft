@@ -10,5 +10,6 @@ namespace CityDraft::Input
 		inline Qt::MouseButton GetMouseSelectionButton() override { return Qt::MouseButton::LeftButton; };
 		inline Qt::MouseButton GetMouseViewportPanningButton() override { return Qt::MouseButton::MiddleButton; };
 		inline Qt::KeyboardModifier GetSelectionAdditiveModifier() override { return Qt::ShiftModifier; };
+		inline Qt::KeyboardModifier GetScaleFromCenterModifier() override { return Qt::ShiftModifier; };
 	};
 }

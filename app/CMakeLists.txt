@@ -21,6 +21,7 @@ set(AppSources
 	"CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
+	"CityDraft/UI/Colors/Factory.cpp"
 	"CityDraft/Logging/LogManager.cpp"
 	"CityDraft/Assets/SkiaAssetManager.cpp"
 	"CityDraft/Assets/SkiaImage.cpp"
@@ -29,8 +30,10 @@ set(AppSources
 	"CityDraft/Input/Instruments/Instrument.cpp"
 	"CityDraft/Input/Instruments/Panner.cpp"
 	"CityDraft/Input/Instruments/Selector.cpp"
+	"CityDraft/Input/Instruments/ImageDraftEditor.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

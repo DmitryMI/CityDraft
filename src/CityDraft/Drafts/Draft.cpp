@@ -30,4 +30,14 @@ namespace CityDraft::Drafts
 			return;
 		}
 	}
+
+	void Draft::SetTransform(const Transform2D& transform)
+	{
+		m_Transform = transform;
+		if (m_Scene)
+		{
+			m_Scene->UpdateObjectModel(this);
+			return;
+		}
+	}
 }

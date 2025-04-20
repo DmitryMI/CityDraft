@@ -9,6 +9,7 @@
 #include "OpenGlUtils.h"
 #include "SkiaPainters/Image.h"
 #include "SkiaPainters/Rect.h"
+#include "SkiaPainters/Circle.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -49,6 +50,17 @@ namespace CityDraft::UI::Rendering
 		return Vector2D(projected.x(), projected.y());
 	}
 
+	QPointF SkiaWidget::Deproject(const Vector2D& pixelCoord) const
+	{
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+
+		QPointF projected = QPointF(pixelCoord.GetX(), pixelCoord.GetY());
+		projected -= QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
+		projected *= m_ViewportZoom;
+		projected += widgetSize;
+		return projected;
+	}
+
 	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
 	{
 		if (CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
@@ -61,16 +73,34 @@ namespace CityDraft::UI::Rendering
 		}
 	}
 
-	void SkiaWidget::PaintRect(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
+	void SkiaWidget::PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
 	{
 		Vector2D min = Project(pixelMin);
 		Vector2D max = Project(pixelMax);
-		PaintRect(min, max, color, thickness);
+		PaintRect(min, max, color, thickness / GetViewportZoom());
 	}
 
-	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness)
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness)
 	{
-		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, color, thickness);
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness, fillColor);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, fillColor);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness)
+	{
+		auto painter = std::make_shared<SkiaPainters::Circle>(pos, radius, color, thickness);
 		PaintOrQueue(painter);
 	}
 

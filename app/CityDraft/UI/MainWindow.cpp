@@ -7,6 +7,8 @@
 #include "CityDraft/Input/Instruments/Selector.h"
 #include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/UI/Colors/Factory.h"
+#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
 
 namespace CityDraft::UI
 {
@@ -15,20 +17,36 @@ namespace CityDraft::UI
 		QMainWindow(parent),
 		m_AssetsRootDirectory(assetsRoot)
 	{
-		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
-
 		m_Ui.setupUi(this);
 
+		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
+		CreateMenuBar();
+		CreateUndoRedoStack(m_EditMenu);
+		
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
+		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
 		CreateStatusBar();
+
 		m_Logger->info("MainWindow created");
 	}
 
 	MainWindow::~MainWindow()
 	{
 		
+	}
+
+	void MainWindow::CreateUndoRedoStack(QMenu* menu)
+	{
+		BOOST_ASSERT(menu);
+		m_UndoStack = new QUndoStack(this);
+		QAction* undoAction = m_UndoStack->createUndoAction(this, tr("&Undo"));
+		QAction* redoAction = m_UndoStack->createRedoAction(this, tr("&Redo"));
+		menu->addAction(undoAction);
+		menu->addAction(redoAction);
+		undoAction->setShortcut(QKeySequence::Undo);
+		redoAction->setShortcut(QKeySequence::Redo);
 	}
 
 	void MainWindow::CreateRenderingWidget()
@@ -60,7 +78,7 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateStatusBar()
 	{
-		m_ActiveInstrumentsLabel = new QLabel("[]");
+		m_ActiveInstrumentsLabel = new QLabel("");
 		m_ActiveInstrumentsLabel->setMinimumWidth(200);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
 
@@ -69,9 +87,51 @@ namespace CityDraft::UI
 		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
 	}
 
+	void MainWindow::CreateMenuBar()
+	{
+		QMenuBar* menuBar = new QMenuBar(this);
+		setMenuBar(menuBar);
+		m_EditMenu = menuBar->addMenu(tr("&Edit"));
+	}
+
+	void MainWindow::CreateInstruments()
+	{
+		BOOST_ASSERT(m_Scene);
+		for (auto* instrument : m_ActiveInstruments)
+		{
+			DeactivateInstrument(instrument);
+		}
+		for (auto* instrument : m_InactiveInstruments)
+		{
+			instrument->deleteLater();
+		}
+		m_InactiveInstruments.clear();
+
+		CityDraft::Input::Instruments::Dependencies dependencies;
+		dependencies.Scene = m_Scene.get();
+		dependencies.SelectionManager = this;
+		dependencies.KeyBindingProvider = m_KeyBindingProvider.get();
+		dependencies.ColorsProvider = m_ColorsProvider.get();
+		dependencies.Parent = this;
+		dependencies.UndoStack = m_UndoStack;
+		dependencies.Renderer = m_RenderingWidget;
+
+		m_InactiveInstruments.insert(
+			new CityDraft::Input::Instruments::Selector(dependencies));
+		m_InactiveInstruments.insert(
+			new CityDraft::Input::Instruments::Panner(dependencies));
+		m_InactiveInstruments.insert(
+			new CityDraft::Input::Instruments::ImageDraftEditor(dependencies));
+
+		for (auto* instrument : m_InactiveInstruments)
+		{
+			connect(instrument, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+		}
+	}
+
 	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
-		QString message = "[";
+		QString message = "";
 		
 		for (const auto& instrument : m_ActiveInstruments)
 		{
@@ -82,7 +142,6 @@ namespace CityDraft::UI
 			message.removeLast();
 			message.removeLast();
 		}
-		message += "]";
 		m_ActiveInstrumentsLabel->setText(message);
 	}
 
@@ -100,57 +159,72 @@ namespace CityDraft::UI
 		}
 	}
 
-	void MainWindow::HighlightDraftsInBox(const AxisAlignedBoundingBox2D& box, const QColor& color)
+	void MainWindow::ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
 	{
-		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		m_Scene->QueryDraftsOnAllLayers(box, drafts);
-		for (const auto& draft : drafts)
+		BOOST_ASSERT(instrument);
+		BOOST_ASSERT(!instrument->IsActive());
+
+		auto iter = std::find_if(m_InactiveInstruments.begin(), m_InactiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
+		BOOST_ASSERT(iter != m_InactiveInstruments.end());
+		m_InactiveInstruments.erase(iter);
+		m_ActiveInstruments.insert(instrument);
+		instrument->SetActive(true);
+		UpdateActiveInstrumentsLabel();
+	}
+
+	void MainWindow::DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
+	{
+		BOOST_ASSERT(instrument);
+		BOOST_ASSERT(instrument->IsActive());
+
+		auto iter = std::find_if(m_ActiveInstruments.begin(), m_ActiveInstruments.end(), [instrument](auto* item) {return instrument == item; });
+		BOOST_ASSERT(iter != m_ActiveInstruments.end());
+		m_ActiveInstruments.erase(iter);
+		m_InactiveInstruments.insert(instrument);
+		instrument->SetActive(false);
+		UpdateActiveInstrumentsLabel();
+	}
+
+	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
+	{
+		return m_SelectedDrafts;
+	}
+
+	void MainWindow::ClearSelectedDrafts()
+	{
+		m_SelectedDrafts.clear();
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+		if (editor->IsActive())
 		{
-			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_RenderingWidget->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), color, 1);
+			DeactivateInstrument(editor);
 		}
 	}
 
-	void MainWindow::StartSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector)
+	void MainWindow::AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
 	{
-		if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
+		if (drafts.size() == 0)
 		{
-			m_SelectedDrafts.clear();
-		}
-	}
-
-	void MainWindow::VisualizeOngoingSelection(QMouseEvent* event, CityDraft::Input::Instruments::Selector* selector)
-	{
-		auto selectionBox = selector->GetProjectedSelectionBox();
-		HighlightDraftsInBox(selectionBox, QColor(255, 191, 0, 153));
-	}
-
-	void MainWindow::VisualizeSelection()
-	{
-		for (const auto& draft : m_SelectedDrafts)
-		{
-			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_RenderingWidget->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), QColor(30, 144, 255, 204), 1);
+			return;
 		}
 
-	}
-
-	void MainWindow::FinishSelection(CityDraft::Input::Instruments::Selector* selector)
-	{
-		auto selectionBox = selector->GetProjectedSelectionBox();
-		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		m_Scene->QueryDraftsOnAllLayers(selectionBox, drafts);
 		for (const auto& draft : drafts)
 		{
 			m_SelectedDrafts.insert(draft);
 		}
 
-		m_Logger->info("Selected {} drafts", m_SelectedDrafts.size());
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+		if (!editor->IsActive())
+		{
+			ActivateInstrument(editor);
+		}
 	}
 
 	void MainWindow::OnGraphicsPainting(UI::Rendering::SkiaWidget* widget)
 	{
-		VisualizeSelection();
+		for (const auto& instrument : m_ActiveInstruments)
+		{
+			instrument->OnPaint();
+		}
 	}
 
 	void MainWindow::OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed)
@@ -171,10 +245,7 @@ namespace CityDraft::UI
 
 		if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton() && pressed)
 		{
-			auto* panner = new CityDraft::Input::Instruments::Panner(m_KeyBindingProvider.get(), m_RenderingWidget, this);
-			m_ActiveInstruments.push_back(panner);
-			UpdateActiveInstrumentsLabel();
-			connect(panner, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
+			auto* panner = ActivateInstrument<CityDraft::Input::Instruments::Panner>();
 			auto action = panner->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
@@ -183,11 +254,7 @@ namespace CityDraft::UI
 		}
 		else if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton() && pressed)
 		{
-			auto* selector = new CityDraft::Input::Instruments::Selector(m_KeyBindingProvider.get(), m_RenderingWidget, this);
-			m_ActiveInstruments.push_back(selector);
-			UpdateActiveInstrumentsLabel();
-			connect(selector, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
-			StartSelection(event, selector);
+			auto* selector = ActivateInstrument<CityDraft::Input::Instruments::Selector>();
 			auto action = selector->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
@@ -203,28 +270,14 @@ namespace CityDraft::UI
 		m_CursorProjectedPosition->setText(msg);
 
 		ProcessInstrumentsMouseMoveEvent(event);
-
-		for (const auto& instrument : m_ActiveInstruments)
-		{
-			if (auto* selector = dynamic_cast<CityDraft::Input::Instruments::Selector*>(instrument))
-			{
-				VisualizeOngoingSelection(event, selector);
-			}
-		}
 	}
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
-		if (auto* selector = dynamic_cast<CityDraft::Input::Instruments::Selector*>(instrument))
-		{
-			FinishSelection(selector);
-		}
-
 		BOOST_ASSERT(instrument);
-		size_t erasedNum = std::erase_if(m_ActiveInstruments, [instrument](const auto& ptr) {return ptr == instrument; });
-		BOOST_ASSERT(erasedNum == 1);
-		instrument->deleteLater();
-		UpdateActiveInstrumentsLabel();
+		m_Logger->debug("{} finished", instrument->GetName().toStdString());
+
+		DeactivateInstrument(instrument);
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)
@@ -235,6 +288,7 @@ namespace CityDraft::UI
 
 		m_Scene = Scene::LoadSceneFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
 		m_RenderingWidget->SetScene(m_Scene);
+		CreateInstruments();
 	}
 
 }
