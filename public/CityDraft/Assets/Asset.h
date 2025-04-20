@@ -11,14 +11,19 @@ namespace CityDraft::Assets
 {
 	class AssetManager;
 
+	/// <summary>
+	/// Asset status
+	/// </summary>
 	enum class AssetStatus
 	{
-		Initialized,
-		Loading,
-		Loaded,
-		LoadingFailed
+		Initialized,	// Asset created, not loaded
+		Loaded,			// Asset fully loaded
+		LoadingFailed	// Asset loading failed
 	};
 
+	/// <summary>
+	/// Represents a unique visual resource.
+	/// </summary>
 	class Asset
 	{
 	public:
@@ -28,12 +33,25 @@ namespace CityDraft::Assets
 		Asset(const std::filesystem::path& localFilePath, AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger);
 		Asset(const boost::url& url, AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger);
 
+		/// <summary>
+		/// Creates a Draft based on this Asset
+		/// </summary>
+		/// <returns>New Draft</returns>
 		virtual std::shared_ptr<Drafts::Draft> CreateDraft() = 0;
+
+		/// <summary>
+		/// Gets status of the Asset
+		/// </summary>
+		/// <returns></returns>
 		virtual inline AssetStatus GetStatus() const
 		{
 			return m_Status;
 		}
 
+		/// <summary>
+		/// Tries to load all Asset's resources into memory.
+		/// </summary>
+		/// <returns>Status of the Asset after loading</returns>
 		inline AssetStatus LoadAsset()
 		{
 			LoadAssetInternal();
@@ -51,6 +69,10 @@ namespace CityDraft::Assets
 			return !m_AssetUrl.empty();
 		}
 
+		/// <summary>
+		/// Returns Asset's unique identifier
+		/// </summary>
+		/// <returns>URL</returns>
 		inline const boost::url& GetUrl() const
 		{
 			return m_AssetUrl;

@@ -22,15 +22,30 @@ namespace CityDraft::Assets
 
 namespace CityDraft::Drafts
 {
-
+	/// <summary>
+	/// Represents and Asset, instantiated on the Scene. Can be moved, rotated, scaled and exists in multiple copies.
+	/// </summary>
 	class Draft : public CityDraft::Serialization::ISerializable
 	{
 	public:
+		/// <summary>
+		/// Creates a Draft and sets pointer to parent Asset. To create a Draft, use Asset::CreateDraft() instead.
+		/// </summary>
+		/// <param name="asset">Parent Asset</param>
 		Draft(CityDraft::Assets::Asset* asset);
 
 		virtual bool IsPointInside(const Vector2D& point);
+
+		/// <summary>
+		/// Gets Bounding Box, taking Draft's transformation into account.
+		/// </summary>
+		/// <returns>Bounding Box</returns>
 		virtual AxisAlignedBoundingBox2D GetAxisAlignedBoundingBox() const = 0;
 
+		/// <summary>
+		/// Gets Parent Asset
+		/// </summary>
+		/// <returns>Parent Asset</returns>
 		CityDraft::Assets::Asset* GetAsset() const;
 
 		inline const std::string& GetName() const
@@ -48,6 +63,11 @@ namespace CityDraft::Drafts
 			return m_Transform.Translation;
 		}
 
+		/// <summary>
+		/// Called when Parent Asset is loaded.
+		/// </summary>
+		/// <param name="asset">Parent Asset</param>
+		/// <param name="loadingOk">True if loaded, false if loading failed</param>
 		virtual inline void OnAssetLoaded(Assets::Asset* asset, bool loadingOk)
 		{
 

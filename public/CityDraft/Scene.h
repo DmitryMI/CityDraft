@@ -22,7 +22,11 @@ namespace CityDraft
 	class Scene
 	{
 	public:
+		/// <summary>
+		/// RTree Entry: Bounding Box and Draft
+		/// </summary>
 		using RTreeValue = std::pair<AxisAlignedBoundingBox2D::UnderlyingType, std::shared_ptr<Drafts::Draft>>;
+
 		using LayerChangedFunc = void(Layer*);
 		using LayerMarkedForDeletionFunc = void(Layer*);
 
