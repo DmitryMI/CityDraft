@@ -53,7 +53,7 @@ namespace CityDraft::Input::Instruments
 		double GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center);
 
 		void Drag(QMouseEvent* event);
-		void Rotate(QMouseEvent* event);
-		void Scale(QMouseEvent* event);
+		void Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox);
+		void Scale(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox);
 	};
 }

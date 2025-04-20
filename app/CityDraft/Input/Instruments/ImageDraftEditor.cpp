@@ -3,6 +3,7 @@
 #include "CityDraft/UI/Rendering/IRenderer.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include <QWidget>
+#include "CityDraft/Input/IKeyBindingProvider.h"
 
 namespace CityDraft::Input::Instruments
 {
@@ -68,10 +69,10 @@ namespace CityDraft::Input::Instruments
 			Drag(event);
 			break;
 		case Tool::Rotate:
-			Rotate(event);
+			Rotate(event, bbox);
 			break;
 		case Tool::Scale:
-			Scale(event);
+			Scale(event, bbox);
 			break;
 		}
 
@@ -208,8 +209,6 @@ namespace CityDraft::Input::Instruments
 			return;
 		}
 
-		
-
 		parentWidget->unsetCursor();
 	}
 
@@ -281,10 +280,8 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::Rotate(QMouseEvent* event)
+	void ImageDraftEditor::Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
 	{
-		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
-
 		double angle = GetRotationDelta(m_PreviousPoint, event->position(), bbox.GetCenter());
 		GetLogger()->info("Angle: {}", angle * 180.0 / M_PI);
 
@@ -296,8 +293,35 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::Scale(QMouseEvent* event)
+	void ImageDraftEditor::Scale(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
 	{
+		std::array<Vector2D, 4> rects;
+		GetScalingRectsPositions(bbox, rects);
+
+		Vector2D scaleCenter;
+		if (event->modifiers().testFlag(m_KeyBindingProvider->GetScaleFromCenterModifier()))
+		{
+			scaleCenter = bbox.GetCenter();
+		}
+		else
+		{
+			scaleCenter = rects[(m_ScalingRectIndex + 2) % 4];
+		}
+
+		Vector2D p0 = m_Renderer->Project(m_PreviousPoint);
+		Vector2D p1 = m_Renderer->Project(event->position());
+		Vector2D initialVec = p0 - scaleCenter;
+		Vector2D currentVec = p1 - scaleCenter;
+		double originalLength = initialVec.GetSize();
+		double currentLength = currentVec.GetSize();
+		double scaleFactor = currentLength / originalLength;
+
+		for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
+		{
+			Transform2D transform = draft->GetTransform();
+			transform.ScaleRelativeToPoint(Vector2D{ scaleFactor, scaleFactor}, scaleCenter);
+			draft->SetTransform(transform);
+		}
 	}
 
 }

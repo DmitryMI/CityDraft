@@ -21,5 +21,22 @@ namespace CityDraft
 			Translation = relativePos + point;
 			Rotation += angleRadians;
 		}
+
+		void ScaleRelativeToPoint(const Vector2D& scaleFactors, const Vector2D& point)
+		{
+			Vector2D relativePos = Translation - point;
+
+			Vector2D scaledPos = Vector2D(
+				relativePos.GetX() * scaleFactors.GetX(),
+				relativePos.GetY() * scaleFactors.GetY()
+			);
+
+			Translation = scaledPos + point;
+
+			Scale = Vector2D(
+				Scale.GetX() * scaleFactors.GetX(),
+				Scale.GetY() * scaleFactors.GetY()
+			);
+		}
 	};
 }
