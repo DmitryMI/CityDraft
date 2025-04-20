@@ -69,6 +69,49 @@ namespace CityDraft::Utils
 		block[3] = color.A() * std::numeric_limits<unsigned char>::max();
 	}
 
+	std::vector<unsigned char> StbPixels::GetCropped(int centerX, int centerY, int cropWidth, int cropHeight) const
+	{
+		std::vector<unsigned char> cropped;
+
+		if (!IsValid() || cropWidth <= 0 || cropHeight <= 0)
+			return cropped;
+
+		// Calculate crop origin
+		int startX = centerX - cropWidth / 2;
+		int startY = centerY - cropHeight / 2;
+
+		// Clamp crop region to image bounds
+		if (startX < 0) {
+			cropWidth += startX;
+			startX = 0;
+		}
+		if (startY < 0) {
+			cropHeight += startY;
+			startY = 0;
+		}
+		if (startX + cropWidth > Width) {
+			cropWidth = Width - startX;
+		}
+		if (startY + cropHeight > Height) {
+			cropHeight = Height - startY;
+		}
+
+		// If after clamping the crop is invalid, return empty
+		if (cropWidth <= 0 || cropHeight <= 0)
+			return cropped;
+
+		cropped.resize(cropWidth * cropHeight * Channels);
+
+		for (int y = 0; y < cropHeight; ++y)
+		{
+			const unsigned char* srcRow = Pixels + ((startY + y) * Width + startX) * Channels;
+			unsigned char* dstRow = cropped.data() + (y * cropWidth) * Channels;
+			std::memcpy(dstRow, srcRow, cropWidth * Channels);
+		}
+
+		return cropped;
+	}
+
 	StbPixels ImageLoader::LoadImage(const std::filesystem::path& path, int componentsPerPixel, std::shared_ptr<spdlog::logger> logger)
 	{
 		BOOST_ASSERT(logger);

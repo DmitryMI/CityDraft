@@ -29,6 +29,8 @@ namespace CityDraft::Utils
 
 		LinearColorF GetPixel(size_t x, size_t y) const;
 		void SetPixel(size_t x, size_t y, const LinearColorF& color);
+
+		std::vector<unsigned char> GetCropped(int centerX, int centerY, int cropWidth, int cropHeight) const;
 	};
 
 	class ImageLoader

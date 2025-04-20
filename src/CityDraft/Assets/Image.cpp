@@ -2,6 +2,7 @@
 
 #include "CityDraft/Assets/Image.h"
 #include "CityDraft/Assets/AssetManager.h"
+#include "CityDraft/Utils/ImageUtils.h"
 
 namespace CityDraft::Assets
 {
@@ -37,6 +38,8 @@ namespace CityDraft::Assets
 		}
 		m_Logger->info("Read raw pixels from {}. Width: {}, Height: {}, Channels: {}", path.string(), stbPixels.Width, stbPixels.Height, stbPixels.Channels);
 
-		LoadImage(stbPixels);
+		int pivotX, pivotY, sizeX, sizeY;
+		CityDraft::Utils::ImageUtils::CompactImageTransform(stbPixels, 0.1, m_Logger, pivotX, pivotY, sizeX, sizeY);
+		LoadImage(stbPixels, pivotX, pivotY, sizeX, sizeY);
 	}
 }

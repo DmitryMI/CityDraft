@@ -24,10 +24,10 @@ namespace CityDraft::Assets
 		return std::make_shared<Drafts::SkiaImage>(this);
 	}
 
-	void SkiaImage::LoadImage(const CityDraft::Utils::StbPixels& stbPixels)
+	void SkiaImage::LoadImage(const CityDraft::Utils::StbPixels& stbPixels, int pivotX, int pivotY, int sizeX, int sizeY)
 	{
-		CreateGpuImage(stbPixels);
-		CreateQtImage(stbPixels);
+		CreateGpuImage(stbPixels, pivotX, pivotY, sizeX, sizeY);
+		CreateQtImage(stbPixels, pivotX, pivotY, sizeX, sizeY);
 		
 		m_Logger->info("SkiaImage loaded");
 		m_Status = AssetStatus::Loaded;
@@ -64,8 +64,10 @@ namespace CityDraft::Assets
 		return Vector2D(m_GpuImage->dimensions().fWidth, m_GpuImage->dimensions().fHeight);
 	}
 
-	void SkiaImage::CreateGpuImage(const Utils::StbPixels& stbPixels)
+	void SkiaImage::CreateGpuImage(const Utils::StbPixels& stbPixels, int pivotX, int pivotY, int sizeX, int sizeY)
 	{
+		const auto pixelsCropped = stbPixels.GetCropped(pivotX, pivotY, sizeX, sizeY);
+
 		sk_sp<GrDirectContext> skiaContext = GetDirectContext();
 		BOOST_ASSERT(skiaContext);
 		QOpenGLExtraFunctions& gl = GetGlFunctions();
@@ -79,14 +81,14 @@ namespace CityDraft::Assets
 		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		gl.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, stbPixels.Width, stbPixels.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, stbPixels.Pixels);
+		gl.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizeX, sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelsCropped.data());
 
 		GrGLTextureInfo textureInfo;
 		textureInfo.fID = textureId;
 		textureInfo.fFormat = GL_RGBA8;
 		textureInfo.fTarget = GL_TEXTURE_2D;
 
-		auto backendTexture = GrBackendTextures::MakeGL(stbPixels.Width, stbPixels.Height, skgpu::Mipmapped::kNo, textureInfo);
+		auto backendTexture = GrBackendTextures::MakeGL(sizeX, sizeY, skgpu::Mipmapped::kNo, textureInfo);
 
 		m_GpuImage = SkImages::AdoptTextureFrom(skiaContext.get(),
 			backendTexture,
@@ -98,9 +100,11 @@ namespace CityDraft::Assets
 
 	}
 
-	void SkiaImage::CreateQtImage(const Utils::StbPixels& pixels)
+	void SkiaImage::CreateQtImage(const Utils::StbPixels& pixels, int pivotX, int pivotY, int sizeX, int sizeY)
 	{
-		QImage image(pixels.Pixels, pixels.Width, pixels.Height, QImage::Format_RGBA8888);
+		const auto pixelsCropped = pixels.GetCropped(pivotX, pivotY, sizeX, sizeY);
+
+		QImage image(pixelsCropped.data(), sizeX, sizeY, QImage::Format_RGBA8888);
 
 		// Copy it into a Qt-managed QImage (to avoid dependency on STB memory)
 		QImage copy = image.copy();

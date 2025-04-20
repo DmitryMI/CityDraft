@@ -24,6 +24,6 @@ namespace CityDraft::Assets
 
 	protected:
 		void LoadAssetInternal() override;
-		virtual void LoadImage(const CityDraft::Utils::StbPixels& pixels) = 0;
+		virtual void LoadImage(const CityDraft::Utils::StbPixels& pixels, int pivotX, int pivotY, int sizeX, int sizeY) = 0;
 	};
 }

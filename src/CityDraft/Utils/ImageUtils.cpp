@@ -4,8 +4,10 @@
 
 namespace CityDraft::Utils
 {
-	void ImageUtils::CompactImageTransform(const StbPixels& pixels, Vector2D& center, Vector2D& size, double alphaThreshold, std::shared_ptr<spdlog::logger> logger)
+	void ImageUtils::CompactImageTransform(const StbPixels& pixels, double alphaThreshold, std::shared_ptr<spdlog::logger> logger, int& outCenterX, int& outCenterY, int& outSizeX, int& outSizeY)
 	{
+		BOOST_ASSERT(pixels.IsValid());
+
 		size_t left = pixels.Width;
 		size_t top = pixels.Height;
 		size_t right = 0;
@@ -24,8 +26,10 @@ namespace CityDraft::Utils
 
 		if (top == pixels.Height - 1)
 		{
-			center = { 0, 0 };
-			size = { 0, 0 };
+			outCenterX = 0;
+			outCenterY = 0;
+			outSizeX = 0;
+			outSizeY = 0;
 			return;
 		}
 
@@ -62,8 +66,10 @@ namespace CityDraft::Utils
 			}
 		}
 
-		size = { static_cast<double>(right - left), static_cast<double>(top - bottom)};
-		center = size / 2;
+		outSizeX = right - left;
+		outSizeY = bottom - top;
+		outCenterX = (left + right) / 2;
+		outCenterY = (top + bottom) / 2;
 	}
 
 	size_t ImageUtils::PixelsRayTrace(const StbPixels& pixels, int64_t x, int64_t y, int64_t dx, int64_t dy, double alphaThreshold)
@@ -78,6 +84,7 @@ namespace CityDraft::Utils
 			}
 			x += dx;
 			y += dy;
+			counter++;
 		}
 
 		return counter;
