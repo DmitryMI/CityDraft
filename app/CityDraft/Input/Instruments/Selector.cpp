@@ -61,7 +61,7 @@ namespace CityDraft::Input::Instruments
 		QPointF currentPosition = event->position();
 
 		BOOST_ASSERT(m_Renderer);
-		m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, QColor(66, 133, 244), 1.0);
+		m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
 		m_Renderer->Repaint();
 		m_LastMousePosition = currentPosition;
 		return EventChainAction::Next;

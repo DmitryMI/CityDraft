@@ -10,13 +10,37 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	class Rect : public Painter
 	{
 	public:
-		Rect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness);
+		Rect(
+			const Vector2D& min,
+			const Vector2D& max,
+			const QColor& outlineColor,
+			double outlineThickness,
+			const QColor& fillColor
+		);
+
+		Rect(
+			const Vector2D& min,
+			const Vector2D& max,
+			const QColor& outlineColor,
+			double outlineThickness
+		);
+
+		Rect(
+			const Vector2D& min,
+			const Vector2D& max,
+			const QColor& fillColor
+		);
+
 		void Paint(SkCanvas* canvas) override;
 
 	private:
 		Vector2D m_Min;
 		Vector2D m_Max;
-		QColor m_Color;
-		double m_Thickness;
+		QColor m_OutlineColor;
+		double m_OutlineThickness;
+		QColor m_FillColor;
+
+		bool m_Outline;
+		bool m_Fill;
 	};
 }

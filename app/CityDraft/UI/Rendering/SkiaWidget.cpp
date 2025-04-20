@@ -80,9 +80,21 @@ namespace CityDraft::UI::Rendering
 		PaintRect(min, max, color, thickness / GetViewportZoom());
 	}
 
-	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& color, double thickness)
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness)
 	{
-		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, color, thickness);
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness, fillColor);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, fillColor);
 		PaintOrQueue(painter);
 	}
 
