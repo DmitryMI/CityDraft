@@ -18,12 +18,50 @@ namespace CityDraft::Drafts
 	AxisAlignedBoundingBox2D Image::GetAxisAlignedBoundingBox() const
 	{
 		Vector2D imageSize = GetImageOriginalSize();
-		Vector2D imageSizeScaled = Vector2D(
-			imageSize.GetX() * GetTransform().Scale.GetX(),
-			imageSize.GetY() * GetTransform().Scale.GetY()
-		);
-		Vector2D translation = GetTranslation();
-		return AxisAlignedBoundingBox2D(translation - imageSizeScaled * 0.5, translation + imageSizeScaled * 0.5);
+		const Transform2D& transform = GetTransform();
+
+		// Step 1: Apply scale
+		double halfWidth = 0.5 * imageSize.GetX() * transform.Scale.GetX();
+		double halfHeight = 0.5 * imageSize.GetY() * transform.Scale.GetY();
+
+		// Step 2: Define the four corners of the box (centered at origin)
+		std::array<Vector2D, 4> corners =
+		{
+			Vector2D{-halfWidth, -halfHeight},
+			Vector2D{ halfWidth, -halfHeight},
+			Vector2D{ halfWidth,  halfHeight},
+			Vector2D{-halfWidth,  halfHeight}
+		};
+
+		// Step 3: Rotate and translate each corner
+		double cosA = std::cos(transform.Rotation);
+		double sinA = std::sin(transform.Rotation);
+
+		Vector2D min = { std::numeric_limits<double>::max(), std::numeric_limits<double>::max() };
+		Vector2D max = { std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest() };
+
+		for (const Vector2D& corner : corners)
+		{
+			// Rotate the corner
+			double rotatedX = corner.GetX() * cosA - corner.GetY() * sinA;
+			double rotatedY = corner.GetX() * sinA + corner.GetY() * cosA;
+
+			// Translate to world space
+			double worldX = rotatedX + transform.Translation.GetX();
+			double worldY = rotatedY + transform.Translation.GetY();
+
+			// Update AABB bounds
+			min = Vector2D{
+				std::min(min.GetX(), worldX),
+				std::min(min.GetY(), worldY)
+			};
+			max = Vector2D{
+				std::max(max.GetX(), worldX),
+				std::max(max.GetY(), worldY)
+			};
+		}
+
+		return AxisAlignedBoundingBox2D(min, max);
 	}
 
 
