@@ -25,8 +25,8 @@ namespace CityDraft::Serialization
 		IInputArchive& operator>>(ISerializable& serializable) override;
 
 	private:
-		boost::archive::text_iarchive m_InArchive;
 		std::ifstream m_Stream;
+		boost::archive::text_iarchive m_InArchive;
 	};
 
 	class BoostOutputArchive : public IOutputArchive
