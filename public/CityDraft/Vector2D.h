@@ -8,7 +8,7 @@ namespace CityDraft
 	/// <summary>
 	/// Represents a real Vector in 2D space
 	/// </summary>
-	struct Vector2D
+	struct Vector2D 
 	{
 	public:
 		using UnderlyingType = boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian>;
@@ -19,7 +19,6 @@ namespace CityDraft
 		{
 
 		}
-
 
 		constexpr Vector2D(double X, double Y) : Data{X, Y}
 		{

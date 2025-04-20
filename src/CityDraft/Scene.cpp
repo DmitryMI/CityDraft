@@ -1,8 +1,14 @@
 #include "CityDraft/Scene.h"
 #include <algorithm>
+#include "CityDraft/Serialization/BoostArchive.h"
 
 namespace CityDraft
 {
+	const std::string& Scene::GetName() const
+	{
+		return m_Name;
+	}
+
 	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
 	{
 		BOOST_ASSERT(obj->m_Scene == nullptr);
@@ -60,7 +66,7 @@ namespace CityDraft
 		return scene;
 	}
 
-	std::shared_ptr<Scene> Scene::LoadSceneFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
+	std::shared_ptr<Scene> Scene::LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
 	{
 		// Mock scene
 
@@ -170,4 +176,17 @@ namespace CityDraft
 		return toRemove[0].second;
 	}
 
+	void Scene::SaveToFile(const std::filesystem::path& path)
+	{
+		CityDraft::Serialization::BoostOutputArchive archive(path);
+
+		archive << m_Name;
+		// TODO Serialize layers
+		for (const auto& draftEntry : m_DraftsRtree)
+		{
+			std::string url = draftEntry.second->GetAsset()->GetUrl().c_str();
+			archive << url;
+			archive << *draftEntry.second.get();
+		}
+	}
 }

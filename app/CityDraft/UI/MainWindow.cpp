@@ -9,6 +9,8 @@
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/UI/Colors/Factory.h"
 #include "CityDraft/Input/Instruments/ImageDraftEditor.h"
+#include <QFileDialog>
+#include <QStandardPaths>
 
 namespace CityDraft::UI
 {
@@ -28,6 +30,8 @@ namespace CityDraft::UI
 
 		CreateRenderingWidget();
 		CreateStatusBar();
+
+		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveAsClicked);
 
 		m_Logger->info("MainWindow created");
 	}
@@ -88,9 +92,8 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateMenuBar()
 	{
-		QMenuBar* menuBar = new QMenuBar(this);
-		setMenuBar(menuBar);
-		m_EditMenu = menuBar->addMenu(tr("&Edit"));
+		QMenuBar* bar = menuBar();
+		m_EditMenu = bar->addMenu(tr("&Edit"));
 	}
 
 	void MainWindow::CreateInstruments()
@@ -279,13 +282,36 @@ namespace CityDraft::UI
 		DeactivateInstrument(instrument);
 	}
 
+	void MainWindow::OnSaveAsClicked()
+	{
+		BOOST_ASSERT(m_Scene);
+
+		QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+		std::filesystem::create_directories(defaultPath.toStdString() + "/maps");
+		defaultPath += "/maps/" + m_Scene->GetName() + ".citydraft";
+
+		QString filename = QFileDialog::getSaveFileName(
+			this,
+			"Save Scene",
+			defaultPath,
+			"Text Files (*.citydraft);;All Files (*)"
+		);
+
+		if (filename.isEmpty())
+		{
+			return;
+		}
+
+		m_Scene->SaveToFile(filename.toStdString());
+	}
+
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)
 	{
 		BOOST_ASSERT(widget == m_RenderingWidget);
 
 		CreateAssetManager(m_AssetsRootDirectory);
 
-		m_Scene = Scene::LoadSceneFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
+		m_Scene = Scene::LoadFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
 	}

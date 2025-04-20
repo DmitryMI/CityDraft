@@ -37,6 +37,8 @@ namespace CityDraft
 			BOOST_ASSERT(logger);
 		};
 
+		const std::string& GetName() const;
+
 		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
 		void RemoveDraft(Drafts::Draft* objPtr);
 
@@ -47,13 +49,15 @@ namespace CityDraft
 			return result;
 		}
 
-		static std::shared_ptr<Scene> NewScene(const std::string& name, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
-		static std::shared_ptr<Scene> LoadSceneFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
-
 		virtual void UpdateObjectModel(Drafts::Draft* obj);
 		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& entries);
 		size_t QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts);
 
+
+		static std::shared_ptr<Scene> NewScene(const std::string& name, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
+		static std::shared_ptr<Scene> LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
+		void SaveToFile(const std::filesystem::path& path);
+		
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
 		std::shared_ptr<Assets::AssetManager> m_AssetManager;

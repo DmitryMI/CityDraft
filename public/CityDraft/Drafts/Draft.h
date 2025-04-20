@@ -7,6 +7,8 @@
 #include <string>
 #include <memory>
 #include <boost/signals2.hpp>
+#include "CityDraft/Serialization/IArchive.h"
+#include "CityDraft/Serialization/ISerializable.h"
 
 namespace CityDraft
 {
@@ -21,7 +23,7 @@ namespace CityDraft::Assets
 namespace CityDraft::Drafts
 {
 
-	class Draft
+	class Draft : public CityDraft::Serialization::ISerializable
 	{
 	public:
 		Draft(CityDraft::Assets::Asset* asset);
@@ -65,17 +67,19 @@ namespace CityDraft::Drafts
 			return m_Scene;
 		}
 
+		// ISerializable
+		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
+		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
+
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
 
 	private:
 		Layer* m_Layer = nullptr;
 		Scene* m_Scene = nullptr;
-		
-		int m_ZOrder = 0;
-		std::string m_Name{};
 		CityDraft::Assets::Asset* m_Asset;
-
+		
+		std::string m_Name{};
 		Transform2D m_Transform{};
 
 		friend class CityDraft::Scene;
