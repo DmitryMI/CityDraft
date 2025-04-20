@@ -20,11 +20,9 @@ namespace CityDraft::Drafts
 		Vector2D imageSize = GetImageOriginalSize();
 		const Transform2D& transform = GetTransform();
 
-		// Step 1: Apply scale
 		double halfWidth = 0.5 * imageSize.GetX() * transform.Scale.GetX();
 		double halfHeight = 0.5 * imageSize.GetY() * transform.Scale.GetY();
 
-		// Step 2: Define the four corners of the box (centered at origin)
 		std::array<Vector2D, 4> corners =
 		{
 			Vector2D{-halfWidth, -halfHeight},
@@ -33,7 +31,6 @@ namespace CityDraft::Drafts
 			Vector2D{-halfWidth,  halfHeight}
 		};
 
-		// Step 3: Rotate and translate each corner
 		double cosA = std::cos(transform.Rotation);
 		double sinA = std::sin(transform.Rotation);
 
@@ -42,15 +39,12 @@ namespace CityDraft::Drafts
 
 		for (const Vector2D& corner : corners)
 		{
-			// Rotate the corner
 			double rotatedX = corner.GetX() * cosA - corner.GetY() * sinA;
 			double rotatedY = corner.GetX() * sinA + corner.GetY() * cosA;
 
-			// Translate to world space
 			double worldX = rotatedX + transform.Translation.GetX();
 			double worldY = rotatedY + transform.Translation.GetY();
 
-			// Update AABB bounds
 			min = Vector2D{
 				std::min(min.GetX(), worldX),
 				std::min(min.GetY(), worldY)
