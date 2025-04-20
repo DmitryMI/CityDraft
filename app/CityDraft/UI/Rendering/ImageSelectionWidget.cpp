@@ -78,10 +78,18 @@ void ImageSelectionWidget::loadImagesFromAssets(
         if (!group || group->GetImageVariants().empty()) continue;
 
         auto* variantButton = new CityDraft::UI::VariantImageButton(group, this);
-        connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this,
-            [this](const std::shared_ptr<CityDraft::Assets::ImageVariantGroup>& group) {
-                if (const auto image = group->GetDefaultImage()) {
+
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, this,
+            [this](const std::shared_ptr<CityDraft::Assets::Image>& image) {
+                if (image) {
                     emit imageSelected(QString::fromStdString(image->GetUrl().data()));
+                }
+            });
+
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, variantButton,
+            [variantButton](const std::shared_ptr<CityDraft::Assets::Image>& image) {
+                if (image) {
+                    variantButton->updatePreviewIcon(image);
                 }
             });
 
