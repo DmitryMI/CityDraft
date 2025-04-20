@@ -95,6 +95,9 @@ void ImageSelectionWidget::loadImagesFromAssets(
 
         auto* row = new QHBoxLayout();
         row->addWidget(variantButton);
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this, [this, group]() {
+        emit imageGroupSelected(group);
+    });
         imagesLayout->addLayout(row);
     }
 
