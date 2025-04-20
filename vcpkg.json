@@ -21,6 +21,7 @@
     "boost-assert",
     "boost-geometry",
     "boost-math",
+    "boost-serialization",
     "stb"
   ]
 }

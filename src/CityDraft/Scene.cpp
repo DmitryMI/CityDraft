@@ -1,8 +1,14 @@
 #include "CityDraft/Scene.h"
 #include <algorithm>
+#include "CityDraft/Serialization/BoostArchive.h"
 
 namespace CityDraft
 {
+	const std::string& Scene::GetName() const
+	{
+		return m_Name;
+	}
+
 	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
 	{
 		BOOST_ASSERT(obj->m_Scene == nullptr);
@@ -57,23 +63,6 @@ namespace CityDraft
 		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
 
-		return scene;
-	}
-
-	std::shared_ptr<Scene> Scene::LoadSceneFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
-	{
-		// Mock scene
-
-		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
-		scene->m_Name = "Mock Scene";
-
-		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Roads", 2));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Walls", 3));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
-
 		// file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png
 		auto building20blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%202,%20blue.png");
 		BOOST_ASSERT(building20blueAsset);
@@ -98,7 +87,44 @@ namespace CityDraft
 		scene->AddDraft(building2);
 		scene->AddDraft(tower1);
 
-		logger ->info("Scene loaded from {}", path.string());
+		logger->warn("Scene created with hardcoded drafts");
+
+		return scene;
+	}
+
+	std::shared_ptr<Scene> Scene::LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
+	{
+		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
+
+		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
+		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
+		scene->m_Layers.push_back(std::make_shared<Layer>("Roads", 2));
+		scene->m_Layers.push_back(std::make_shared<Layer>("Walls", 3));
+		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
+		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
+
+		if(!std::filesystem::is_regular_file(path))
+		{
+			logger->error("Path {} does not point to a file", path.string());
+			return nullptr;
+		}
+
+		CityDraft::Serialization::BoostInputArchive archive(path);
+		archive >> scene->m_Name;
+		size_t draftsNum;
+		archive >> draftsNum;
+		for (size_t i = 0; i < draftsNum; i++)
+		{
+			std::string assetUrl;
+			archive >> assetUrl;
+			auto asset = assetManager->GetByUrl(assetUrl);
+			auto draft = asset->CreateDraft();
+			CityDraft::Drafts::Draft* draftRaw = draft.get();
+			archive >> *draftRaw;
+			scene->AddDraft(draft);
+		}
+
+		logger->info("Scene loaded from {}", path.string());
 		return scene;
 	}
 
@@ -170,4 +196,18 @@ namespace CityDraft
 		return toRemove[0].second;
 	}
 
+	void Scene::SaveToFile(const std::filesystem::path& path)
+	{
+		CityDraft::Serialization::BoostOutputArchive archive(path);
+
+		archive << m_Name;
+		// TODO Serialize layers
+		archive << m_DraftsRtree.size();
+		for (const auto& draftEntry : m_DraftsRtree)
+		{
+			std::string url = draftEntry.second->GetAsset()->GetUrl().c_str();
+			archive << url;
+			archive << *draftEntry.second;
+		}
+	}
 }

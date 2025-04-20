@@ -37,6 +37,13 @@ int main(int argc, char* argv[])
 	);
 	parser.addOption(assetsRootOption);
 
+	QCommandLineOption sceneOption(
+		"scene",
+		"Load scene from this path after startup",
+		"scene"
+	);
+	parser.addOption(sceneOption);
+
 	// Process the command line arguments
 	parser.process(app);
 
@@ -44,10 +51,11 @@ int main(int argc, char* argv[])
 	Logging::LogManager::InitLogging(levelStr);
 
 	QString assetsRoot = parser.value(assetsRootOption);
+	QString sceneRoot = parser.value(sceneOption);
 
 	spdlog::info("CityDraft started");
 
-    UI::MainWindow mainWindow(assetsRoot);
+    UI::MainWindow mainWindow(assetsRoot, sceneRoot);
     mainWindow.show();
 
     return app.exec();

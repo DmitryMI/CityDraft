@@ -40,4 +40,16 @@ namespace CityDraft::Drafts
 			return;
 		}
 	}
+
+	void Draft::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
+	{
+		archive << m_Name;
+		archive << m_Transform;
+	}
+
+	void Draft::Deserialize(CityDraft::Serialization::IInputArchive& archive)
+	{
+		archive >> m_Name;
+		archive >> m_Transform;
+	}
 }
