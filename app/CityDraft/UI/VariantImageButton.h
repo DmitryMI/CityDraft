@@ -24,9 +24,11 @@ namespace CityDraft::UI {
 
     public slots:
     void updatePreviewIcon(std::shared_ptr<Assets::Image> image);
+        void resizeEvent(QResizeEvent* event) override;
 
     private:
         std::shared_ptr<Assets::ImageVariantGroup> m_ImageVariantGroup;
+        QPushButton* plusButton = nullptr;
     };
 
 }
