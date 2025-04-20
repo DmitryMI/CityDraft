@@ -56,33 +56,28 @@ MainWindow::~MainWindow() = default;
 	{
 		QWidget* placeholder = m_Ui.renderingWidgetPlaceholder;
 
-		m_RenderingWidget = new Rendering::SkiaWidget(this);
-		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
-		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
-		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
-		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
+    m_RenderingWidget = new Rendering::SkiaWidget(this);
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
+    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
 
-		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
-		int index = layout->indexOf(placeholder);
-		layout->removeWidget(placeholder);
-		delete placeholder;
-		
-		layout->insertWidget(index, m_RenderingWidget);
-	}
+    QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
+    int index = layout->indexOf(placeholder);
+    layout->removeWidget(placeholder);
+    delete placeholder;
+
+    layout->insertWidget(index, m_RenderingWidget);
+}
 
 void MainWindow::ReplacePlaceholdersWithSplitter() {
-    m_ImageSelectionWidget = new ImageSelectionWidget(this);
-    m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
-
-    connect(m_RenderingWidget, &Rendering::SkiaWidget::GraphicsInitialized,
-            this, &MainWindow::OnGraphicsInitialized);
-    connect(m_RenderingWidget, &Rendering::SkiaWidget::CursorPositionChanged,
-            this, &MainWindow::OnCursorProjectedPositionChanged);
+    if (!m_ImageSelectionWidget) {
+        m_ImageSelectionWidget = new ImageSelectionWidget(this);
+    }
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
     splitter->addWidget(m_ImageSelectionWidget);
     splitter->addWidget(m_RenderingWidget);
-
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
     splitter->setCollapsible(0, false);
@@ -90,7 +85,6 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     splitter->setSizes({230, 774});
 
     QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
-    QWidget* renderPlaceholder = m_Ui.renderingWidgetPlaceholder;
 
     auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
     if (!layout) {
@@ -99,12 +93,11 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     }
 
     layout->removeWidget(imagePlaceholder);
-    layout->removeWidget(renderPlaceholder);
     delete imagePlaceholder;
-    delete renderPlaceholder;
 
     layout->addWidget(splitter);
 }
+
 
 void MainWindow::CreateAssetManager(const QString& assetsRoot) {
     auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
@@ -124,22 +117,23 @@ void MainWindow::CreateAssetManager(const QString& assetsRoot) {
 }
 
     void MainWindow::LoadImagesToSelectionWidget() const
-{
-    std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+	{
+		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
 
-    for (const auto& image : m_AssetManager->GetInvariantImages()) {
-        invariantImages.push_back(image);
-    }
-
-    std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
-
-    for (const auto& group : m_AssetManager->GetVariantImages()) {
-        variantImageGroups.push_back(group);
-    }
+		for (const auto& group : m_AssetManager->GetVariantImages()) {
+			variantImageGroups.push_back(group);
+		}
 
 
-    m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
-}
+		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+
+		for (const auto& image : m_AssetManager->GetInvariantImages()) {
+			invariantImages.push_back(image);
+		}
+
+
+		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
+	}
 
 void MainWindow::CreateStatusBar()
 	{

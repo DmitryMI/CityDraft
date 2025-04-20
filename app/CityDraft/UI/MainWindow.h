@@ -38,8 +38,8 @@ namespace CityDraft::UI
         Q_OBJECT
 
 	public:
-		MainWindow(QString assetsRoot, QWidget* parent = nullptr);
-		virtual ~MainWindow();
+        MainWindow(const QString& assetsRoot, QWidget* parent = nullptr);
+    	virtual ~MainWindow();
 
 		// ISelectionManager
 		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
@@ -146,6 +146,7 @@ namespace CityDraft::UI
 		void OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
+        void OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const;
     };
 
 }

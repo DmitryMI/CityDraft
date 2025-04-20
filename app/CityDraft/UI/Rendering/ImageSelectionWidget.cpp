@@ -28,7 +28,7 @@ ImageSelectionWidget::ImageSelectionWidget(QWidget* parent) : QWidget(parent) {
     imagesLayout->setAlignment(Qt::AlignTop);
 
     container->setLayout(imagesLayout);
-    container->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    container->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
     scrollArea->setWidget(container);
     scrollArea->setWidgetResizable(true);
@@ -40,13 +40,42 @@ ImageSelectionWidget::ImageSelectionWidget(QWidget* parent) : QWidget(parent) {
 }
 
 
+
 void ImageSelectionWidget::loadImagesFromAssets(
     const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& invariantImages,
     const std::vector<std::shared_ptr<CityDraft::Assets::ImageVariantGroup>>& variantImageGroups)
 {
     qDeleteAll(imagesLayout->children());
 
-    // Invariant images
+    // Variant images
+    for (const auto& group : variantImageGroups) {
+        if (!group || group->GetImageVariants().empty()) continue;
+
+        auto* variantButton = new CityDraft::UI::VariantImageButton(group, this);
+
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, this,
+            [this](const std::shared_ptr<CityDraft::Assets::Image>& image) {
+                if (image) {
+                    emit imageSelected(QString::fromStdString(image->GetUrl().data()));
+                }
+            });
+
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, variantButton,
+            [variantButton](const std::shared_ptr<CityDraft::Assets::Image>& image) {
+                if (image) {
+                    variantButton->updatePreviewIcon(image);
+                }
+            });
+
+        auto* row = new QHBoxLayout();
+        row->addWidget(variantButton);
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this, [this, group]() {
+            emit imageGroupSelected(group);
+        });
+        imagesLayout->addLayout(row);
+    }
+
+        // Invariant images
     for (const auto& image : invariantImages) {
         auto* skiaImage = dynamic_cast<CityDraft::Assets::SkiaImage*>(image.get());
         if (!skiaImage) continue;
@@ -73,35 +102,8 @@ void ImageSelectionWidget::loadImagesFromAssets(
         imagesLayout->addLayout(row);
     }
 
-    // Variant images
-    for (const auto& group : variantImageGroups) {
-        if (!group || group->GetImageVariants().empty()) continue;
-
-        auto* variantButton = new CityDraft::UI::VariantImageButton(group, this);
-
-        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, this,
-            [this](const std::shared_ptr<CityDraft::Assets::Image>& image) {
-                if (image) {
-                    emit imageSelected(QString::fromStdString(image->GetUrl().data()));
-                }
-            });
-
-        connect(variantButton, &CityDraft::UI::VariantImageButton::imageVariantSelected, variantButton,
-            [variantButton](const std::shared_ptr<CityDraft::Assets::Image>& image) {
-                if (image) {
-                    variantButton->updatePreviewIcon(image);
-                }
-            });
-
-        auto* row = new QHBoxLayout();
-        row->addWidget(variantButton);
-        connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this, [this, group]() {
-        emit imageGroupSelected(group);
-    });
-        imagesLayout->addLayout(row);
-    }
-
     imagesLayout->update();
+    imagesLayout->parentWidget()->update();
 }
 
 void ImageSelectionWidget::resizeEvent(QResizeEvent* event)
