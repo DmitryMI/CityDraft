@@ -53,13 +53,13 @@ namespace CityDraft::Assets
 		return GetByUrl(urlParse.value());
 	}
 
-	size_t AssetManager::LoadAssets(const std::filesystem::path& assetsDir, bool createMissingDirs)
+	size_t AssetManager::LoadAssetInfos(const std::filesystem::path& assetsDir, bool createMissingDirs)
 	{
 		BOOST_ASSERT(!assetsDir.empty());
 
 		std::filesystem::path assetsDirAbsolute = std::filesystem::absolute(assetsDir);
 
-		m_Logger->info("Loading assets from {} ({})...", assetsDir.string(), assetsDirAbsolute.string());
+		m_Logger->info("Looking for assets in {} ({})...", assetsDir.string(), assetsDirAbsolute.string());
 
 		size_t loadedNum = 0;
 		if (!std::filesystem::exists(assetsDirAbsolute))
@@ -77,17 +77,17 @@ namespace CityDraft::Assets
 			}
 		}
 
-		loadedNum += LoadImages(imagesDirAbsolute);
+		loadedNum += LoadImageInfos(imagesDirAbsolute);
 
-		m_Logger->info("Loaded {} assets from {}", loadedNum, assetsDirAbsolute.string());
+		m_Logger->info("Found {} assets in {}", loadedNum, assetsDirAbsolute.string());
 		return loadedNum;
 	}
 
-	size_t AssetManager::LoadImages(const std::filesystem::path& imagesDir)
+	size_t AssetManager::LoadImageInfos(const std::filesystem::path& imagesDir)
 	{
 		BOOST_ASSERT(!imagesDir.empty());
 
-		m_Logger->info("Loading Images from {}", imagesDir.string());
+		m_Logger->info("Looking for Images in {}", imagesDir.string());
 
 		size_t loadedNum = 0;
 		if (!std::filesystem::is_directory(imagesDir))
@@ -100,7 +100,7 @@ namespace CityDraft::Assets
 		{
 			if (entry.is_directory())
 			{
-				loadedNum += LoadVariantImageGroup(entry);
+				loadedNum += LoadVariantImageGroupInfo(entry);
 			}
 			else
 			{
@@ -109,20 +109,18 @@ namespace CityDraft::Assets
 				{
 					loadedNum++;
 					m_InvariantImages.push_back(image);
-					m_Logger->info("Loaded invariant image {}", entry.path().string());
+					m_Logger->info("Found invariant image {}", entry.path().string());
 				}
 			}
 
 		}
 
-		m_Logger->info("Loaded in total {} images from {}", loadedNum, imagesDir.string());
+		m_Logger->info("Found in total {} images in {}", loadedNum, imagesDir.string());
 		return loadedNum;
 	}
 
-	size_t AssetManager::LoadVariantImageGroup(const std::filesystem::path& variantDir)
+	size_t AssetManager::LoadVariantImageGroupInfo(const std::filesystem::path& variantDir)
 	{
-		m_Logger->info("Loading Image Variant Group from {}", variantDir.string());
-
 		std::list<std::shared_ptr<Image>> images;
 
 		for (const auto& entry : std::filesystem::directory_iterator(variantDir))
@@ -140,7 +138,7 @@ namespace CityDraft::Assets
 			}
 		}
 
-		m_Logger->info("Loaded image variant group {} ({} images)", variantDir.string(), images.size());
+		m_Logger->info("Found image variant group in {} ({} images)", variantDir.string(), images.size());
 		std::shared_ptr<ImageVariantGroup> group = std::make_shared<ImageVariantGroup>(images);
 		m_VariantImages.push_back(group);
 		return images.size();

@@ -21,16 +21,24 @@ set(AppSources
 	"CityDraft/main.cpp" 
 	"CityDraft/UI/MainWindow.cpp"
 	"CityDraft/UI/Rendering/SkiaWidget.cpp"
+	"CityDraft/UI/Colors/Factory.cpp"
 	"CityDraft/UI/Rendering/ImageSelectionWidget.cpp"
 	"CityDraft/Logging/LogManager.cpp"
 	"CityDraft/Assets/SkiaAssetManager.cpp"
 	"CityDraft/Assets/SkiaImage.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
 	"CityDraft/Input/Factory.cpp"
-        CityDraft/UI/FlowLayout.h
-		CityDraft/UI/FlowLayout.cpp
-        CityDraft/UI/VariantImageButton.h
-		CityDraft/UI/VariantImageButton.cpp
+	"CityDraft/Input/Instruments/Instrument.cpp"
+	"CityDraft/Input/Instruments/Panner.cpp"
+	"CityDraft/Input/Instruments/Selector.cpp"
+	"CityDraft/Input/Instruments/ImageDraftEditor.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
+    "CityDraft/UI/FlowLayout.h"
+    "CityDraft/UI/FlowLayout.cpp"
+    "CityDraft/UI/VariantImageButton.h"
+	"CityDraft/UI/VariantImageButton.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})
@@ -75,5 +83,9 @@ qt_generate_deploy_app_script(
     OUTPUT_SCRIPT deploy_script
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
+
+if(MSVC)
+	target_compile_options(CityDraft PUBLIC /EHa)
+endif()
 
 install(SCRIPT ${deploy_script})

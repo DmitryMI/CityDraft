@@ -15,6 +15,12 @@ namespace CityDraft
 
 		UnderlyingType Data;
 
+		constexpr Vector2D() : Data{ 0, 0 }
+		{
+
+		}
+
+
 		constexpr Vector2D(double X, double Y) : Data{X, Y}
 		{
 
@@ -118,6 +124,52 @@ namespace CityDraft
 		constexpr bool operator !=(const Vector2D& b)
 		{
 			return !(*this - b).IsNearlyZero();
+		}
+
+		constexpr double GetSizeSquared() const
+		{
+			return GetX() * GetX() + GetY() * GetY();
+		}
+
+		inline double GetSize() const
+		{
+			return sqrt(GetSizeSquared());
+		}
+
+		constexpr static double Dot(const Vector2D& a, const Vector2D& b)
+		{
+			return a.GetX() * b.GetX() + a.GetY() * b.GetY();
+		}
+
+		constexpr static double Cross(const Vector2D& a, const Vector2D& b)
+		{
+			return a.GetX() * b.GetY() - a.GetY() * b.GetX();
+		}
+
+		static inline double GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
+		{
+			double dot = Dot(a, b);
+			double cross = Cross(a, b);
+			double angle = std::atan2(cross, dot);
+			return angle;
+		}
+
+		Vector2D GetRotated(double angleRadians) const
+		{
+			Vector2D copy{ GetX(), GetY() };
+			copy.Rotate(angleRadians);
+			return copy;
+		}
+
+		Vector2D& Rotate(double angleRadians)
+		{
+			double cosA = std::cos(angleRadians);
+			double sinA = std::sin(angleRadians);
+			double x = GetX() * cosA - GetY() * sinA;
+			double y = GetX() * sinA + GetY() * cosA;
+			SetX(x);
+			SetY(y);
+			return *this;
 		}
 	};
 }

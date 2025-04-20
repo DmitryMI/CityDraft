@@ -7,14 +7,15 @@
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/Assets/SkiaImage.h"
 #include "OpenGlUtils.h"
+#include "SkiaPainters/Image.h"
+#include "SkiaPainters/Rect.h"
+#include "SkiaPainters/Circle.h"
 
 namespace CityDraft::UI::Rendering
 {
-	SkiaWidget::SkiaWidget(std::shared_ptr<CityDraft::Input::IKeyBindingProvider> keyBindingProvider, QWidget* parent) :
-		QOpenGLWidget(parent),
-		m_KeyBindingProvider(keyBindingProvider)
+	SkiaWidget::SkiaWidget(QWidget* parent) :
+		QOpenGLWidget(parent)
 	{
-		BOOST_ASSERT(m_KeyBindingProvider);
 		m_WidgetLogger = Logging::LogManager::CreateLogger("SkiaWidget");
 		m_SkiaLogger = Logging::LogManager::CreateLogger("Skia");
 		m_GlLogger = Logging::LogManager::CreateLogger("GL");
@@ -41,9 +42,87 @@ namespace CityDraft::UI::Rendering
 		m_Scene = scene;
 	}
 
-	QPointF SkiaWidget::GetCursorProjectedPosition() const
+	Vector2D SkiaWidget::Project(const QPointF& pixelCoord) const
 	{
-		return m_CursorProjectedPosition;
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+		QPointF viewportPos = pixelCoord - widgetSize;
+		QPointF projected = viewportPos / m_ViewportZoom + QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
+		return Vector2D(projected.x(), projected.y());
+	}
+
+	QPointF SkiaWidget::Deproject(const Vector2D& pixelCoord) const
+	{
+		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
+
+		QPointF projected = QPointF(pixelCoord.GetX(), pixelCoord.GetY());
+		projected -= QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
+		projected *= m_ViewportZoom;
+		projected += widgetSize;
+		return projected;
+	}
+
+	void SkiaWidget::Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform)
+	{
+		if (CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
+		{
+			Paint(imageAsset, transform);
+		}
+		else
+		{
+			BOOST_ASSERT(false);
+		}
+	}
+
+	void SkiaWidget::PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
+	{
+		Vector2D min = Project(pixelMin);
+		Vector2D max = Project(pixelMax);
+		PaintRect(min, max, color, thickness / GetViewportZoom());
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness, fillColor);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor)
+	{
+		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, fillColor);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness)
+	{
+		auto painter = std::make_shared<SkiaPainters::Circle>(pos, radius, color, thickness);
+		PaintOrQueue(painter);
+	}
+
+	const Vector2D SkiaWidget::GetViewportCenter() const
+	{
+		return m_ViewportCenter;
+	}
+
+	double SkiaWidget::GetViewportZoom() const
+	{
+		return m_ViewportZoom;
+	}
+
+	void SkiaWidget::SetViewportTransform(const Vector2D& center, double zoom)
+	{
+		m_ViewportCenter = center;
+		m_ViewportZoom = zoom;
+	}
+
+	void SkiaWidget::Repaint()
+	{
+		update();
 	}
 
 	void SkiaWidget::initializeGL()
@@ -102,6 +181,8 @@ namespace CityDraft::UI::Rendering
 		{
 			m_SkiaLogger->critical("Failed to create m_SkSurface");
 		}
+
+		m_Canvas = m_SkSurface->getCanvas();
 	}
 
 	void SkiaWidget::paintGL()
@@ -116,78 +197,45 @@ namespace CityDraft::UI::Rendering
 			return;
 		}
 
+		m_IsGlPainting = true;
+
 		m_GrContext->resetContext(kAll_GrBackendState);
 
-		SkCanvas* canvas = m_SkSurface->getCanvas();
-		canvas->clear(SK_ColorTRANSPARENT);
+		m_Canvas->clear(SK_ColorTRANSPARENT);
+		m_Canvas->save();
+		m_Canvas->translate(size().width() / 2, size().height() / 2);
+		m_Canvas->scale(m_ViewportZoom, m_ViewportZoom);
+		m_Canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
 
 		PaintScene();
 
+		while (!m_QueuedPainters.empty())
+		{
+			auto painter = m_QueuedPainters.front();
+			m_QueuedPainters.pop();
+			painter->Paint(m_Canvas);
+		}
+
+		emit GraphicsPainting(this);
+
+		m_IsGlPainting = false;
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
+		m_Canvas->restore();
 	}
 
 	void SkiaWidget::mousePressEvent(QMouseEvent* event)
 	{
-		if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton())
-		{
-			m_WidgetLogger->debug("Selection Button Pressed at ({}, {})", event->position().x(), event->position().y());
-			if (m_MouseAction == MouseAction::NoAction)
-			{
-				m_MouseAction = MouseAction::Selection;
-				m_MouseActionLastPosition = event->position();
-				m_WidgetLogger->debug("Selection Mode Enter");
-			}
-		}
-		else if (event->button() == Qt::RightButton)
-		{
-			m_WidgetLogger->debug("RMB Pressed at ({}, {})", event->position().x(), event->position().y());
-		}
-		else if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton())
-		{
-			m_WidgetLogger->debug("Viewport Panning Button Pressed at ({}, {})", event->position().x(), event->position().y());
-			if (m_MouseAction == MouseAction::NoAction)
-			{
-				m_MouseAction = MouseAction::ViewportPanning;
-				m_MouseActionLastPosition = event->position();
-				m_WidgetLogger->debug("Panning Mode Enter");
-			}
-		}
-		else
-		{
-			m_WidgetLogger->debug("Unknown Mouse Button Pressed at ({}, {})", event->position().x(), event->position().y());
-		}
+		emit MouseButtonEvent(event, true);
 	}
 
 	void SkiaWidget::mouseReleaseEvent(QMouseEvent* event)
 	{
-		if (m_MouseAction == MouseAction::ViewportPanning)
-		{
-			m_MouseAction = MouseAction::NoAction;
-			m_WidgetLogger->debug("Panning Mode Exit");
-		}
-		else
-		{
-			m_MouseAction = MouseAction::NoAction;
-		}
+		emit MouseButtonEvent(event, false);
 	}
 
 	void SkiaWidget::mouseMoveEvent(QMouseEvent* event)
 	{
-		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
-		QPointF viewportPos = event->position() - widgetSize;
-		m_CursorProjectedPosition = viewportPos / m_ViewportZoom + QPointF(m_ViewportCenter.GetX(), m_ViewportCenter.GetY());
-
-		CursorPositionChanged(m_CursorProjectedPosition);
-
-		if (m_MouseAction == MouseAction::ViewportPanning)
-		{
-			QPointF eventPosition = event->position();
-			QPointF mouseDelta = m_MouseActionLastPosition - eventPosition;
-			Vector2D mouseDeltaScaled = Vector2D(mouseDelta.x(), mouseDelta.y()) / m_ViewportZoom;
-			m_ViewportCenter += mouseDeltaScaled;
-			m_MouseActionLastPosition = eventPosition;
-			update();
-		}
+		emit MouseMoveEvent(event);
 	}
 
 	void SkiaWidget::wheelEvent(QWheelEvent* event)
@@ -198,7 +246,7 @@ namespace CityDraft::UI::Rendering
 		{
 			m_ViewportZoom = 0.0001;
 		}
-		m_WidgetLogger->debug("Zoom changed to {}", m_ViewportZoom);
+		m_WidgetLogger->trace("Zoom changed to {}", m_ViewportZoom);
 		update();
 	}
 
@@ -214,7 +262,7 @@ namespace CityDraft::UI::Rendering
 		auto vieportBox = GetViewportBox();
 		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
 
-		m_WidgetLogger->debug("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
+		m_WidgetLogger->trace("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
 			vieportBox.GetMin().GetX(),
 			vieportBox.GetMin().GetY(),
 			vieportBox.GetMax().GetX(),
@@ -224,52 +272,28 @@ namespace CityDraft::UI::Rendering
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		BOOST_ASSERT(canvas);
 
-		canvas->save();
-		canvas->translate(size().width() / 2, size().height() / 2);
-		canvas->scale(m_ViewportZoom, m_ViewportZoom);
-		canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
-
 		for (const auto& draft : m_ViewportDraftsBuffer)
 		{
-			canvas->save();
-
-			canvas->translate(draft->GetTransform().Translation.GetX(), draft->GetTransform().Translation.GetY());
-			canvas->scale(draft->GetTransform().Scale.GetX(), draft->GetTransform().Scale.GetY());
-
-			CityDraft::Drafts::SkiaImage* image = dynamic_cast<CityDraft::Drafts::SkiaImage*>(draft.get());
-			if (image)
-			{
-				PaintSkiaImage(canvas, image);
-			}
-			canvas->restore();
+			Paint(draft->GetAsset(), draft->GetTransform());
 		}
-
-		canvas->restore();
-		canvas->resetMatrix();
 	}
 
-	void SkiaWidget::PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image)
+	void SkiaWidget::Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform)
 	{
-		CityDraft::Assets::SkiaImage* asset = dynamic_cast<CityDraft::Assets::SkiaImage*>(image->GetAsset());
-		BOOST_ASSERT(asset);
-		// TODO don't crash on assets with failed resources
-		if (asset->GetStatus() == Assets::AssetStatus::Initialized)
+		auto painter = std::make_shared<SkiaPainters::Image>(image, transform);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter)
+	{
+		if (m_IsGlPainting)
 		{
-			asset->LoadAsset();
+			painter->Paint(m_Canvas);
 		}
-		BOOST_ASSERT(asset->GetStatus() == Assets::AssetStatus::Loaded);
-
-		auto skImage = asset->GetGpuImage();
-		
-		Vector2D imageSize = image->GetImageSize();
-
-		SkRect destRect = SkRect::MakeXYWH(
-			-imageSize.GetX() / 2.0f,
-			-imageSize.GetY() / 2.0f,
-			imageSize.GetX(),
-			imageSize.GetY()
-		);
-		canvas->drawImageRect(skImage, destRect, SkSamplingOptions());
+		else
+		{
+			m_QueuedPainters.push(painter);
+		}
 	}
 
 	Vector2D SkiaWidget::GetViewportProjectedSize() const

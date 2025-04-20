@@ -1,5 +1,8 @@
 .vs
 out
 CMakeUserPresets.json
+/compileData.scor
+/compileData.scor.gbl
+
 cmake-build-debug
 .idea

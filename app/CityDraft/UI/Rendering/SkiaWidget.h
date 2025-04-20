@@ -2,20 +2,23 @@
 
 
 
+#include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Input/IKeyBindingProvider.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/Vector2D.h"
 #include "include/core/SkSurface.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
 #include "include/gpu/ganesh/GrDirectContext.h"
-#include <qopenglwidget.h>
-#include <qopenglextrafunctions.h>
-#include <spdlog/spdlog.h>
+#include "IRenderer.h"
 #include <QMouseEvent>
-#include "CityDraft/Vector2D.h"
-#include "CityDraft/AxisAlignedBoundingBox2D.h"
-#include "CityDraft/Scene.h"
-#include "CityDraft/Drafts/SkiaImage.h"
-#include "CityDraft/Input/IKeyBindingProvider.h"
+#include <qopenglextrafunctions.h>
+#include <qopenglwidget.h>
 #include <QWheelEvent>
+#include <spdlog/spdlog.h>
+#include "SkiaPainters/Painter.h"
+#include <queue>
 
 namespace CityDraft::UI::Rendering
 {
@@ -27,24 +30,41 @@ namespace CityDraft::UI::Rendering
 		ViewportPanning
 	};
 
-	class SkiaWidget : public QOpenGLWidget
+
+	class SkiaWidget : public QOpenGLWidget, public IRenderer
 	{
 		Q_OBJECT
 
 	public:
-		SkiaWidget(std::shared_ptr<CityDraft::Input::IKeyBindingProvider> keyBindingProvider, QWidget* parent = nullptr);
+		SkiaWidget(QWidget* parent = nullptr);
 
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
 
-		std::shared_ptr<CityDraft::Scene> GetScene() const;
 		void SetScene(std::shared_ptr<CityDraft::Scene> scene);
 
-		QPointF GetCursorProjectedPosition() const;
+		// IRenderer
+		std::shared_ptr<CityDraft::Scene> GetScene() const override;
+		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
+		void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor) override;
+		void PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness) override;
+		const Vector2D GetViewportCenter() const override;
+		double GetViewportZoom() const override;
+		void SetViewportTransform(const Vector2D& center, double zoom) override;
+		void Repaint() override;
+		Vector2D Project(const QPointF& pixelCoord) const override;
+		QPointF Deproject(const Vector2D& pixelCoord) const override;
+
 
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
-		void CursorPositionChanged(const QPointF& projectedPosition);
+		void GraphicsPainting(SkiaWidget* source);
+		void MouseButtonEvent(QMouseEvent* event, bool pressed);
+		void MouseMoveEvent(QMouseEvent* event);
+
 
 	protected:
 
@@ -60,8 +80,9 @@ namespace CityDraft::UI::Rendering
 		void wheelEvent(QWheelEvent* event) override;
 
 		// Drawing
-		virtual void PaintScene();
-		virtual void PaintSkiaImage(SkCanvas* canvas, CityDraft::Drafts::SkiaImage* image);
+		void PaintScene();
+		void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
+		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
 
 		// Utility
 		Vector2D GetViewportProjectedSize() const;
@@ -71,8 +92,10 @@ namespace CityDraft::UI::Rendering
 		sk_sp<const GrGLInterface> m_GrInterface;
 		sk_sp<GrDirectContext> m_GrContext;
 		sk_sp<SkSurface> m_SkSurface;
+		SkCanvas* m_Canvas;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
+		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;
 
 		// Loggers
 		std::shared_ptr<spdlog::logger> m_WidgetLogger;
@@ -86,12 +109,9 @@ namespace CityDraft::UI::Rendering
 		double m_ViewportZoom = 1.0;
 		Vector2D m_ViewportCenter{ 0,0 };
 		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
-		QPointF m_CursorProjectedPosition;
 
-		// Input
-		std::shared_ptr<CityDraft::Input::IKeyBindingProvider> m_KeyBindingProvider;
-		MouseAction m_MouseAction = MouseAction::NoAction;
-		QPointF m_MouseActionLastPosition;
+		// State
+		bool m_IsGlPainting = false;
 
 		AxisAlignedBoundingBox2D GetViewportBox() const;
 		void GlLogCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message) const;

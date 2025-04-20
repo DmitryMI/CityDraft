@@ -74,14 +74,13 @@ namespace CityDraft
 		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
 
-		// "assets\images\Building 20\Building 20, blue.png"
-		auto building20blueAsset = assetManager->GetByUrl("file://assets/images/Building20/Building20blue.png");
+		// file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png
+		auto building20blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%202,%20blue.png");
 		BOOST_ASSERT(building20blueAsset);
-		auto building20redAsset = assetManager->GetByUrl("file://assets/images/Building20/Building20red.png");
+		auto building20redAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20red.png");
 		BOOST_ASSERT(building20redAsset);
-		auto tower2blueAsset = assetManager->GetByUrl("file://assets/images/Tower2blue.png");
+		auto tower2blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png");
 		BOOST_ASSERT(tower2blueAsset);
-		// auto building1 = std::make_shared
 
 		auto building1 = building20blueAsset->CreateDraft();
 		BOOST_ASSERT(building1);

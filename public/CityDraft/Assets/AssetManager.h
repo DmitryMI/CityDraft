@@ -21,7 +21,7 @@ namespace CityDraft::Assets
 
 		AssetManager(const std::filesystem::path& assetsRoot, std::shared_ptr<spdlog::logger> logger);
 
-		size_t LoadAssets(const std::filesystem::path& assetsDir, bool createMissingDirs);
+		size_t LoadAssetInfos(const std::filesystem::path& assetsDir, bool createMissingDirs);
 
 		std::shared_ptr<Asset> GetByUrl(const boost::url& url);
 		std::shared_ptr<Asset> GetByUrl(const std::string& url);
@@ -43,7 +43,7 @@ namespace CityDraft::Assets
 		std::list<std::shared_ptr<ImageVariantGroup>> m_VariantImages;
 		std::list<std::shared_ptr<Image>> m_InvariantImages;
 
-		size_t LoadImages(const std::filesystem::path& imagesDir);
-		size_t LoadVariantImageGroup(const std::filesystem::path& variantDir);
+		size_t LoadImageInfos(const std::filesystem::path& imagesDir);
+		size_t LoadVariantImageGroupInfo(const std::filesystem::path& variantDir);
 	};
 }
