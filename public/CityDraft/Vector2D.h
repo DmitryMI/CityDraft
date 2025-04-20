@@ -153,5 +153,23 @@ namespace CityDraft
 			double angle = std::atan2(cross, dot);
 			return angle;
 		}
+
+		Vector2D GetRotated(double angleRadians) const
+		{
+			Vector2D copy{ GetX(), GetY() };
+			copy.Rotate(angleRadians);
+			return copy;
+		}
+
+		Vector2D& Rotate(double angleRadians)
+		{
+			double cosA = std::cos(angleRadians);
+			double sinA = std::sin(angleRadians);
+			double x = GetX() * cosA - GetY() * sinA;
+			double y = GetX() * sinA + GetY() * cosA;
+			SetX(x);
+			SetY(y);
+			return *this;
+		}
 	};
 }

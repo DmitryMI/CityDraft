@@ -16,6 +16,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		canvas->save();
 		canvas->translate(m_Transform.Translation.GetX(), m_Transform.Translation.GetY());
 		canvas->scale(m_Transform.Scale.GetX(), m_Transform.Scale.GetY());
+		canvas->rotate(m_Transform.Rotation * (180.0f / static_cast<float>(M_PI)));
 
 		BOOST_ASSERT(m_Asset);
 		// TODO don't crash on assets with failed resources

@@ -221,6 +221,13 @@ namespace CityDraft::Input::Instruments
 		
 		double angle = Vector2D::GetAngleBetweenPoints(v1, v2);
 		GetLogger()->info("Angle: {}", angle * 180.0 / M_PI);
+
+		for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
+		{
+			Transform2D transform = draft->GetTransform();
+			transform.RotateAroundPoint(angle, center);
+			draft->SetTransform(transform);
+		}
 	}
 
 	void ImageDraftEditor::Scale(QMouseEvent* event)
