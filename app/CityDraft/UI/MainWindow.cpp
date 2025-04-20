@@ -11,13 +11,15 @@
 #include "CityDraft/Input/Instruments/ImageDraftEditor.h"
 #include <QFileDialog>
 #include <QStandardPaths>
+#include <QMessageBox>
 
 namespace CityDraft::UI
 {
 
-	MainWindow::MainWindow(const QString& assetsRoot, QWidget* parent):
+	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent):
 		QMainWindow(parent),
-		m_AssetsRootDirectory(assetsRoot)
+		m_AssetsRootDirectory(assetsRoot),
+		m_ScenePath(scenePath)
 	{
 		m_Ui.setupUi(this);
 
@@ -31,7 +33,8 @@ namespace CityDraft::UI
 		CreateRenderingWidget();
 		CreateStatusBar();
 
-		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveAsClicked);
+		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
+		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 
 		m_Logger->info("MainWindow created");
 	}
@@ -99,7 +102,8 @@ namespace CityDraft::UI
 	void MainWindow::CreateInstruments()
 	{
 		BOOST_ASSERT(m_Scene);
-		for (auto* instrument : m_ActiveInstruments)
+		auto activeInstruments = m_ActiveInstruments;
+		for (auto* instrument : activeInstruments)
 		{
 			DeactivateInstrument(instrument);
 		}
@@ -282,7 +286,44 @@ namespace CityDraft::UI
 		DeactivateInstrument(instrument);
 	}
 
-	void MainWindow::OnSaveAsClicked()
+	void MainWindow::OnOpenSceneClicked()
+	{
+		QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/maps";
+
+		QString filename = QFileDialog::getOpenFileName(
+			this,
+			"Open Scene",
+			defaultPath,
+			"Text Files (*.citydraft);;All Files (*)"
+		);
+
+		if (filename.isEmpty())
+		{
+			return;
+		}
+
+		std::filesystem::path path = filename.toStdString();
+		if (!std::filesystem::is_regular_file(path))
+		{
+			QMessageBox::critical(this, "Filesystem Error", QString("Cannot load scene from %1: path does not point to a file").arg(filename));
+			return;
+		}
+		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
+		auto sceneOpened = CityDraft::Scene::LoadFromFile(path, m_AssetManager, sceneLogger);
+		if (!sceneOpened)
+		{
+			QMessageBox::critical(this, "Unknown Error", QString("Failed to load scene from %1: unknown error").arg(filename));
+			return;
+		}
+
+		m_UndoStack->clear();
+		m_Scene = sceneOpened;
+		m_ScenePath = filename;
+		m_RenderingWidget->SetScene(m_Scene);
+		CreateInstruments();
+	}
+
+	void MainWindow::OnSaveSceneAsClicked()
 	{
 		BOOST_ASSERT(m_Scene);
 
@@ -311,11 +352,20 @@ namespace CityDraft::UI
 
 		CreateAssetManager(m_AssetsRootDirectory);
 
-		QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-		std::filesystem::create_directories(defaultPath.toStdString() + "/maps");
-		defaultPath += "/maps/Mock Scene.citydraft";
+		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
+		if (!m_ScenePath.isEmpty())
+		{
+			std::filesystem::path scenePath = m_ScenePath.toStdString();
+			m_Scene = Scene::LoadFromFile(scenePath, m_AssetManager, sceneLogger);
+		}
 
-		m_Scene = Scene::LoadFromFile(defaultPath.toStdString(), m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
+		if (!m_Scene)
+		{
+			m_Scene = Scene::NewScene("New Scene", m_AssetManager, sceneLogger);
+		}
+
+		BOOST_ASSERT(m_Scene);
+		
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
 	}

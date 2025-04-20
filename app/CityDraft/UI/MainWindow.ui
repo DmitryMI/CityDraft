@@ -33,6 +33,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionOpen"/>
     <addaction name="actionSaveAs"/>
    </widget>
    <addaction name="menuFile"/>
@@ -40,7 +41,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionSaveAs">
    <property name="text">
-    <string>Save As</string>
+    <string>Save Scene As</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open Scene</string>
    </property>
   </action>
  </widget>

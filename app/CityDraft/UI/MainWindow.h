@@ -30,7 +30,7 @@ namespace CityDraft::UI
         Q_OBJECT
 
     public:
-        MainWindow(const QString& assetsRoot, QWidget* parent = nullptr);
+        MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent = nullptr);
         virtual ~MainWindow();
 
 		// ISelectionManager
@@ -54,6 +54,7 @@ namespace CityDraft::UI
 
 		// Config
 		QString m_AssetsRootDirectory;
+		QString m_ScenePath;
 		std::shared_ptr<CityDraft::UI::Colors::IColorsProvider> m_ColorsProvider;
 
 		// Input
@@ -62,13 +63,16 @@ namespace CityDraft::UI
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
 
+		// Undo-Redo
+		QUndoStack* m_UndoStack;
+
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 		void CreateMenuBar();
-
 		void CreateInstruments();
+
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
 
@@ -124,17 +128,15 @@ namespace CityDraft::UI
 
 		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
-
-		// Undo-Redo
-		QUndoStack* m_UndoStack;
-
+	
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
 		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);
 		void OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
-		void OnSaveAsClicked();
+		void OnSaveSceneAsClicked();
+		void OnOpenSceneClicked();
 	};
 
 }

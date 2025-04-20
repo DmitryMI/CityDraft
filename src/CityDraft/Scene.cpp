@@ -63,15 +63,38 @@ namespace CityDraft
 		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
 
+		// file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png
+		auto building20blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%202,%20blue.png");
+		BOOST_ASSERT(building20blueAsset);
+		auto building20redAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20red.png");
+		BOOST_ASSERT(building20redAsset);
+		auto tower2blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png");
+		BOOST_ASSERT(tower2blueAsset);
+
+		auto building1 = building20blueAsset->CreateDraft();
+		BOOST_ASSERT(building1);
+		building1->SetTranslation(Vector2D(100, 100));
+
+		auto building2 = building20redAsset->CreateDraft();
+		BOOST_ASSERT(building2);
+		building2->SetTranslation(Vector2D(200, 300));
+
+		auto tower1 = tower2blueAsset->CreateDraft();
+		BOOST_ASSERT(tower1);
+		tower1->SetTranslation(Vector2D(500, 100));
+
+		scene->AddDraft(building1);
+		scene->AddDraft(building2);
+		scene->AddDraft(tower1);
+
+		logger->warn("Scene created with hardcoded drafts");
+
 		return scene;
 	}
 
 	std::shared_ptr<Scene> Scene::LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
 	{
-		// Mock scene
-
 		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
-		scene->m_Name = "Mock Scene";
 
 		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
@@ -80,56 +103,28 @@ namespace CityDraft
 		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
 
-		if(std::filesystem::exists(path))
+		if(!std::filesystem::is_regular_file(path))
 		{
-			CityDraft::Serialization::BoostInputArchive archive(path);
-			archive >> scene->m_Name;
-			size_t draftsNum;
-			archive >> draftsNum;
-			for (size_t i = 0; i < draftsNum; i++)
-			{
-				std::string assetUrl;
-				archive >> assetUrl;
-				auto asset = assetManager->GetByUrl(assetUrl);
-				auto draft = asset->CreateDraft();
-				CityDraft::Drafts::Draft* draftRaw = draft.get();
-				archive >> *draftRaw;
-				scene->AddDraft(draft);
-			}
-
-			logger->info("Scene loaded from {}", path.string());
-		}
-		else
-		{
-
-			// file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png
-			auto building20blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%202,%20blue.png");
-			BOOST_ASSERT(building20blueAsset);
-			auto building20redAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20red.png");
-			BOOST_ASSERT(building20redAsset);
-			auto tower2blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png");
-			BOOST_ASSERT(tower2blueAsset);
-
-			auto building1 = building20blueAsset->CreateDraft();
-			BOOST_ASSERT(building1);
-			building1->SetTranslation(Vector2D(100, 100));
-
-			auto building2 = building20redAsset->CreateDraft();
-			BOOST_ASSERT(building2);
-			building2->SetTranslation(Vector2D(200, 300));
-
-			auto tower1 = tower2blueAsset->CreateDraft();
-			BOOST_ASSERT(tower1);
-			tower1->SetTranslation(Vector2D(500, 100));
-
-			scene->AddDraft(building1);
-			scene->AddDraft(building2);
-			scene->AddDraft(tower1);
-
-			logger->warn("Scene created from hardcoded drafts, because file {} does not exist", path.string());
+			logger->error("Path {} does not point to a file", path.string());
+			return nullptr;
 		}
 
-		
+		CityDraft::Serialization::BoostInputArchive archive(path);
+		archive >> scene->m_Name;
+		size_t draftsNum;
+		archive >> draftsNum;
+		for (size_t i = 0; i < draftsNum; i++)
+		{
+			std::string assetUrl;
+			archive >> assetUrl;
+			auto asset = assetManager->GetByUrl(assetUrl);
+			auto draft = asset->CreateDraft();
+			CityDraft::Drafts::Draft* draftRaw = draft.get();
+			archive >> *draftRaw;
+			scene->AddDraft(draft);
+		}
+
+		logger->info("Scene loaded from {}", path.string());
 		return scene;
 	}
 

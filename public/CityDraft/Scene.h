@@ -37,6 +37,11 @@ namespace CityDraft
 			BOOST_ASSERT(logger);
 		};
 
+		inline ~Scene()
+		{
+			m_Logger->info("{} destroyed", GetName());
+		}
+
 		const std::string& GetName() const;
 
 		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
