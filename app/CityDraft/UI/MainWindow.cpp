@@ -48,9 +48,9 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     m_ImageSelectionWidget = new ImageSelectionWidget(this);
     m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
 
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized,
+    connect(m_RenderingWidget, &Rendering::SkiaWidget::GraphicsInitialized,
             this, &MainWindow::OnGraphicsInitialized);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged,
+    connect(m_RenderingWidget, &Rendering::SkiaWidget::CursorPositionChanged,
             this, &MainWindow::OnCursorProjectedPositionChanged);
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
@@ -111,17 +111,18 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
-void MainWindow::LoadImagesToSelectionWidget() const
+    void MainWindow::LoadImagesToSelectionWidget() const
 {
-    std::vector<std::shared_ptr<Assets::Image>> imageAssets;
+    std::vector<std::shared_ptr<Assets::Image>> invariantImages;
 
     for (const auto& image : m_AssetManager->GetInvariantImages()) {
-        imageAssets.push_back(image);
+        invariantImages.push_back(image);
     }
+
+    std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
+
     for (const auto& group : m_AssetManager->GetVariantImages()) {
-        for (const auto& imageVariant : group->GetImageVariants()) {
-            imageAssets.push_back(imageVariant);
-        }
+        variantImageGroups.push_back(group);
     }
 
 		m_ImageSelectionWidget->loadImagesFromAssets(imageAssets);

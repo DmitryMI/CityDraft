@@ -38,6 +38,8 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
         CityDraft/UI/FlowLayout.h
 		CityDraft/UI/FlowLayout.cpp
+        CityDraft/UI/VariantImageButton.h
+		CityDraft/UI/VariantImageButton.cpp
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

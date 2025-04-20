@@ -44,12 +44,12 @@ int FlowLayout::count() const
 
 int FlowLayout::horizontalSpacing() const
 {
-    return m_hSpace >= 0 ? m_hSpace : FlowLayout::smartSpacing(QStyle::PM_LayoutHorizontalSpacing);
+    return m_hSpace >= 0 ? m_hSpace : smartSpacing(QStyle::PM_LayoutHorizontalSpacing);
 }
 
 int FlowLayout::verticalSpacing() const
 {
-    return m_vSpace >= 0 ? m_vSpace : FlowLayout::smartSpacing(QStyle::PM_LayoutVerticalSpacing);
+    return m_vSpace >= 0 ? m_vSpace : smartSpacing(QStyle::PM_LayoutVerticalSpacing);
 }
 
 Qt::Orientations FlowLayout::expandingDirections() const
@@ -126,11 +126,11 @@ int FlowLayout::smartSpacing(QStyle::PixelMetric pm) const
     if (!parent) return -1;
 
     if (parent->isWidgetType()) {
-        const auto pw = static_cast<QWidget *>(parent);
+        const auto pw = dynamic_cast<QWidget *>(parent);
         return pw->style()->pixelMetric(pm, nullptr, pw);
     }
 
-    return static_cast<QLayout *>(parent)->spacing();
+    return dynamic_cast<QLayout *>(parent)->spacing();
 }
 
 void FlowLayout::addLayout(QLayout* layout)

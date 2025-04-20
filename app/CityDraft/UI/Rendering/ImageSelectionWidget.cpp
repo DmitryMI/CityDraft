@@ -6,14 +6,15 @@
 #include "QDir"
 #include "QLabel"
 #include "QPixmap"
-#include "QPushButton"
 #include "QScrollArea"
-#include "QDebug"
 #include "CityDraft/Assets/Asset.h"
 #include "CityDraft/Assets/Image.h"
+#include "CityDraft/Assets/ImageVariantGroup.h"
 #include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/UI/VariantImageButton.h"
 
 namespace CityDraft::Assets {
+    class ImageVariantGroup;
     class Image;
 }
 
@@ -39,55 +40,54 @@ ImageSelectionWidget::ImageSelectionWidget(QWidget* parent) : QWidget(parent) {
 }
 
 
-void ImageSelectionWidget::loadImagesFromAssets(const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& images)
+void ImageSelectionWidget::loadImagesFromAssets(
+    const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& invariantImages,
+    const std::vector<std::shared_ptr<CityDraft::Assets::ImageVariantGroup>>& variantImageGroups)
 {
     qDeleteAll(imagesLayout->children());
-    int currentRowWidth = 0;
-    QHBoxLayout* currentRowLayout = nullptr;
 
-    for (const auto& image : images) {
-        if (image == nullptr) {
-            qDebug() << "Image is null.";
-            continue;
+    // Invariant images
+    for (const auto& image : invariantImages) {
+        auto* skiaImage = dynamic_cast<CityDraft::Assets::SkiaImage*>(image.get());
+        if (!skiaImage) continue;
+
+        if (skiaImage->GetStatus() != CityDraft::Assets::AssetStatus::Loaded)
+        {
+            skiaImage->LoadAsset();
         }
 
-        if (image->GetStatus() != CityDraft::Assets::AssetStatus::Loaded) {
-            image->LoadAsset();
-        }
+        auto pixmap = skiaImage->GetPixmap();
+        if (pixmap.isNull()) continue;
 
-        BOOST_ASSERT(image->GetStatus() == CityDraft::Assets::AssetStatus::Loaded);
-
-        const CityDraft::Assets::SkiaImage* skia_image = dynamic_cast<CityDraft::Assets::SkiaImage*>(image.get());
-        if (!skia_image) {
-            qDebug() << "Failed to cast image to SkiaImage.";
-            continue;
-        }
-
-        auto q_pix_map = skia_image->GetPixmap();
-
-        if (q_pix_map.isNull()) {
-            qDebug() << "Failed to convert QImage to QPixmap.";
-            continue;
-        }
-
-        const auto imageButton = new QPushButton(this);
-        imageButton->setIcon(QIcon(q_pix_map));
-        imageButton->setIconSize(QSize(64, 64));
-        imageButton->setFixedSize(65, 65);
-        imageButton->setToolTip(QString::fromStdString(image->GetUrl().c_str()));
-        imageButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-        currentRowLayout = new QHBoxLayout();
-        currentRowLayout->setSpacing(2);
-        currentRowLayout->setContentsMargins(0, 0, 0, 0);
-        currentRowLayout->addWidget(imageButton);
-        imagesLayout->addLayout(currentRowLayout);
-
-        connect(imageButton, &QPushButton::clicked, this, [this, image]() {
-            emit imageSelected(QString::fromStdString(image->GetUrl().c_str()));
+        auto* button = new QPushButton(this);
+        button->setIcon(QIcon(pixmap));
+        button->setIconSize(QSize(64, 64));
+        button->setFixedSize(65, 65);
+        button->setToolTip(QString::fromStdString(image->GetUrl().data()));
+        connect(button, &QPushButton::clicked, this, [this, image]() {
+            emit imageSelected(QString::fromStdString(image->GetUrl().data()));
         });
 
-        qDebug() << "Added image button.";
+        auto* row = new QHBoxLayout();
+        row->addWidget(button);
+        imagesLayout->addLayout(row);
+    }
+
+    // Variant images
+    for (const auto& group : variantImageGroups) {
+        if (!group || group->GetImageVariants().empty()) continue;
+
+        auto* variantButton = new CityDraft::UI::VariantImageButton(group, this);
+        connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this,
+            [this](const std::shared_ptr<CityDraft::Assets::ImageVariantGroup>& group) {
+                if (const auto image = group->GetDefaultImage()) {
+                    emit imageSelected(QString::fromStdString(image->GetUrl().data()));
+                }
+            });
+
+        auto* row = new QHBoxLayout();
+        row->addWidget(variantButton);
+        imagesLayout->addLayout(row);
     }
 
     imagesLayout->update();
