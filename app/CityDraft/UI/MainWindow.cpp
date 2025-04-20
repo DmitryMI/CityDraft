@@ -45,18 +45,13 @@ MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
 MainWindow::~MainWindow() = default;
 
 void MainWindow::ReplacePlaceholdersWithSplitter() {
-    m_ImageSelectionWidget = new ImageSelectionWidget(this);
-    m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
-
-    connect(m_RenderingWidget, &Rendering::SkiaWidget::GraphicsInitialized,
-            this, &MainWindow::OnGraphicsInitialized);
-    connect(m_RenderingWidget, &Rendering::SkiaWidget::CursorPositionChanged,
-            this, &MainWindow::OnCursorProjectedPositionChanged);
+    if (!m_ImageSelectionWidget) {
+        m_ImageSelectionWidget = new ImageSelectionWidget(this);
+    }
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
     splitter->addWidget(m_ImageSelectionWidget);
     splitter->addWidget(m_RenderingWidget);
-
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
     splitter->setCollapsible(0, false);
@@ -64,7 +59,6 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     splitter->setSizes({230, 774});
 
     QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
-    QWidget* renderPlaceholder = m_Ui.renderingWidgetPlaceholder;
 
     auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
     if (!layout) {
@@ -73,9 +67,7 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     }
 
     layout->removeWidget(imagePlaceholder);
-    layout->removeWidget(renderPlaceholder);
     delete imagePlaceholder;
-    delete renderPlaceholder;
 
     layout->addWidget(splitter);
 }
@@ -112,12 +104,19 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 	}
 
     void MainWindow::LoadImagesToSelectionWidget() const
-{
-    std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+	{
+		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
 
-    for (const auto& image : m_AssetManager->GetInvariantImages()) {
-        invariantImages.push_back(image);
-    }
+		for (const auto& group : m_AssetManager->GetVariantImages()) {
+			variantImageGroups.push_back(group);
+		}
+
+
+		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+
+		for (const auto& image : m_AssetManager->GetInvariantImages()) {
+			invariantImages.push_back(image);
+		}
 
     std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
 
