@@ -26,7 +26,7 @@ namespace CityDraft::Drafts
 		m_Transform.Translation = translation;
 		if (m_Scene)
 		{
-			m_Scene->UpdateObjectModel(this);
+			m_Scene->UpdateDraftModel(this);
 			return;
 		}
 	}
@@ -36,7 +36,7 @@ namespace CityDraft::Drafts
 		m_Transform = transform;
 		if (m_Scene)
 		{
-			m_Scene->UpdateObjectModel(this);
+			m_Scene->UpdateDraftModel(this);
 			return;
 		}
 	}

@@ -68,6 +68,6 @@ namespace CityDraft::Drafts
 
 		BOOST_ASSERT(GetScene());
 		
-		GetScene()->UpdateObjectModel(this);
+		GetScene()->UpdateDraftModel(this);
 	}
 }

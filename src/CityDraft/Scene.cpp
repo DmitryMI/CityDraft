@@ -128,7 +128,7 @@ namespace CityDraft
 		return scene;
 	}
 
-	void Scene::UpdateObjectModel(Drafts::Draft* obj)
+	void Scene::UpdateDraftModel(Drafts::Draft* obj)
 	{
 		BOOST_ASSERT(obj->m_Scene == this);
 		auto objPtr = RemoveObjectFromRtree(obj);

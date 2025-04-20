@@ -17,7 +17,7 @@ namespace CityDraft
 {
 
 	/// <summary>
-	/// Container for all Drafts on the Draft
+	/// Core class for managing instantiated Drafts, allows efficiend spatial queries and serialization to or from the filesystem. 
 	/// </summary>
 	class Scene
 	{
@@ -29,6 +29,11 @@ namespace CityDraft
 		using DraftAddedFunc = void(std::shared_ptr<Drafts::Draft>);
 		using DraftRemovedFunc = void(Drafts::Draft*);
 
+		/// <summary>
+		/// Creates an empty scene. Use Scene::NewScene instead to create scene with default layers.
+		/// </summary>
+		/// <param name="assetManager">AssetManager</param>
+		/// <param name="logger">Logger</param>
 		inline Scene(std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger) :
 			m_AssetManager(assetManager),
 			m_Logger(logger)
@@ -42,11 +47,28 @@ namespace CityDraft
 			m_Logger->info("{} destroyed", GetName());
 		}
 
+		/// <summary>
+		/// Gets name of the Scene
+		/// </summary>
+		/// <returns>Name</returns>
 		const std::string& GetName() const;
 
+		/// <summary>
+		/// Inserts the Draft into the Scene.
+		/// </summary>
+		/// <param name="obj">Draft to add</param>
 		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
+
+		/// <summary>
+		/// Removes the Draft from the Scene
+		/// </summary>
+		/// <param name="objPtr">Draft to remove</param>
 		void RemoveDraft(Drafts::Draft* objPtr);
 
+		/// <summary>
+		/// Returns collection of Layers
+		/// </summary>
+		/// <returns>Layers</returns>
 		inline const std::vector<Layer*>& GetLayers() const
 		{
 			std::vector<Layer*> result;
@@ -54,13 +76,50 @@ namespace CityDraft
 			return result;
 		}
 
-		virtual void UpdateObjectModel(Drafts::Draft* obj);
-		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& entries);
+		/// <summary>
+		/// Called by Drafts when their Transform changes. No need to be called manually.
+		/// </summary>
+		/// <param name="obj">Draft</param>
+		virtual void UpdateDraftModel(Drafts::Draft* obj);
+
+		/// <summary>
+		/// Looks for RTree Entries inside a Bounding Box.
+		/// </summary>
+		/// <param name="box">Bounding Box in Scene Coordinates</param>
+		/// <param name="outEntries">Collection to write found entries into.</param>
+		/// <returns>Number of found RTree Entries</returns>
+		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& outEntries);
+
+		/// <summary>
+		/// Looks for Drafts inside a Bounding Box
+		/// </summary>
+		/// <param name="box">Bounding Box in Scene Coordinates</param>
+		/// <param name="drafts">Collection to write found Drafts into.</param>
+		/// <returns>Number of found Drafts</returns>
 		size_t QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts);
 
-
+		/// <summary>
+		/// Creates a new Scene with default layers and some additional default setup.
+		/// </summary>
+		/// <param name="name">Name of new scene</param>
+		/// <param name="assetManager">AssetManager</param>
+		/// <param name="logger">Logger</param>
+		/// <returns>Created scene</returns>
 		static std::shared_ptr<Scene> NewScene(const std::string& name, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
+
+		/// <summary>
+		/// Loads Scene from a file.
+		/// </summary>
+		/// <param name="path">Path to serialized Scene file.</param>
+		/// <param name="assetManager">AssetManager</param>
+		/// <param name="logger">Logger</param>
+		/// <returns>Created Scene or nullptr in case of a failure</returns>
 		static std::shared_ptr<Scene> LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger);
+
+		/// <summary>
+		/// Saves Scene into a file
+		/// </summary>
+		/// <param name="path">Path to file to serialize Scene into</param>
 		void SaveToFile(const std::filesystem::path& path);
 		
 	private:
