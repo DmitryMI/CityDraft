@@ -50,6 +50,25 @@ namespace CityDraft::Utils
 		return Pixels != nullptr;
 	}
 
+	LinearColorF StbPixels::GetPixel(size_t x, size_t y) const
+	{
+		BOOST_ASSERT(IsValid() && x >= 0 && x < Width && y >= 0 && y < Height);
+		size_t index = (y * Width + x) * Channels;
+		unsigned char* block = &Pixels[index];
+		return LinearColorF(block, Channels);
+	}
+
+	void StbPixels::SetPixel(size_t x, size_t y, const LinearColorF& color)
+	{
+		BOOST_ASSERT(IsValid() && x >= 0 && x < Width && y >= 0 && y < Height);
+		size_t index = (y * Width + x) * Channels;
+		unsigned char* block = &Pixels[index];
+		block[0] = color.R() * std::numeric_limits<unsigned char>::max();
+		block[1] = color.G() * std::numeric_limits<unsigned char>::max();
+		block[2] = color.B() * std::numeric_limits<unsigned char>::max();
+		block[3] = color.A() * std::numeric_limits<unsigned char>::max();
+	}
+
 	StbPixels ImageLoader::LoadImage(const std::filesystem::path& path, int componentsPerPixel, std::shared_ptr<spdlog::logger> logger)
 	{
 		BOOST_ASSERT(logger);

@@ -2,9 +2,11 @@
 
 #include <filesystem>
 #include <spdlog/spdlog.h>
+#include <CityDraft/LinearColor.h>
 
 namespace CityDraft::Utils
 {
+
 	class StbPixels
 	{
 	public:
@@ -24,6 +26,9 @@ namespace CityDraft::Utils
 		~StbPixels();
 
 		bool IsValid() const;
+
+		LinearColorF GetPixel(size_t x, size_t y) const;
+		void SetPixel(size_t x, size_t y, const LinearColorF& color);
 	};
 
 	class ImageLoader

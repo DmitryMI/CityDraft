@@ -21,7 +21,7 @@ namespace CityDraft::Assets
 
 		std::shared_ptr<Drafts::Draft> CreateDraft() override;
 
-		void LoadAssetInternal() override;
+		
 
 		sk_sp<GrDirectContext> GetDirectContext() const;
 		QOpenGLExtraFunctions& GetGlFunctions();
@@ -29,6 +29,10 @@ namespace CityDraft::Assets
 		sk_sp<SkImage> GetGpuImage() const;
 
 		Vector2D GetImageSize() const override;
+
+	protected:
+		void LoadImage(const CityDraft::Utils::StbPixels& pixels) override;
+
 	private:
 		sk_sp<SkImage> m_GpuImage;
 		QPixmap m_QtImage;

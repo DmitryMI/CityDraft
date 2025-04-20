@@ -8,7 +8,7 @@ set(
 	"CityDraft/Assets/AssetManager.cpp"
 	"CityDraft/Utils/ImageLoader.cpp"
 	
-)
+ "CityDraft/Utils/ImageUtils.cpp")
 
 add_library(CityDraft ${CityDraft.Sources})
 target_include_directories(CityDraft PUBLIC "../public")

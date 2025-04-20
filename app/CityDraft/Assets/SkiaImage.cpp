@@ -24,32 +24,13 @@ namespace CityDraft::Assets
 		return std::make_shared<Drafts::SkiaImage>(this);
 	}
 
-	void SkiaImage::LoadAssetInternal()
+	void SkiaImage::LoadImage(const CityDraft::Utils::StbPixels& stbPixels)
 	{
-		std::lock_guard lock(m_ResourceMutex);
-
-		auto path = m_AssetManager->ToAssetPath(m_AssetUrl);
-		m_Logger->info("Loading SkiaImage from {}...", path.string());
-		if (!std::filesystem::is_regular_file(path))
-		{
-			m_Logger->error("Failed to load asset {}: path does not point to a file", m_AssetUrl.c_str());
-			m_Status = AssetStatus::LoadingFailed;
-			return;
-		}
-
-		auto stbPixels = CityDraft::Utils::ImageLoader::LoadImage(path, 4, m_Logger);
-		if (!stbPixels.IsValid())
-		{
-			m_Status = AssetStatus::LoadingFailed;
-			return;
-		}
-		m_Logger->info("Read raw pixels from {}. Width: {}, Height: {}, Channels: {}", path.string(), stbPixels.Width, stbPixels.Height, stbPixels.Channels);
 		CreateGpuImage(stbPixels);
 		CreateQtImage(stbPixels);
 		
-		m_Logger->info("SkiaImage loaded from {}...", path.string());
+		m_Logger->info("SkiaImage loaded");
 		m_Status = AssetStatus::Loaded;
-		return;
 	}
 
 	sk_sp<GrDirectContext> SkiaImage::GetDirectContext() const
