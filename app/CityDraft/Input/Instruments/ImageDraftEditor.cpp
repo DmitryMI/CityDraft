@@ -1,6 +1,5 @@
 #include "ImageDraftEditor.h"
 #include "CityDraft/Input/ISelectionManager.h"
-#include "CityDraft/UI/Rendering/IRenderer.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include <QWidget>
 #include "CityDraft/Input/IKeyBindingProvider.h"
@@ -29,11 +28,19 @@ namespace CityDraft::Input::Instruments
 				m_ToolInUse = true;
 				m_PreviousPoint = event->position();
 				m_FirstPoint = m_PreviousPoint;
+				m_OldTransforms.clear();
+
+				for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
+				{
+					m_OldTransforms[draft] = draft->GetTransform();
+				}
+
 				return EventChainAction::Stop;
 			}
 		}
 		else
 		{
+			Finalize();
 			m_ToolInUse = false;
 		}
 		
@@ -102,6 +109,16 @@ namespace CityDraft::Input::Instruments
 		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
 		BOOST_ASSERT(parentWidget);
 		parentWidget->unsetCursor();
+
+		if (m_ToolInUse)
+		{
+			Cancel();
+		}
+
+		m_Tool = Tool::None;
+		m_ScalingRectIndex = -1;
+		m_ToolInUse = false;
+		m_OldTransforms.clear();
 	}
 
 	void ImageDraftEditor::GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects)
@@ -321,6 +338,27 @@ namespace CityDraft::Input::Instruments
 			Transform2D transform = draft->GetTransform();
 			transform.ScaleRelativeToPoint(Vector2D{ scaleFactor, scaleFactor}, scaleCenter);
 			draft->SetTransform(transform);
+		}
+	}
+
+	void ImageDraftEditor::Finalize()
+	{
+		std::vector<TransformChange> changes;
+		for (const auto& draftTransformPair : m_OldTransforms)
+		{
+			TransformChange change{ draftTransformPair.first, draftTransformPair.second, draftTransformPair.first->GetTransform() };
+			changes.push_back(change);
+		}
+
+		TransformChangeCommand* command = new TransformChangeCommand(changes, m_Renderer);
+		m_UndoStack->push(command);
+	}
+
+	void ImageDraftEditor::Cancel()
+	{
+		for (const auto& draftTransformPair : m_OldTransforms)
+		{
+			draftTransformPair.first->SetTransform(draftTransformPair.second);
 		}
 	}
 

@@ -4,9 +4,55 @@
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Drafts/Draft.h"
 #include <array>
+#include <QUndoCommand>
+#include "CityDraft/UI/Rendering/IRenderer.h"
 
 namespace CityDraft::Input::Instruments
 {
+	struct TransformChange
+	{
+		std::shared_ptr<CityDraft::Drafts::Draft> Draft;
+		Transform2D OldTransform;
+		Transform2D NewTransform;
+	};
+
+	class TransformChangeCommand : public QUndoCommand
+	{
+	public:
+		TransformChangeCommand(
+			const std::vector<TransformChange>& changes,
+			CityDraft::UI::Rendering::IRenderer* renderer,
+			QUndoCommand* parent = nullptr
+		):
+			m_Changes(changes),
+			m_Renderer(renderer),
+			QUndoCommand("Transform Change", parent)
+		{
+		}
+
+		void undo() override
+		{
+			for (const auto& change : m_Changes)
+			{
+				change.Draft->SetTransform(change.OldTransform);
+			}
+			m_Renderer->Repaint();
+		}
+
+		void redo() override
+		{
+			for (const auto& change : m_Changes)
+			{
+				change.Draft->SetTransform(change.NewTransform);
+			}
+			m_Renderer->Repaint();
+		}
+
+	private:
+		std::vector<TransformChange> m_Changes;
+		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
+	};
+
 	class ImageDraftEditor : public Instrument
 	{
 	public:
@@ -42,6 +88,7 @@ namespace CityDraft::Input::Instruments
 		int m_ScalingRectIndex = -1;
 		QPointF m_FirstPoint;
 		QPointF m_PreviousPoint;
+		std::map<std::shared_ptr<CityDraft::Drafts::Draft>, Transform2D> m_OldTransforms;
 
 		void GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects);
 
@@ -55,5 +102,8 @@ namespace CityDraft::Input::Instruments
 		void Drag(QMouseEvent* event);
 		void Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox);
 		void Scale(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox);
+
+		void Finalize();
+		void Cancel();
 	};
 }

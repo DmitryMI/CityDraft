@@ -60,7 +60,6 @@ namespace CityDraft::Input::Instruments
 	{
 		Q_OBJECT;
 	public:
-		
 
 		Instrument(const Dependencies& dependencies);
 		virtual ~Instrument();
