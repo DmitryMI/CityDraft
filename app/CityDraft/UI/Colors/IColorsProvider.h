@@ -10,6 +10,7 @@ namespace CityDraft::UI::Colors
 		virtual QColor GetSelectionBoxColor() = 0;
 		virtual QColor GetDraftPreSelectionBoxColor() = 0;
 		virtual QColor GetDraftScaleBoxColor() = 0;
+		virtual QColor GetDraftScaleKnobsColor() = 0;
 		virtual QColor GetDraftRotationCircleColor() = 0;
 		virtual QColor GetDraftRotationCircleHighlightedColor() = 0;
 	};

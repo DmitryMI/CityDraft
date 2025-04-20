@@ -3,6 +3,7 @@
 #include "Instrument.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Drafts/Draft.h"
+#include <array>
 
 namespace CityDraft::Input::Instruments
 {
@@ -18,6 +19,7 @@ namespace CityDraft::Input::Instruments
 		};
 
 		constexpr static double RotatorPixelDistance = 10;
+		constexpr static double ScalingRectsSize = 10;
 
 		ImageDraftEditor(const Dependencies& dependencies);
 		virtual ~ImageDraftEditor() override;
@@ -37,11 +39,16 @@ namespace CityDraft::Input::Instruments
 	private:
 		Tool m_Tool = Tool::None;
 		bool m_ToolInUse = false;
+		int m_ScalingRectIndex = -1;
 		QPointF m_FirstPoint;
 		QPointF m_PreviousPoint;
 
-		void PaintRotatorCircle();
-		void DetectTransformationTool(QMouseEvent* event);
+		void GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects);
+
+		void PaintRotatorCircle(const AxisAlignedBoundingBox2D& bbox);
+		void PaintScalingRects(const AxisAlignedBoundingBox2D& bbox);
+
+		void DetectTransformationTool(const AxisAlignedBoundingBox2D& bbox, QMouseEvent* event);
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
 		double GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center);
 

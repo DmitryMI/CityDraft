@@ -48,9 +48,11 @@ namespace CityDraft::Input::Instruments
 			return EventChainAction::Next;
 		}
 
+		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
+
 		if (!m_ToolInUse)
 		{
-			DetectTransformationTool(event);
+			DetectTransformationTool(bbox, event);
 			m_Renderer->Repaint();
 			m_PreviousPoint = event->position();
 			m_FirstPoint = m_PreviousPoint;
@@ -81,12 +83,16 @@ namespace CityDraft::Input::Instruments
 	void ImageDraftEditor::OnPaint()
 	{
 		BOOST_ASSERT(IsActive());
+		
 		if (m_SelectionManager->GetSelectedDrafts().size() == 0)
 		{
 			return;
 		}
 
-		PaintRotatorCircle();
+		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
+
+		PaintRotatorCircle(bbox);
+		PaintScalingRects(bbox);
 	}
 
 	void ImageDraftEditor::OnActiveFlagChanged()
@@ -97,9 +103,18 @@ namespace CityDraft::Input::Instruments
 		parentWidget->unsetCursor();
 	}
 
-	void ImageDraftEditor::PaintRotatorCircle()
+	void ImageDraftEditor::GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects)
 	{
-		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
+		Vector2D min = bbox.GetMin();
+		Vector2D max = bbox.GetMax();
+		rects[0] = { min.GetX(), min.GetY() };
+		rects[1] = { min.GetX(), max.GetY() };
+		rects[2] = { max.GetX(), max.GetY() };
+		rects[3] = { max.GetX(), min.GetY() };
+	}
+
+	void ImageDraftEditor::PaintRotatorCircle(const AxisAlignedBoundingBox2D& bbox)
+	{
 		Vector2D center;
 		double radius;
 		bbox.GetCircumcircle(center, radius);
@@ -117,15 +132,59 @@ namespace CityDraft::Input::Instruments
 		m_Renderer->PaintCircle(center, radius, circleColor, 2.0 / m_Renderer->GetViewportZoom());
 	}
 
-	void ImageDraftEditor::DetectTransformationTool(QMouseEvent* event)
+	void ImageDraftEditor::PaintScalingRects(const AxisAlignedBoundingBox2D& bbox)
+	{
+		std::array<Vector2D, 4> rects;
+		GetScalingRectsPositions(bbox, rects);
+		constexpr double scalingRectSizeHalf = ScalingRectsSize / 2.0;
+		double viewportScale = m_Renderer->GetViewportZoom();
+		for (size_t i = 0; i < rects.size(); i++)
+		{
+			Vector2D min = rects[i] - Vector2D{scalingRectSizeHalf, scalingRectSizeHalf} / viewportScale;
+			Vector2D max = rects[i] + Vector2D{scalingRectSizeHalf, scalingRectSizeHalf} / viewportScale;
+			m_Renderer->PaintRect(min, max, m_ColorsProvider->GetDraftScaleKnobsColor());
+		}
+	}
+
+	void ImageDraftEditor::DetectTransformationTool(const AxisAlignedBoundingBox2D& bbox, QMouseEvent* event)
 	{
 		m_Tool = Tool::None;
+		m_ScalingRectIndex = -1;
 
 		QObject* parentObj = parent();
 		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
 		BOOST_ASSERT(parentWidget);
 
-		auto bbox = GetSelectionBoundingBox();
+		std::array<Vector2D, 4> rects;
+		GetScalingRectsPositions(bbox, rects);
+		constexpr double scalingRectSizeHalf = ScalingRectsSize / 2.0;
+		double viewportScale = m_Renderer->GetViewportZoom();
+
+		for (size_t i = 0; i < rects.size(); i++)
+		{
+			QPointF rectPixelCenter = m_Renderer->Deproject(rects[i]);
+			QPointF cursorDelta = event->position();
+			QPointF min = rectPixelCenter - QPointF(scalingRectSizeHalf, scalingRectSizeHalf);
+			QPointF max = rectPixelCenter + QPointF(scalingRectSizeHalf, scalingRectSizeHalf);
+			if (
+				min.x() <= cursorDelta.x() && cursorDelta.x() <= max.x() &&
+				min.y() <= cursorDelta.y() && cursorDelta.y() <= max.y()
+				)
+			{
+				m_ScalingRectIndex = i;
+				m_Tool = Tool::Scale;
+				if (i == 1 || i == 3)
+				{
+					parentWidget->setCursor(Qt::SizeBDiagCursor);
+				}
+				else
+				{
+					parentWidget->setCursor(Qt::SizeFDiagCursor);
+				}
+				return;
+			}
+		}
+
 		Vector2D center;
 		double radius;
 		bbox.GetCircumcircle(center, radius);
@@ -148,6 +207,8 @@ namespace CityDraft::Input::Instruments
 			parentWidget->setCursor(Qt::SizeAllCursor);
 			return;
 		}
+
+		
 
 		parentWidget->unsetCursor();
 	}
