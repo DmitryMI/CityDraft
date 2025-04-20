@@ -17,6 +17,12 @@ namespace CityDraft::Serialization
 		return *this;
 	}
 
+	IInputArchive& BoostInputArchive::operator>>(size_t& value)
+	{
+		m_InArchive >> value;
+		return *this;
+	}
+
 	IInputArchive& BoostInputArchive::operator>>(float& value)
 	{
 		m_InArchive >> value;
@@ -47,12 +53,9 @@ namespace CityDraft::Serialization
 
 	IInputArchive& BoostInputArchive::operator>>(CityDraft::Transform2D& value)
 	{
-		Vector2D translation;
-		double rotation;
-		Vector2D scale;
-		*this >> translation;
-		*this >> rotation;
-		*this >> scale;
+		*this >> value.Translation;
+		*this >> value.Rotation;
+		*this >> value.Scale;
 		return *this;
 	}
 
@@ -69,6 +72,12 @@ namespace CityDraft::Serialization
 	}
 
 	IOutputArchive& BoostOutputArchive::operator<<(int value)
+	{
+		m_OutArchive << value;
+		return *this;
+	}
+
+	IOutputArchive& BoostOutputArchive::operator<<(size_t value)
 	{
 		m_OutArchive << value;
 		return *this;

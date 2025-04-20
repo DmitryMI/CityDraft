@@ -4,6 +4,7 @@
 #include "ISerializable.h"
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/Transform2D.h"
+#include <cstdint>
 
 namespace CityDraft::Serialization
 {
@@ -11,6 +12,7 @@ namespace CityDraft::Serialization
 	{
 	public:
 		virtual IInputArchive& operator>>(int& value) = 0;
+		virtual IInputArchive& operator>>(size_t& value) = 0;
 		virtual IInputArchive& operator>>(float& value) = 0;
 		virtual IInputArchive& operator>>(double& value) = 0;
 		virtual IInputArchive& operator>>(std::string& value) = 0;
@@ -23,6 +25,7 @@ namespace CityDraft::Serialization
 	{
 	public:
 		virtual IOutputArchive& operator<<(int value) = 0;
+		virtual IOutputArchive& operator<<(size_t value) = 0;
 		virtual IOutputArchive& operator<<(float value) = 0;
 		virtual IOutputArchive& operator<<(double value) = 0;
 		virtual IOutputArchive& operator<<(const std::string& value) = 0;

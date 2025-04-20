@@ -311,7 +311,11 @@ namespace CityDraft::UI
 
 		CreateAssetManager(m_AssetsRootDirectory);
 
-		m_Scene = Scene::LoadFromFile("mock_file.json", m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
+		QString defaultPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+		std::filesystem::create_directories(defaultPath.toStdString() + "/maps");
+		defaultPath += "/maps/Mock Scene.citydraft";
+
+		m_Scene = Scene::LoadFromFile(defaultPath.toStdString(), m_AssetManager, Logging::LogManager::CreateLogger("Scene"));
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
 	}
