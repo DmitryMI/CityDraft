@@ -16,7 +16,7 @@ MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
       m_AssetsRootDirectory(std::move(assetsRoot)) {
 
     m_Ui.setupUi(this);
-    m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
+    m_KeyBindingProvider = Input::Factory::CreateKeyBindingProvider();
 
     ReplacePlaceholdersWithSplitter();
     CreateStatusBar();
@@ -30,9 +30,9 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
     m_ImageSelectionWidget = new ImageSelectionWidget(this);
     m_RenderingWidget = new Rendering::SkiaWidget(m_KeyBindingProvider, this);
 
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized,
+    connect(m_RenderingWidget, &Rendering::SkiaWidget::GraphicsInitialized,
             this, &MainWindow::OnGraphicsInitialized);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::CursorPositionChanged,
+    connect(m_RenderingWidget, &Rendering::SkiaWidget::CursorPositionChanged,
             this, &MainWindow::OnCursorProjectedPositionChanged);
 
     auto* splitter = new QSplitter(Qt::Horizontal, this);
@@ -63,10 +63,10 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 }
 
 void MainWindow::CreateAssetManager(const QString& assetsRoot) {
-    auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
+    auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
     std::filesystem::path assetsRootPath(assetsRoot.toStdString());
 
-    m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(
+    m_AssetManager = std::make_shared<Assets::SkiaAssetManager>(
         assetsRootPath,
         assetManagerLogger,
         m_RenderingWidget->GetDirectContext(),
@@ -79,20 +79,22 @@ void MainWindow::CreateAssetManager(const QString& assetsRoot) {
     LoadImagesToSelectionWidget();
 }
 
-void MainWindow::LoadImagesToSelectionWidget() const
+    void MainWindow::LoadImagesToSelectionWidget() const
 {
-    std::vector<std::shared_ptr<Assets::Image>> imageAssets;
+    std::vector<std::shared_ptr<Assets::Image>> invariantImages;
 
     for (const auto& image : m_AssetManager->GetInvariantImages()) {
-        imageAssets.push_back(image);
-    }
-    for (const auto& group : m_AssetManager->GetVariantImages()) {
-        for (const auto& imageVariant : group->GetImageVariants()) {
-            imageAssets.push_back(imageVariant);
-        }
+        invariantImages.push_back(image);
     }
 
-    m_ImageSelectionWidget->loadImagesFromAssets(imageAssets);
+    std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
+
+    for (const auto& group : m_AssetManager->GetVariantImages()) {
+        variantImageGroups.push_back(group);
+    }
+
+
+    m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 }
 
 void MainWindow::CreateStatusBar() {
@@ -105,7 +107,7 @@ void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPositi
     m_CursorProjectedPosition->setText(msg);
 }
 
-void MainWindow::OnGraphicsInitialized(const UI::Rendering::SkiaWidget* widget) {
+void MainWindow::OnGraphicsInitialized(const Rendering::SkiaWidget* widget) {
     BOOST_ASSERT(widget == m_RenderingWidget);
 
     CreateAssetManager(m_AssetsRootDirectory);
