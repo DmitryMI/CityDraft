@@ -194,6 +194,18 @@ namespace CityDraft::Input::Instruments
 		return bbox;
 	}
 
+	double ImageDraftEditor::GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center)
+	{
+		Vector2D first = m_Renderer->Project(point1);
+		Vector2D second = m_Renderer->Project(point2);
+
+		Vector2D v1 = first - center;
+		Vector2D v2 = second - center;
+
+		double angle = Vector2D::GetAngleBetweenPoints(v1, v2);
+		return angle;
+	}
+
 	void ImageDraftEditor::Drag(QMouseEvent* event)
 	{
 		Vector2D first = m_Renderer->Project(m_PreviousPoint);
@@ -212,20 +224,13 @@ namespace CityDraft::Input::Instruments
 	{
 		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
 
-		Vector2D center = bbox.GetCenter();
-		Vector2D first = m_Renderer->Project(m_PreviousPoint);
-		Vector2D second = m_Renderer->Project(event->position());
-
-		Vector2D v1 = first - center;
-		Vector2D v2 = second - center;
-		
-		double angle = Vector2D::GetAngleBetweenPoints(v1, v2);
+		double angle = GetRotationDelta(m_PreviousPoint, event->position(), bbox.GetCenter());
 		GetLogger()->info("Angle: {}", angle * 180.0 / M_PI);
 
 		for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
 		{
 			Transform2D transform = draft->GetTransform();
-			transform.RotateAroundPoint(angle, center);
+			transform.RotateAroundPoint(angle, bbox.GetCenter());
 			draft->SetTransform(transform);
 		}
 	}

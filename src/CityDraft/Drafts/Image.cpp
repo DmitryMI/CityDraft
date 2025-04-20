@@ -5,7 +5,7 @@
 
 namespace CityDraft::Drafts
 {
-	Vector2D Image::GetImageSize() const
+	Vector2D Image::GetImageOriginalSize() const
 	{
 		BOOST_ASSERT(GetAsset());
 		CityDraft::Assets::Image* image = dynamic_cast<CityDraft::Assets::Image*>(GetAsset());
@@ -17,7 +17,7 @@ namespace CityDraft::Drafts
 
 	AxisAlignedBoundingBox2D Image::GetAxisAlignedBoundingBox() const
 	{
-		Vector2D imageSize = GetImageSize();
+		Vector2D imageSize = GetImageOriginalSize();
 		Vector2D imageSizeScaled = Vector2D(
 			imageSize.GetX() * GetTransform().Scale.GetX(),
 			imageSize.GetY() * GetTransform().Scale.GetY()

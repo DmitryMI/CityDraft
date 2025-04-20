@@ -43,6 +43,7 @@ namespace CityDraft::Input::Instruments
 		void PaintRotatorCircle();
 		void DetectTransformationTool(QMouseEvent* event);
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
+		double GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center);
 
 		void Drag(QMouseEvent* event);
 		void Rotate(QMouseEvent* event);

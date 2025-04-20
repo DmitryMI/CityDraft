@@ -14,7 +14,7 @@ namespace CityDraft::Drafts
 	public:
 		using Draft::Draft;
 
-		Vector2D GetImageSize() const;
+		Vector2D GetImageOriginalSize() const;
 		AxisAlignedBoundingBox2D GetAxisAlignedBoundingBox() const override;
 		void OnAssetLoaded(Assets::Asset* asset, bool loadingOk) override;
 	};
