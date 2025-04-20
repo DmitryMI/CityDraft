@@ -46,7 +46,6 @@ namespace CityDraft::UI
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
-		QMenu* m_EditMenu;
 
 		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
@@ -70,7 +69,6 @@ namespace CityDraft::UI
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
-		void CreateMenuBar();
 		void CreateInstruments();
 
 		void UpdateActiveInstrumentsLabel();
@@ -137,6 +135,7 @@ namespace CityDraft::UI
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();
+		void OnNewSceneClicked();
 	};
 
 }

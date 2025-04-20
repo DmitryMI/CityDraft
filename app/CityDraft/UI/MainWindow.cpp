@@ -24,8 +24,7 @@ namespace CityDraft::UI
 		m_Ui.setupUi(this);
 
 		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
-		CreateMenuBar();
-		CreateUndoRedoStack(m_EditMenu);
+		CreateUndoRedoStack(m_Ui.menuEdit);
 		
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
@@ -35,6 +34,7 @@ namespace CityDraft::UI
 
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
+		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
 
 		m_Logger->info("MainWindow created");
 	}
@@ -91,12 +91,6 @@ namespace CityDraft::UI
 		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		m_CursorProjectedPosition->setMinimumWidth(200);
 		statusBar()->addPermanentWidget(m_CursorProjectedPosition);
-	}
-
-	void MainWindow::CreateMenuBar()
-	{
-		QMenuBar* bar = menuBar();
-		m_EditMenu = bar->addMenu(tr("&Edit"));
 	}
 
 	void MainWindow::CreateInstruments()
@@ -320,6 +314,17 @@ namespace CityDraft::UI
 		m_Scene = sceneOpened;
 		m_ScenePath = filename;
 		m_RenderingWidget->SetScene(m_Scene);
+		CreateInstruments();
+	}
+
+	void MainWindow::OnNewSceneClicked()
+	{
+		m_UndoStack->clear();
+		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
+		m_Scene = Scene::NewScene("New Scene", m_AssetManager, sceneLogger);
+		m_ScenePath = "";
+		m_RenderingWidget->SetScene(m_Scene);
+		m_RenderingWidget->Repaint();
 		CreateInstruments();
 	}
 
