@@ -51,19 +51,18 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateRenderingWidget()
 	{
-		QWidget* placeholder = m_Ui.renderingWidgetPlaceholder;
-
 		m_RenderingWidget = new Rendering::SkiaWidget(this);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
 		
-		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
-		int index = layout->indexOf(placeholder);
-		layout->removeWidget(placeholder);
-		delete placeholder;
-		
+		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
+		int index = layout->indexOf(m_Ui.renderingWidgetPlaceholder);
+		layout->removeWidget(m_Ui.renderingWidgetPlaceholder);
+		delete m_Ui.renderingWidgetPlaceholder;
+		m_Ui.renderingWidgetPlaceholder = nullptr;
+
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 

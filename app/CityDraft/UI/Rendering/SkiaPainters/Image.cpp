@@ -29,10 +29,10 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		auto skImage = m_Asset->GetGpuImage();
 
 		Vector2D imageSize = m_Asset->GetImageSize();
-
+		Vector2D pivot = m_Asset->GetPivotPoint();
 		SkRect destRect = SkRect::MakeXYWH(
-			-imageSize.GetX() / 2.0f,
-			-imageSize.GetY() / 2.0f,
+			-pivot.GetX(),
+			-pivot.GetY(),
 			imageSize.GetX(),
 			imageSize.GetY()
 		);
