@@ -19,6 +19,7 @@
 #include <spdlog/spdlog.h>
 #include "SkiaPainters/Painter.h"
 #include <queue>
+#include <QKeyEvent>
 
 namespace CityDraft::UI::Rendering
 {
@@ -64,6 +65,8 @@ namespace CityDraft::UI::Rendering
 		void GraphicsPainting(SkiaWidget* source);
 		void MouseButtonEvent(QMouseEvent* event, bool pressed);
 		void MouseMoveEvent(QMouseEvent* event);
+		void MouseWheelEvent(QWheelEvent* event);
+		void KeyboardEvent(QKeyEvent* event);
 
 
 	protected:
@@ -78,6 +81,7 @@ namespace CityDraft::UI::Rendering
 		void mouseReleaseEvent(QMouseEvent* event) override;
 		void mouseMoveEvent(QMouseEvent* event) override;
 		void wheelEvent(QWheelEvent* event) override;
+		void keyPressEvent(QKeyEvent* event) override;
 
 		// Drawing
 		void PaintScene();

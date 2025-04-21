@@ -39,6 +39,16 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Next;
 	}
 
+	EventChainAction Instrument::OnRendererMouseWheel(QWheelEvent* event)
+	{
+		return EventChainAction::Next;
+	}
+
+	EventChainAction Instrument::OnRendererKey(QKeyEvent* event)
+	{
+		return EventChainAction::Next;
+	}
+
 	void Instrument::SetRenderer(CityDraft::UI::Rendering::IRenderer* renderer)
 	{
 		BOOST_ASSERT(renderer);

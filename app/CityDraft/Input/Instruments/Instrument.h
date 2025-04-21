@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QMouseEvent>
+#include <QWheelEvent>
+#include <QKeyEvent>
 #include <QString>
 #include <memory>
 #include <boost/signals2.hpp>
@@ -67,6 +69,8 @@ namespace CityDraft::Input::Instruments
 		virtual void OnPaint();
 		virtual EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed);
 		virtual EventChainAction OnRendererMouseMove(QMouseEvent* event);
+		virtual EventChainAction OnRendererMouseWheel(QWheelEvent* event);
+		virtual EventChainAction OnRendererKey(QKeyEvent* event);
 		virtual int GetPriority() const { return 0; }
 
 		void SetRenderer(CityDraft::UI::Rendering::IRenderer* renderer);

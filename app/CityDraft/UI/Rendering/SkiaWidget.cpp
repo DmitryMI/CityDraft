@@ -248,6 +248,13 @@ namespace CityDraft::UI::Rendering
 		}
 		m_WidgetLogger->trace("Zoom changed to {}", m_ViewportZoom);
 		update();
+
+		emit MouseWheelEvent(event);
+	}
+
+	void SkiaWidget::keyPressEvent(QKeyEvent* event)
+	{
+		emit KeyboardEvent(event);
 	}
 
 	void SkiaWidget::PaintScene()

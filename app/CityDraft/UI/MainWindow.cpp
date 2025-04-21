@@ -63,7 +63,9 @@ namespace CityDraft::UI
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
-		
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseWheelEvent, this, &MainWindow::OnRenderingWidgetMouseWheelEvent);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::KeyboardEvent, this, &MainWindow::OnRenderingWidgetKeyboardEvent);
+
 		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
 		int index = layout->indexOf(m_Ui.renderingWidgetPlaceholder);
 		layout->removeWidget(m_Ui.renderingWidgetPlaceholder);
@@ -152,6 +154,34 @@ namespace CityDraft::UI
 		{
 			BOOST_ASSERT(instrument);
 			auto action = instrument->OnRendererMouseMove(event);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+	}
+
+	void MainWindow::ProcessInstrumentsMouseWheelEvent(QWheelEvent* event)
+	{
+		auto activeInstrumentsCopy = m_ActiveInstruments;
+		for (auto& instrument : activeInstrumentsCopy)
+		{
+			BOOST_ASSERT(instrument);
+			auto action = instrument->OnRendererMouseWheel(event);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+	}
+
+	void MainWindow::ProcessInstrumentsKeyboardEvent(QKeyEvent* event)
+	{
+		auto activeInstrumentsCopy = m_ActiveInstruments;
+		for (auto& instrument : activeInstrumentsCopy)
+		{
+			BOOST_ASSERT(instrument);
+			auto action = instrument->OnRendererKey(event);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
 				return;
@@ -270,6 +300,16 @@ namespace CityDraft::UI
 		m_CursorProjectedPosition->setText(msg);
 
 		ProcessInstrumentsMouseMoveEvent(event);
+	}
+
+	void MainWindow::OnRenderingWidgetMouseWheelEvent(QWheelEvent* event)
+	{
+		ProcessInstrumentsMouseWheelEvent(event);
+	}
+
+	void MainWindow::OnRenderingWidgetKeyboardEvent(QKeyEvent* event)
+	{
+		ProcessInstrumentsKeyboardEvent(event);
 	}
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)

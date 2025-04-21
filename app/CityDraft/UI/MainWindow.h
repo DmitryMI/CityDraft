@@ -73,6 +73,8 @@ namespace CityDraft::UI
 
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
+		void ProcessInstrumentsMouseWheelEvent(QWheelEvent* event);
+		void ProcessInstrumentsKeyboardEvent(QKeyEvent* event);
 
 		template<typename T>
 		T* FindInstrument()
@@ -132,6 +134,8 @@ namespace CityDraft::UI
 		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);
 		void OnRenderingWidgetMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
+		void OnRenderingWidgetMouseWheelEvent(QWheelEvent* event);
+		void OnRenderingWidgetKeyboardEvent(QKeyEvent* event);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();
