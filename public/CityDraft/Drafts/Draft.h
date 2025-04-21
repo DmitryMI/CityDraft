@@ -92,7 +92,6 @@ namespace CityDraft::Drafts
 		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
 
-		void SetZOrder(int64_t zOrder);
 		int64_t GetZOrder() const;
 
 	protected:
@@ -105,7 +104,7 @@ namespace CityDraft::Drafts
 		
 		std::string m_Name{};
 		Transform2D m_Transform{};
-		int64_t m_ZOrder;
+		int64_t m_ZOrder = 0;
 
 		friend class CityDraft::Scene;
 	};
