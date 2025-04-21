@@ -63,4 +63,19 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Stop;
 	}
 
+	EventChainAction Panner::OnRendererMouseWheel(QWheelEvent* event)
+	{
+		auto zoom = m_Renderer->GetViewportZoom();
+		int delta = event->angleDelta().y();
+		zoom += 0.0001 * delta;
+		if (zoom == 0)
+		{
+			zoom = 0.0001;
+		}
+		GetLogger()->trace("Zoom changed to {}", zoom);
+		m_Renderer->SetViewportTransform(m_Renderer->GetViewportCenter(), zoom);
+		m_Renderer->Repaint();
+		return EventChainAction::Stop;
+	}
+
 }

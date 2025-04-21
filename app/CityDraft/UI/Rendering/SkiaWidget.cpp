@@ -240,15 +240,6 @@ namespace CityDraft::UI::Rendering
 
 	void SkiaWidget::wheelEvent(QWheelEvent* event)
 	{
-		int delta = event->angleDelta().y();
-		m_ViewportZoom += 0.0001 * delta;
-		if (m_ViewportZoom == 0)
-		{
-			m_ViewportZoom = 0.0001;
-		}
-		m_WidgetLogger->trace("Zoom changed to {}", m_ViewportZoom);
-		update();
-
 		emit MouseWheelEvent(event);
 	}
 

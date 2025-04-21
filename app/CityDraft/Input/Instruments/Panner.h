@@ -20,6 +20,7 @@ namespace CityDraft::Input::Instruments
 
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
+		EventChainAction OnRendererMouseWheel(QWheelEvent* event) override;
 
 	protected:
 		QPointF m_LastMousePosition;
