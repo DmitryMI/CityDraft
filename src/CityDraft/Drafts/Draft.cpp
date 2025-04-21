@@ -11,6 +11,11 @@ namespace CityDraft::Drafts
 		m_AssetLoadedConnection = asset->ConnectToAssetLoadedEvent(std::bind(&Draft::OnAssetLoaded, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
+	Draft::~Draft()
+	{
+		m_AssetLoadedConnection.disconnect();
+	}
+
 	bool Draft::IsPointInside(const Vector2D& point)
 	{
 		return GetAxisAlignedBoundingBox().Contains(point);

@@ -35,6 +35,8 @@ namespace CityDraft::Drafts
 		/// <param name="asset">Parent Asset</param>
 		Draft(CityDraft::Assets::Asset* asset);
 
+		virtual ~Draft();
+
 		virtual bool IsPointInside(const Vector2D& point);
 
 		/// <summary>

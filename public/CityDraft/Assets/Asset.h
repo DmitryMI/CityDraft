@@ -55,6 +55,7 @@ namespace CityDraft::Assets
 		inline AssetStatus LoadAsset()
 		{
 			LoadAssetInternal();
+			m_Logger->debug("Broadcasting AssetLoadedEvent: {} listeners", m_AssetLoadedEvent.num_slots());
 			m_AssetLoadedEvent(this, m_Status == AssetStatus::Loaded);
 			return m_Status;
 		}
