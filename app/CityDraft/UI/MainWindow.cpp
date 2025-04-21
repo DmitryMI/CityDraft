@@ -349,6 +349,7 @@ namespace CityDraft::UI
 		}
 
 		m_Scene->SaveToFile(filename.toStdString());
+		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)
@@ -370,7 +371,7 @@ namespace CityDraft::UI
 		}
 
 		BOOST_ASSERT(m_Scene);
-		
+		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
 	}

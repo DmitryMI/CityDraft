@@ -246,6 +246,7 @@ namespace CityDraft
 	{
 		CityDraft::Serialization::BoostOutputArchive archive(path);
 
+		m_Name = path.stem().string();
 		archive << m_Name;
 		// TODO Serialize layers
 		archive << m_DraftsRtree.size();
