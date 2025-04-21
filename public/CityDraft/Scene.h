@@ -111,6 +111,13 @@ namespace CityDraft
 		size_t QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts);
 
 		/// <summary>
+		/// Looks for Draft with highest Z-Order that cointains the Point
+		/// </summary>
+		/// <param name="point">Point for hit-test</param>
+		/// <returns>Found Draft or nullptr if point does not hit any draft.</returns>
+		std::shared_ptr<Drafts::Draft> QueryHighestDraftAllLayers(const Vector2D& point);
+
+		/// <summary>
 		/// Creates a new Scene with default layers and some additional default setup.
 		/// </summary>
 		/// <param name="name">Name of new scene</param>

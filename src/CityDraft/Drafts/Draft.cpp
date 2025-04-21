@@ -13,7 +13,7 @@ namespace CityDraft::Drafts
 
 	bool Draft::IsPointInside(const Vector2D& point)
 	{
-		return false;
+		return GetAxisAlignedBoundingBox().Contains(point);
 	}
 
 	CityDraft::Assets::Asset* Draft::GetAsset() const

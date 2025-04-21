@@ -10,6 +10,7 @@ namespace CityDraft::Input::Instruments
 	{
 	public:
 		constexpr static int Priority = -100;
+		constexpr static int MultiSelectMouseMoveThreshold = 5;
 
 		Selector(const Dependencies& dependencies);
 		virtual ~Selector() override;
@@ -30,7 +31,9 @@ namespace CityDraft::Input::Instruments
 	protected:
 		QPointF m_FirstMousePosition;
 		QPointF m_LastMousePosition;
+		bool m_IsMultiSelection = false;
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); };
+		void FinishSelection(QMouseEvent* event);
 	};
 }

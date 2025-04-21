@@ -157,6 +157,30 @@ namespace CityDraft
 		return drafts.size() - draftsSize;
 	}
 
+	std::shared_ptr<Drafts::Draft> Scene::QueryHighestDraftAllLayers(const Vector2D& point)
+	{
+		std::set<std::pair<int64_t, std::shared_ptr<Drafts::Draft>>> draftsZOrders;
+		m_DraftsRtree.query(
+			boost::geometry::index::contains(point.Data),
+			boost::make_function_output_iterator([&draftsZOrders, point](const auto& entry) {
+				std::shared_ptr<Drafts::Draft> draft = std::get<1>(entry);
+				// IsPointInside may be overriden with more precise hit-test
+				if (draft->IsPointInside(point))
+				{
+					draftsZOrders.insert(std::make_pair(draft->m_ZOrder, draft));
+				}
+				}
+			)
+		);
+
+		if (draftsZOrders.size() == 0)
+		{
+			return nullptr;
+		}
+
+		return draftsZOrders.rbegin()->second;
+	}
+
 	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
 	{
 		BOOST_ASSERT(obj->m_Scene == nullptr);

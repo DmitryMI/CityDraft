@@ -36,20 +36,15 @@ namespace CityDraft::Input::Instruments
 		{
 			m_FirstMousePosition = event->position();
 			m_LastMousePosition = event->position();
+			m_IsMultiSelection = false;
 		}
 		else
 		{
-			m_Renderer->Repaint();
-			const auto& bbox = GetProjectedSelectionBox();
-			std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
-			if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
-			{
-				m_SelectionManager->ClearSelectedDrafts();
-			}
-			m_SelectionManager->AddDraftsToSelection(drafts);
+			FinishSelection(event);
 			emit Finished(this);
 		}
+
+		m_Renderer->Repaint();
 
 		return EventChainAction::Stop;
 	}
@@ -57,25 +52,47 @@ namespace CityDraft::Input::Instruments
 	EventChainAction Selector::OnRendererMouseMove(QMouseEvent* event)
 	{
 		BOOST_ASSERT(IsActive());
+		BOOST_ASSERT(m_Renderer);
 
 		QPointF currentPosition = event->position();
+		QPointF delta = currentPosition - m_FirstMousePosition;
+		if (fabs(delta.x()) > MultiSelectMouseMoveThreshold || fabs(delta.y()) > MultiSelectMouseMoveThreshold)
+		{
+			m_IsMultiSelection = true;
+		}
 
-		BOOST_ASSERT(m_Renderer);
-		m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
-		m_Renderer->Repaint();
+		if (m_IsMultiSelection)
+		{
+			m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
+			m_Renderer->Repaint();
+		}
+
 		m_LastMousePosition = currentPosition;
 		return EventChainAction::Next;
 	}
 
 	void Selector::OnPaint()
 	{
-		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
-		AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
-		m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
-		for (const auto& draft : drafts)
+		if (m_IsMultiSelection)
 		{
-			auto draftBbox = draft->GetAxisAlignedBoundingBox();
-			m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1.0 / m_Renderer->GetViewportZoom());
+			std::vector<std::shared_ptr<Drafts::Draft>> drafts;
+			AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
+			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+			for (const auto& draft : drafts)
+			{
+				auto draftBbox = draft->GetAxisAlignedBoundingBox();
+				m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1.0 / m_Renderer->GetViewportZoom());
+			}
+		}
+		else
+		{
+			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
+			std::shared_ptr<Drafts::Draft> draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected);
+			if (draft)
+			{
+				auto draftBbox = draft->GetAxisAlignedBoundingBox();
+				m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1.0 / m_Renderer->GetViewportZoom());
+			}
 		}
 	}
 
@@ -96,5 +113,32 @@ namespace CityDraft::Input::Instruments
 		m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
 
 		return drafts.size() - draftsNum;
+	}
+
+	void Selector::FinishSelection(QMouseEvent* event)
+	{
+		m_Renderer->Repaint();
+
+		std::vector<std::shared_ptr<Drafts::Draft>> drafts;
+		if (m_IsMultiSelection)
+		{
+			const auto& bbox = GetProjectedSelectionBox();
+			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+		}
+		else
+		{
+			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
+			std::shared_ptr<Drafts::Draft> draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected);
+			if (draft)
+			{
+				drafts.push_back(draft);
+			}
+		}
+
+		if (!event->modifiers().testFlag(m_KeyBindingProvider->GetSelectionAdditiveModifier()))
+		{
+			m_SelectionManager->ClearSelectedDrafts();
+		}
+		m_SelectionManager->AddDraftsToSelection(drafts);
 	}
 }
