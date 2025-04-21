@@ -9,6 +9,7 @@
 #include <boost/signals2.hpp>
 #include "CityDraft/Serialization/IArchive.h"
 #include "CityDraft/Serialization/ISerializable.h"
+#include <cstdint>
 
 namespace CityDraft
 {
@@ -91,6 +92,9 @@ namespace CityDraft::Drafts
 		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
 
+		void SetZOrder(int64_t zOrder);
+		int64_t GetZOrder() const;
+
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
 
@@ -101,6 +105,7 @@ namespace CityDraft::Drafts
 		
 		std::string m_Name{};
 		Transform2D m_Transform{};
+		int64_t m_ZOrder;
 
 		friend class CityDraft::Scene;
 	};

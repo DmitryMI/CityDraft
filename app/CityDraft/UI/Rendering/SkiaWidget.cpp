@@ -269,12 +269,18 @@ namespace CityDraft::UI::Rendering
 			vieportBox.GetMax().GetY()
 			);
 
+		std::set<std::pair<int, CityDraft::Drafts::Draft*>> orderedVisibleDrafts;
+		for (const auto& draftPtr : m_ViewportDraftsBuffer)
+		{
+			orderedVisibleDrafts.emplace(draftPtr->GetZOrder(), draftPtr.get());
+		}
+
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		BOOST_ASSERT(canvas);
 
-		for (const auto& draft : m_ViewportDraftsBuffer)
+		for (const auto& draft : orderedVisibleDrafts)
 		{
-			Paint(draft->GetAsset(), draft->GetTransform());
+			Paint(draft.second->GetAsset(), draft.second->GetTransform());
 		}
 	}
 

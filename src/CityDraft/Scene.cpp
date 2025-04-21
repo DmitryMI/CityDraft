@@ -9,19 +9,22 @@ namespace CityDraft
 		return m_Name;
 	}
 
-	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
+	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj, InsertOrder order)
 	{
-		BOOST_ASSERT(obj->m_Scene == nullptr);
-		obj->m_Scene = this;
-		if (obj->GetName() == "")
+		if (m_ZOrderMap.size() == 0)
 		{
-			obj->m_Name = "Draft-" + std::to_string(m_DraftsRtree.size());
+			obj->m_ZOrder = 0;
 		}
-		std::shared_ptr<Drafts::Draft> objPtr(obj);
+		else if (order == InsertOrder::Highest)
+		{
+			obj->m_ZOrder = m_ZOrderMap.rbegin()->first + 1;
+		}
+		else
+		{
+			obj->m_ZOrder = m_ZOrderMap.begin()->first - 1;
+		}
 
-		InsertObjectToRtree(obj);
-		m_DraftAdded(obj);
-		m_Logger->debug("{} added to scene", obj->GetName());
+		AddDraft(obj);
 	}
 
 	void Scene::RemoveDraft(Drafts::Draft* obj)
@@ -41,6 +44,7 @@ namespace CityDraft
 		BOOST_ASSERT(obj->m_Scene == this);
 
 		obj->m_Scene = nullptr;
+		m_ZOrderMap.erase(obj->m_ZOrder);
 		m_DraftRemoved(obj);
 		m_Logger->debug("{} removed from scene", obj->GetName());
 	}
@@ -83,9 +87,9 @@ namespace CityDraft
 		BOOST_ASSERT(tower1);
 		tower1->SetTranslation(Vector2D(500, 100));
 
-		scene->AddDraft(building1);
-		scene->AddDraft(building2);
-		scene->AddDraft(tower1);
+		scene->AddDraft(building1, InsertOrder::Highest);
+		scene->AddDraft(building2, InsertOrder::Highest);
+		scene->AddDraft(tower1, InsertOrder::Highest);
 
 		logger->warn("Scene created with hardcoded drafts");
 
@@ -151,6 +155,24 @@ namespace CityDraft
 			boost::make_function_output_iterator([&drafts](const auto& entry) {drafts.push_back(std::get<1>(entry)); })
 		);
 		return drafts.size() - draftsSize;
+	}
+
+	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
+	{
+		BOOST_ASSERT(obj->m_Scene == nullptr);
+		obj->m_Scene = this;
+		if (obj->GetName() == "")
+		{
+			obj->m_Name = "Draft-" + std::to_string(m_DraftsRtree.size());
+		}
+		std::shared_ptr<Drafts::Draft> objPtr(obj);
+
+		InsertObjectToRtree(obj);
+		BOOST_ASSERT(!m_ZOrderMap.contains(obj->m_ZOrder));
+		m_ZOrderMap[obj->m_ZOrder] = obj.get();
+
+		m_DraftAdded(obj);
+		m_Logger->debug("{} added to scene", obj->GetName());
 	}
 
 	void Scene::InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj)

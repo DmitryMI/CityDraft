@@ -11,7 +11,8 @@ namespace CityDraft::Serialization
 	class IInputArchive
 	{
 	public:
-		virtual IInputArchive& operator>>(int& value) = 0;
+		virtual IInputArchive& operator>>(int32_t& value) = 0;
+		virtual IInputArchive& operator>>(int64_t& value) = 0;
 		virtual IInputArchive& operator>>(size_t& value) = 0;
 		virtual IInputArchive& operator>>(float& value) = 0;
 		virtual IInputArchive& operator>>(double& value) = 0;
@@ -24,7 +25,8 @@ namespace CityDraft::Serialization
 	class IOutputArchive
 	{
 	public:
-		virtual IOutputArchive& operator<<(int value) = 0;
+		virtual IOutputArchive& operator<<(int32_t value) = 0;
+		virtual IOutputArchive& operator<<(int64_t value) = 0;
 		virtual IOutputArchive& operator<<(size_t value) = 0;
 		virtual IOutputArchive& operator<<(float value) = 0;
 		virtual IOutputArchive& operator<<(double value) = 0;

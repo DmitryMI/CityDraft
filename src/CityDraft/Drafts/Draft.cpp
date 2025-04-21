@@ -45,11 +45,23 @@ namespace CityDraft::Drafts
 	{
 		archive << m_Name;
 		archive << m_Transform;
+		archive << m_ZOrder;
 	}
 
 	void Draft::Deserialize(CityDraft::Serialization::IInputArchive& archive)
 	{
 		archive >> m_Name;
 		archive >> m_Transform;
+		archive >> m_ZOrder;
+	}
+
+	void Draft::SetZOrder(int64_t zOrder)
+	{
+		m_ZOrder = zOrder;
+	}
+
+	int64_t Draft::GetZOrder() const
+	{
+		return m_ZOrder;
 	}
 }

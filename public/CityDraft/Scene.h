@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <list>
 #include <filesystem>
+#include <map>
 #include "Assets/AssetManager.h"
 #include <boost/geometry/index/rtree.hpp>
 #include "AxisAlignedBoundingBox2D.h"
@@ -32,6 +33,12 @@ namespace CityDraft
 
 		using DraftAddedFunc = void(std::shared_ptr<Drafts::Draft>);
 		using DraftRemovedFunc = void(Drafts::Draft*);
+
+		enum class InsertOrder
+		{
+			Highest,
+			Lowest
+		};
 
 		/// <summary>
 		/// Creates an empty scene. Use Scene::NewScene instead to create scene with default layers.
@@ -61,7 +68,8 @@ namespace CityDraft
 		/// Inserts the Draft into the Scene.
 		/// </summary>
 		/// <param name="obj">Draft to add</param>
-		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
+		/// <param name="order">Indicates what ZOrder should be assigned to the Draft</param>
+		void AddDraft(std::shared_ptr<Drafts::Draft> obj, InsertOrder order);
 
 		/// <summary>
 		/// Removes the Draft from the Scene
@@ -134,6 +142,7 @@ namespace CityDraft
 		std::list<std::shared_ptr<Layer>> m_Layers;
 
 		boost::geometry::index::rtree<RTreeValue, boost::geometry::index::quadratic<16>> m_DraftsRtree;
+		std::map<int64_t, CityDraft::Drafts::Draft*> m_ZOrderMap;
 
 		boost::signals2::signal<LayerChangedFunc> m_LayerChanged;
 		boost::signals2::signal<LayerMarkedForDeletionFunc> m_LayerMarkedForDeletion;
@@ -141,6 +150,7 @@ namespace CityDraft
 		boost::signals2::signal<DraftAddedFunc> m_DraftAdded;
 		boost::signals2::signal<DraftRemovedFunc> m_DraftRemoved;
 
+		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
 		void InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj);
 		bool RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj);
 		std::shared_ptr<Drafts::Draft> RemoveObjectFromRtree(Drafts::Draft* obj);
