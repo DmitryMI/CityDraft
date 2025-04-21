@@ -31,6 +31,7 @@ set(AppSources
 	"CityDraft/Input/Instruments/Panner.cpp"
 	"CityDraft/Input/Instruments/Selector.cpp"
 	"CityDraft/Input/Instruments/ImageDraftEditor.cpp"
+	"CityDraft/Input/Utils.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"

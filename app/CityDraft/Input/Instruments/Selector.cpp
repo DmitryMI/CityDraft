@@ -132,6 +132,25 @@ namespace CityDraft::Input::Instruments
 		return drafts.size() - draftsNum;
 	}
 
+	void Selector::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
+	{
+		ToolDescryptor selectTool;
+		selectTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		ToolDescryptor selectAdditiveTool;
+		selectAdditiveTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		selectAdditiveTool.Modifier = m_KeyBindingProvider->GetSelectionAdditiveModifier();
+
+		if (!toolDescriptions.contains(selectTool))
+		{
+			toolDescriptions[selectTool] = "select";
+		}
+
+		if (!toolDescriptions.contains(selectAdditiveTool))
+		{
+			toolDescriptions[selectAdditiveTool] = "add to selection";
+		}
+	}
+
 	void Selector::FinishSelection(QMouseEvent* event)
 	{
 		m_Renderer->Repaint();

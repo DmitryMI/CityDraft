@@ -78,4 +78,14 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Stop;
 	}
 
+	void Panner::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
+	{
+		ToolDescryptor panTool;
+		panTool.MouseButton = m_KeyBindingProvider->GetMouseViewportPanningButton();
+		if (!toolDescriptions.contains(panTool))
+		{
+			QString msg = "pan viewport";
+			toolDescriptions[panTool] = msg;
+		}
+	}
 }

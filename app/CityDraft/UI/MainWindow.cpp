@@ -5,6 +5,7 @@
 #include <qstatusbar.h>
 #include "CityDraft/Input/Instruments/Panner.h"
 #include "CityDraft/Input/Instruments/Selector.h"
+#include "CityDraft/Input/Utils.h"
 #include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/UI/Colors/Factory.h"
@@ -87,7 +88,7 @@ namespace CityDraft::UI
 	void MainWindow::CreateStatusBar()
 	{
 		m_ActiveInstrumentsLabel = new QLabel("");
-		m_ActiveInstrumentsLabel->setMinimumWidth(200);
+		m_ActiveInstrumentsLabel->setMinimumWidth(500);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
 
 		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
@@ -136,18 +137,55 @@ namespace CityDraft::UI
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
-		QString message = "";
-		
+		std::map<CityDraft::Input::Instruments::ToolDescryptor, QString> toolDescriptions;
+
 		for (const auto& instrument : m_ActiveInstruments)
 		{
-			message += instrument->GetName() + ", ";
+			instrument->QueryTools(toolDescriptions);
 		}
-		if (m_ActiveInstruments.size() > 0)
+
+		if (toolDescriptions.size() == 0)
 		{
-			message.removeLast();
-			message.removeLast();
+			m_ActiveInstrumentsLabel->setText("");
+			return;
 		}
-		m_ActiveInstrumentsLabel->setText(message);
+
+		QStringList toolsMessages;
+		for (const auto[descryptor, description] : toolDescriptions)
+		{
+			QStringList keysList;
+			if (descryptor.MouseButton.has_value())
+			{
+				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.MouseButton.value())));
+			}
+			if (descryptor.Modifier.has_value())
+			{
+				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Modifier.value())));
+			}
+			if (descryptor.Key.has_value())
+			{
+				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Key.value())));
+			}
+			
+			toolsMessages.push_back("[" + keysList.join(" + ") + ": " + description + "]");
+		}
+		m_ActiveInstrumentsLabel->setText(toolsMessages.join(", "));
+	}
+
+	void MainWindow::ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed)
+	{
+		auto activeInstrumentsCopy = m_ActiveInstruments;
+		for (auto& instrument : activeInstrumentsCopy)
+		{
+			BOOST_ASSERT(instrument);
+			auto action = instrument->OnRendererMouseButton(event, pressed);
+			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
+			{
+				return;
+			}
+		}
+
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ProcessInstrumentsMouseMoveEvent(QMouseEvent* event)
@@ -162,6 +200,8 @@ namespace CityDraft::UI
 				return;
 			}
 		}
+
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ProcessInstrumentsMouseWheelEvent(QWheelEvent* event)
@@ -176,6 +216,8 @@ namespace CityDraft::UI
 				return;
 			}
 		}
+
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ProcessInstrumentsKeyboardEvent(QKeyEvent* event)
@@ -190,6 +232,8 @@ namespace CityDraft::UI
 				return;
 			}
 		}
+
+		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument)
@@ -264,17 +308,7 @@ namespace CityDraft::UI
 	{
 		BOOST_ASSERT(m_KeyBindingProvider);
 
-		auto activeInstrumentsCopy = m_ActiveInstruments;
-
-		for (auto& instrument : activeInstrumentsCopy)
-		{
-			BOOST_ASSERT(instrument);
-			auto action = instrument->OnRendererMouseButton(event, pressed);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
+		ProcessInstrumentsMouseButtonEvent(event, pressed);
 	}
 
 	void MainWindow::OnRenderingWidgetMouseMoveEvent(QMouseEvent* event)

@@ -72,6 +72,7 @@ namespace CityDraft::UI
 		void CreateInstruments();
 
 		void UpdateActiveInstrumentsLabel();
+		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
 		void ProcessInstrumentsMouseWheelEvent(QWheelEvent* event);
 		void ProcessInstrumentsKeyboardEvent(QKeyEvent* event);

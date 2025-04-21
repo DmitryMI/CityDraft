@@ -114,6 +114,39 @@ namespace CityDraft::Input::Instruments
 		PaintScalingRects(bbox);
 	}
 
+	void ImageDraftEditor::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
+	{
+		ToolDescryptor dragTool;
+		dragTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		ToolDescryptor rotateTool;
+		rotateTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		ToolDescryptor scaleTool;
+		scaleTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		ToolDescryptor scaleFromCenterTool;
+		scaleFromCenterTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
+		scaleFromCenterTool.Modifier = m_KeyBindingProvider->GetScaleFromCenterModifier();
+
+		if (!toolDescriptions.contains(dragTool) && m_Tool == Tool::Drag)
+		{
+			toolDescriptions[dragTool] = "drag selected";
+		}
+
+		if (!toolDescriptions.contains(rotateTool) && m_Tool == Tool::Rotate)
+		{
+			toolDescriptions[rotateTool] = "rotate selected";
+		}
+
+		if (!toolDescriptions.contains(scaleTool) && m_Tool == Tool::Scale)
+		{
+			toolDescriptions[scaleTool] = "scale selected";
+		}
+
+		if (!toolDescriptions.contains(scaleFromCenterTool) && m_Tool == Tool::Scale)
+		{
+			toolDescriptions[scaleFromCenterTool] = "scale selected from center";
+		}
+	}
+
 	void ImageDraftEditor::OnActiveFlagChanged()
 	{
 		QObject* parentObj = parent();

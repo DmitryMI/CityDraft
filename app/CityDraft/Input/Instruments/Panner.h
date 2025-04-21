@@ -22,6 +22,8 @@ namespace CityDraft::Input::Instruments
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
 		EventChainAction OnRendererMouseWheel(QWheelEvent* event) override;
 
+		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
+
 	protected:
 		QPointF m_LastMousePosition;
 		bool m_PanPressed = false;

@@ -28,6 +28,8 @@ namespace CityDraft::Input::Instruments
 		AxisAlignedBoundingBox2D GetProjectedSelectionBox() const;
 		size_t GetSelectedDrafts(std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts) const;
 
+		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
+
 	protected:
 		QPointF m_FirstMousePosition;
 		QPointF m_LastMousePosition;

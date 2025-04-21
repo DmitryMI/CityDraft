@@ -78,6 +78,9 @@ namespace CityDraft::Input::Instruments
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
 
 		void OnPaint() override;
+
+		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
+
 	protected:
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("ImageDraftEditor"); };

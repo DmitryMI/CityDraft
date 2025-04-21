@@ -10,6 +10,7 @@
 #include <spdlog/spdlog.h>
 #include <QUndoStack>
 #include "CityDraft/Logging/LogManager.h"
+#include <map>
 
 namespace CityDraft::UI::Rendering
 {
@@ -58,6 +59,19 @@ namespace CityDraft::Input::Instruments
 		QObject* Parent;
 	};
 
+	struct ToolDescryptor
+	{
+		std::optional<Qt::MouseButton> MouseButton = std::nullopt;
+		std::optional<Qt::KeyboardModifier> Modifier = std::nullopt;
+		std::optional<Qt::Key> Key = std::nullopt;
+
+		bool operator<(const ToolDescryptor& other) const
+		{
+			return std::tie(MouseButton, Modifier, Key) <
+				std::tie(other.MouseButton, other.Modifier, other.Key);
+		}
+	};
+
 	class Instrument : public QObject
 	{
 		Q_OBJECT;
@@ -77,6 +91,8 @@ namespace CityDraft::Input::Instruments
 		CityDraft::UI::Rendering::IRenderer* GetRenderer() const;
 		void SetActive(bool active);
 		bool IsActive() const;
+
+		virtual void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) = 0;
 
 	signals:
 		void Finished(Instrument* instrument, FinishStatus status = FinishStatus::Ok);
