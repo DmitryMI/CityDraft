@@ -129,6 +129,8 @@ namespace CityDraft::UI
 		{
 			connect(instrument, &CityDraft::Input::Instruments::Instrument::Finished, this, &MainWindow::OnInstrumentFinished);
 		}
+
+		ActivateInstrument<CityDraft::Input::Instruments::Selector>();
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -277,15 +279,6 @@ namespace CityDraft::UI
 		{
 			auto* panner = ActivateInstrument<CityDraft::Input::Instruments::Panner>();
 			auto action = panner->OnRendererMouseButton(event, pressed);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
-		else if (event->button() == m_KeyBindingProvider->GetMouseSelectionButton() && pressed)
-		{
-			auto* selector = ActivateInstrument<CityDraft::Input::Instruments::Selector>();
-			auto action = selector->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
 				return;

@@ -31,7 +31,9 @@ namespace CityDraft::Input::Instruments
 	protected:
 		QPointF m_FirstMousePosition;
 		QPointF m_LastMousePosition;
+		bool m_SelectionPressed = false;
 		bool m_IsMultiSelection = false;
+		CityDraft::Drafts::Draft* m_DraftUnderCursor = nullptr;
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); };
 		void FinishSelection(QMouseEvent* event);

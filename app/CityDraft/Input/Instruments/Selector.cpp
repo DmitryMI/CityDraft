@@ -37,11 +37,14 @@ namespace CityDraft::Input::Instruments
 			m_FirstMousePosition = event->position();
 			m_LastMousePosition = event->position();
 			m_IsMultiSelection = false;
+			m_SelectionPressed = true;
 		}
 		else
 		{
 			FinishSelection(event);
-			emit Finished(this);
+			m_SelectionPressed = false;
+			m_IsMultiSelection = false;
+			// emit Finished(this);
 		}
 
 		m_Renderer->Repaint();
@@ -55,16 +58,30 @@ namespace CityDraft::Input::Instruments
 		BOOST_ASSERT(m_Renderer);
 
 		QPointF currentPosition = event->position();
-		QPointF delta = currentPosition - m_FirstMousePosition;
-		if (fabs(delta.x()) > MultiSelectMouseMoveThreshold || fabs(delta.y()) > MultiSelectMouseMoveThreshold)
-		{
-			m_IsMultiSelection = true;
-		}
 
-		if (m_IsMultiSelection)
+		if (m_SelectionPressed)
 		{
-			m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
-			m_Renderer->Repaint();
+			QPointF delta = currentPosition - m_FirstMousePosition;
+			if (fabs(delta.x()) > MultiSelectMouseMoveThreshold || fabs(delta.y()) > MultiSelectMouseMoveThreshold)
+			{
+				m_IsMultiSelection = true;
+			}
+
+			if (m_IsMultiSelection)
+			{
+				m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
+				m_Renderer->Repaint();
+			}
+		}
+		else
+		{
+			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
+			auto* draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected).get();
+			if (draft != m_DraftUnderCursor)
+			{
+				m_DraftUnderCursor = draft;
+				m_Renderer->Repaint();
+			}
 		}
 
 		m_LastMousePosition = currentPosition;
@@ -86,12 +103,12 @@ namespace CityDraft::Input::Instruments
 		}
 		else
 		{
-			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
-			std::shared_ptr<Drafts::Draft> draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected);
-			if (draft)
+			const auto& selected = m_SelectionManager->GetSelectedDrafts();
+			if (m_DraftUnderCursor && !(selected.size() == 1 && selected.begin()->get() == m_DraftUnderCursor))
 			{
-				auto draftBbox = draft->GetAxisAlignedBoundingBox();
+				auto draftBbox = m_DraftUnderCursor->GetAxisAlignedBoundingBox();
 				m_Renderer->PaintRect(draftBbox.GetMin(), draftBbox.GetMax(), m_ColorsProvider->GetDraftPreSelectionBoxColor(), 1.0 / m_Renderer->GetViewportZoom());
+				m_Renderer->Repaint();
 			}
 		}
 	}

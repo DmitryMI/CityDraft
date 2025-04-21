@@ -21,8 +21,16 @@ namespace CityDraft::Input::Instruments
 	{
 		BOOST_ASSERT(IsActive());
 
+		if (event->button() != m_KeyBindingProvider->GetMouseSelectionButton())
+		{
+			return EventChainAction::Next;
+		}
+
+		AxisAlignedBoundingBox2D bbox = GetSelectionBoundingBox();
+
 		if (pressed)
 		{
+			DetectTransformationTool(bbox, event);
 			if (m_Tool != Tool::None)
 			{
 				m_ToolInUse = true;
@@ -34,17 +42,20 @@ namespace CityDraft::Input::Instruments
 				{
 					m_OldTransforms[draft] = draft->GetTransform();
 				}
-
 				return EventChainAction::Stop;
 			}
 		}
 		else
 		{
-			Finalize();
-			m_ToolInUse = false;
+			if (m_ToolInUse)
+			{
+				Finalize();
+				m_ToolInUse = false;
+				return EventChainAction::Stop;
+			}
 		}
 		
-		return EventChainAction();
+		return EventChainAction::Next;
 	}
 
 	EventChainAction ImageDraftEditor::OnRendererMouseMove(QMouseEvent* event)
