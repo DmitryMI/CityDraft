@@ -64,11 +64,12 @@ namespace CityDraft::Input::Instruments
 		std::optional<Qt::MouseButton> MouseButton = std::nullopt;
 		std::optional<Qt::KeyboardModifier> Modifier = std::nullopt;
 		std::optional<Qt::Key> Key = std::nullopt;
+		bool Wheel = false;
 
 		bool operator<(const ToolDescryptor& other) const
 		{
-			return std::tie(MouseButton, Modifier, Key) <
-				std::tie(other.MouseButton, other.Modifier, other.Key);
+			return std::tie(MouseButton, Modifier, Key, Wheel) <
+				std::tie(other.MouseButton, other.Modifier, other.Key, other.Wheel);
 		}
 	};
 

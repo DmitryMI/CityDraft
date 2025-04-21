@@ -154,19 +154,24 @@ namespace CityDraft::UI
 		for (const auto[descryptor, description] : toolDescriptions)
 		{
 			QStringList keysList;
-			if (descryptor.MouseButton.has_value())
-			{
-				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.MouseButton.value())));
-			}
+
 			if (descryptor.Modifier.has_value())
 			{
 				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Modifier.value())));
+			}
+			if (descryptor.Wheel)
+			{
+				keysList.push_back("Wheel");
+			}
+			if (descryptor.MouseButton.has_value())
+			{
+				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.MouseButton.value())));
 			}
 			if (descryptor.Key.has_value())
 			{
 				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Key.value())));
 			}
-			
+						
 			toolsMessages.push_back("[" + keysList.join(" + ") + ": " + description + "]");
 		}
 		m_ActiveInstrumentsLabel->setText(toolsMessages.join(", "));

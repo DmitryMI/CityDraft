@@ -82,10 +82,20 @@ namespace CityDraft::Input::Instruments
 	{
 		ToolDescryptor panTool;
 		panTool.MouseButton = m_KeyBindingProvider->GetMouseViewportPanningButton();
+
+		ToolDescryptor zoomTool;
+		zoomTool.Wheel = true;
+
 		if (!toolDescriptions.contains(panTool))
 		{
-			QString msg = "pan viewport";
+			QString msg = "pan";
 			toolDescriptions[panTool] = msg;
+		}
+
+		if (!toolDescriptions.contains(zoomTool))
+		{
+			QString msg = "zoom";
+			toolDescriptions[zoomTool] = msg;
 		}
 	}
 }
