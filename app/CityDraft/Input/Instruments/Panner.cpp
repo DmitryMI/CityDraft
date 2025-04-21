@@ -30,18 +30,23 @@ namespace CityDraft::Input::Instruments
 		if (pressed)
 		{
 			m_LastMousePosition = event->position();
+			m_PanPressed = true;
 		}
 		else
 		{
-			emit Finished(this);
-			
+			m_PanPressed = false;
 		}
-		return EventChainAction::Next;
+		return EventChainAction::Stop;
 	}
 
 	EventChainAction Panner::OnRendererMouseMove(QMouseEvent* event)
 	{
 		BOOST_ASSERT(IsActive());
+
+		if (!m_PanPressed)
+		{
+			return EventChainAction::Next;
+		}
 
 		QPointF currentPos = event->position();
 		QPointF delta = currentPos - m_LastMousePosition;
@@ -55,7 +60,7 @@ namespace CityDraft::Input::Instruments
 		m_Renderer->SetViewportTransform(viewportCenter, viewportZoom);
 		m_Renderer->Repaint();
 
-		return EventChainAction::Next;
+		return EventChainAction::Stop;
 	}
 
 }

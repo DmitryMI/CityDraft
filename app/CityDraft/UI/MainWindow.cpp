@@ -131,6 +131,7 @@ namespace CityDraft::UI
 		}
 
 		ActivateInstrument<CityDraft::Input::Instruments::Selector>();
+		ActivateInstrument<CityDraft::Input::Instruments::Panner>();
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -269,16 +270,6 @@ namespace CityDraft::UI
 		{
 			BOOST_ASSERT(instrument);
 			auto action = instrument->OnRendererMouseButton(event, pressed);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
-
-		if (event->button() == m_KeyBindingProvider->GetMouseViewportPanningButton() && pressed)
-		{
-			auto* panner = ActivateInstrument<CityDraft::Input::Instruments::Panner>();
-			auto action = panner->OnRendererMouseButton(event, pressed);
 			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
 			{
 				return;

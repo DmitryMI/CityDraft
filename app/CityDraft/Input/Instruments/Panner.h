@@ -23,6 +23,7 @@ namespace CityDraft::Input::Instruments
 
 	protected:
 		QPointF m_LastMousePosition;
+		bool m_PanPressed = false;
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Panner"); } ;
 	};
