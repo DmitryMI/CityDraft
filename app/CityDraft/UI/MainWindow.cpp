@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "CityDraft/Assets/AssetManager.h"
+#include <QString>
 #include "CityDraft/Logging/LogManager.h"
 #include <qstatusbar.h>
 #include "CityDraft/Input/Instruments/Panner.h"
@@ -13,13 +14,10 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 
-namespace CityDraft::UI {
+namespace CityDraft::UI
+{
 
-MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
-    : QMainWindow(parent),
-      m_AssetsRootDirectory(std::move(assetsRoot)) {
-
-	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent):
+	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent) :
 		QMainWindow(parent),
 		m_AssetsRootDirectory(assetsRoot),
 		m_ScenePath(scenePath)
@@ -28,7 +26,7 @@ MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
 
 		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
 		CreateUndoRedoStack(m_Ui.menuEdit);
-		
+
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
@@ -42,34 +40,9 @@ MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
 		m_Logger->info("MainWindow created");
 	}
 
-	MainWindow::~MainWindow() = default;
+	MainWindow::~MainWindow()
+	{
 
-void MainWindow::ReplacePlaceholdersWithSplitter() {
-    if (!m_ImageSelectionWidget) {
-        m_ImageSelectionWidget = new ImageSelectionWidget(this);
-    }
-
-		auto* splitter = new QSplitter(Qt::Horizontal, this);
-		splitter->addWidget(m_ImageSelectionWidget);
-		splitter->addWidget(m_RenderingWidget);
-		splitter->setStretchFactor(0, 0);
-		splitter->setStretchFactor(1, 1);
-		splitter->setCollapsible(0, false);
-		splitter->setCollapsible(1, false);
-		splitter->setSizes({ 230, 774 });
-
-		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
-
-		auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-		if (!layout) {
-			qWarning("Placeholder layout is not a QBoxLayout!");
-			return;
-		}
-
-		layout->removeWidget(imagePlaceholder);
-		delete imagePlaceholder;
-
-		layout->addWidget(splitter);
 	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
@@ -103,39 +76,6 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
-	void MainWindow::LoadImagesToSelectionWidget() const
-	{
-		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
-
-		for (const auto& group : m_AssetManager->GetVariantImages()) {
-			variantImageGroups.push_back(group);
-		}
-
-
-		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
-
-		for (const auto& image : m_AssetManager->GetInvariantImages()) {
-			invariantImages.push_back(image);
-		}
-
-    std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
-
-    for (const auto& group : m_AssetManager->GetVariantImages()) {
-        variantImageGroups.push_back(group);
-    }
-
-		m_ImageSelectionWidget->loadImagesFromAssets(imageAssets);
-
-		QWidget* placeholder = m_Ui.imageSelectionPlaceholder;
-		auto* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
-
-		const int index = layout->indexOf(placeholder);
-		layout->removeWidget(placeholder);
-		delete placeholder;
-
-		layout->insertWidget(index, m_ImageSelectionWidget);
-	}
-
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
 		auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
@@ -143,7 +83,6 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
-		CreateImageSelectionWidget();
 	}
 
 	void MainWindow::CreateStatusBar()
@@ -212,7 +151,7 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 		}
 
 		QStringList toolsMessages;
-		for (const auto[descryptor, description] : toolDescriptions)
+		for (const auto [descryptor, description] : toolDescriptions)
 		{
 			QStringList keysList;
 
@@ -232,7 +171,7 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 			{
 				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Key.value())));
 			}
-						
+
 			toolsMessages.push_back("[" + keysList.join(" + ") + ": " + description + "]");
 		}
 		m_ActiveInstrumentsLabel->setText(toolsMessages.join(", "));

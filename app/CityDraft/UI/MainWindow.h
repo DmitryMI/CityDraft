@@ -20,35 +20,30 @@
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include "CityDraft/Input/ISelectionManager.h"
 #include <set>
-#include "Rendering/ImageSelectionWidget.h"
-
-#include <QLabel>
-#include <memory>
 
 namespace CityDraft::UI
 {
-	
 
-    class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
-    {
-        Q_OBJECT
 
-    public:
-        MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent = nullptr);
-        virtual ~MainWindow();
+	class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
+	{
+		Q_OBJECT
+
+	public:
+		MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent = nullptr);
+		virtual ~MainWindow();
 
 		// ISelectionManager
 		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
 		void ClearSelectedDrafts() override;
 		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
 
-    private:
+	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
 
 		// Widgets
-		Ui::MainWindow m_Ui{};
+		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
-		ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -72,9 +67,7 @@ namespace CityDraft::UI
 
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
-    	void CreateImageSelectionWidget();
 		void CreateAssetManager(const QString& assetsRoot);
-		void LoadImagesToSelectionWidget() const;
 		void CreateStatusBar();
 		void CreateInstruments();
 
@@ -111,7 +104,7 @@ namespace CityDraft::UI
 			BOOST_ASSERT(instrument);
 			from.erase(iter);
 			to.insert(instrument);
-			
+
 			UpdateActiveInstrumentsLabel();
 			return instrument;
 		}
@@ -136,7 +129,7 @@ namespace CityDraft::UI
 
 		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
-	
+
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
 		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);
