@@ -56,12 +56,18 @@ namespace CityDraft::UI {
 
 		CreateRenderingWidget();
 		CreateStatusBar();
-
+		CreateLayersWidget();
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
 
-		m_Ui.rootSplitter->setSizes({ (int)(m_Ui.rootSplitter->size().width() * 0.20), int(m_Ui.rootSplitter->size().width() * 0.80) });
+		QTimer::singleShot(0, this, [this] {
+			m_Ui.rootSplitter->setSizes({
+				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.20),
+				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.70),
+				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.10)
+			});
+		});
 
 		m_Logger->info("MainWindow created");
 	}
@@ -188,6 +194,30 @@ namespace CityDraft::UI {
 		delete imagePlaceholder;
 
 		boxLayout->addWidget(m_ImageSelectionWidget);
+	}
+
+	void MainWindow::CreateLayersWidget()
+	{
+		BOOST_ASSERT(!m_LayersWidget);
+
+		m_LayersWidget = new CityDraft::UI::LayersWidget(this);
+
+		QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
+		m_LayersWidget->setMinimumWidth(layersPlaceholder->width());
+		m_LayersWidget->setMinimumHeight(layersPlaceholder->height());
+
+		m_LayersWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		QWidget* parentWidget = layersPlaceholder->parentWidget();
+
+		QLayout* layout = parentWidget ? parentWidget->layout() : nullptr;
+		BOOST_ASSERT(layout);
+
+		if (layout) {
+			layout->removeWidget(layersPlaceholder);
+			delete layersPlaceholder;
+
+			layout->addWidget(m_LayersWidget);
+		}
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()

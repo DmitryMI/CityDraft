@@ -37,6 +37,8 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
 	"CityDraft/UI/VariantImageButton.cpp"
+	"CityDraft/UI/LayerItem.cpp"
+	"CityDraft/UI/LayersWidget.cpp"
 )
 
 if(${CITYDRAFT_NO_TERMINAL})

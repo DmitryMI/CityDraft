@@ -15,6 +15,7 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <vector>
+#include "LayersWidget.h"
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/IKeyBindingProvider.h"
@@ -48,6 +49,7 @@ namespace CityDraft::UI
 		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
+		UI::LayersWidget* m_LayersWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -76,6 +78,7 @@ namespace CityDraft::UI
 		void CreateStatusBar();
 		void CreateInstruments();
 		void CreateImageSelectionWidget();
+		void CreateLayersWidget();
 
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);
