@@ -39,8 +39,7 @@
 #include "Rendering/ImageSelectionWidget.h"
 #include "Rendering/SkiaWidget.h"
 
-namespace CityDraft::UI
-{
+namespace CityDraft::UI {
 
 	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent) :
 		QMainWindow(parent),
@@ -56,6 +55,7 @@ namespace CityDraft::UI
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
+		ReplacePlaceholdersWithSplitter();
 		CreateStatusBar();
 
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
@@ -101,17 +101,76 @@ namespace CityDraft::UI
 		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
+	void MainWindow::ReplacePlaceholdersWithSplitter()
+	{
+		if (!m_ImageSelectionWidget) {
+			m_ImageSelectionWidget = new ImageSelectionWidget(this);
+		}
+
+		auto* splitter = new QSplitter(Qt::Horizontal, this);
+		splitter->addWidget(m_ImageSelectionWidget);
+		splitter->addWidget(m_RenderingWidget);
+		splitter->setStretchFactor(0, 0);
+		splitter->setStretchFactor(1, 1);
+		splitter->setCollapsible(0, false);
+		splitter->setCollapsible(1, false);
+		splitter->setSizes({ 230, 774 });
+
+		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+
+		auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+		if (!layout) {
+			qWarning("Placeholder layout is not a QBoxLayout!");
+			return;
+		}
+
+		layout->removeWidget(imagePlaceholder);
+		delete imagePlaceholder;
+
+		layout->addWidget(splitter);
+	}
+
+
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
-		auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
+		auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
 		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
-		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
+
+		m_AssetManager = std::make_shared<Assets::SkiaAssetManager>(
+			assetsRootPath,
+			assetManagerLogger,
+			m_RenderingWidget->GetDirectContext(),
+			m_RenderingWidget->GetGlFunctions()
+		);
+
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
+
+		LoadImagesToSelectionWidget();
+	}
+
+	void MainWindow::LoadImagesToSelectionWidget() const
+	{
+		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
+
+		for (const auto& group : m_AssetManager->GetVariantImages()) {
+			variantImageGroups.push_back(group);
+		}
+
+
+		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+
+		for (const auto& image : m_AssetManager->GetInvariantImages()) {
+			invariantImages.push_back(image);
+		}
+
+
+		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 	}
 
 	void MainWindow::CreateStatusBar()
 	{
+		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		m_ActiveInstrumentsLabel = new QLabel("");
 		m_ActiveInstrumentsLabel->setMinimumWidth(500);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
@@ -485,6 +544,12 @@ namespace CityDraft::UI
 
 		m_Scene->SaveToFile(filename.toStdString());
 		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
+	}
+
+	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const
+	{
+		const QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.x(), projectedPosition.y());
+		m_CursorProjectedPosition->setText(msg);
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)
