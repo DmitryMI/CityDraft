@@ -9,7 +9,6 @@
 #include "CityDraft/UI/Colors/Factory.h"
 #include "CityDraft/Input/Instruments/ImageDraftEditor.h"
 #include "Rendering/ImageSelectionWidget.h"
-
 #include <QSplitter>
 #include <QLabel>
 #include <QBoxLayout>
@@ -18,7 +17,7 @@
 
 namespace CityDraft::UI {
 
-	MainWindow::MainWindow(const QString& assetsRoot, QWidget* parent):
+	MainWindow::MainWindow(const QString& assetsRoot, QWidget* parent) :
 		QMainWindow(parent),
 		m_AssetsRootDirectory(assetsRoot)
 	{
@@ -38,7 +37,7 @@ namespace CityDraft::UI {
 		m_Logger->info("MainWindow created");
 	}
 
-MainWindow::~MainWindow() = default;
+	MainWindow::~MainWindow() = default;
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
 	{
@@ -56,67 +55,67 @@ MainWindow::~MainWindow() = default;
 	{
 		QWidget* placeholder = m_Ui.renderingWidgetPlaceholder;
 
-    m_RenderingWidget = new Rendering::SkiaWidget(this);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
-    connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
+		m_RenderingWidget = new Rendering::SkiaWidget(this);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsInitialized, this, &MainWindow::OnGraphicsInitialized);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::GraphicsPainting, this, &MainWindow::OnGraphicsPainting);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseMoveEvent, this, &MainWindow::OnRenderingWidgetMouseMoveEvent);
+		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseButtonEvent, this, &MainWindow::OnRenderingWidgetMouseButtonEvent);
 
-    QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
-    int index = layout->indexOf(placeholder);
-    layout->removeWidget(placeholder);
-    delete placeholder;
+		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(placeholder->parentWidget()->layout());
+		int index = layout->indexOf(placeholder);
+		layout->removeWidget(placeholder);
+		delete placeholder;
 
-    layout->insertWidget(index, m_RenderingWidget);
-}
+		layout->insertWidget(index, m_RenderingWidget);
+	}
 
-void MainWindow::ReplacePlaceholdersWithSplitter() {
-    if (!m_ImageSelectionWidget) {
-        m_ImageSelectionWidget = new ImageSelectionWidget(this);
-    }
+	void MainWindow::ReplacePlaceholdersWithSplitter() {
+		if (!m_ImageSelectionWidget) {
+			m_ImageSelectionWidget = new ImageSelectionWidget(this);
+		}
 
-    auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(m_ImageSelectionWidget);
-    splitter->addWidget(m_RenderingWidget);
-    splitter->setStretchFactor(0, 0);
-    splitter->setStretchFactor(1, 1);
-    splitter->setCollapsible(0, false);
-    splitter->setCollapsible(1, false);
-    splitter->setSizes({230, 774});
+		auto* splitter = new QSplitter(Qt::Horizontal, this);
+		splitter->addWidget(m_ImageSelectionWidget);
+		splitter->addWidget(m_RenderingWidget);
+		splitter->setStretchFactor(0, 0);
+		splitter->setStretchFactor(1, 1);
+		splitter->setCollapsible(0, false);
+		splitter->setCollapsible(1, false);
+		splitter->setSizes({ 230, 774 });
 
-    QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
 
-    auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-    if (!layout) {
-        qWarning("Placeholder layout is not a QBoxLayout!");
-        return;
-    }
+		auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+		if (!layout) {
+			qWarning("Placeholder layout is not a QBoxLayout!");
+			return;
+		}
 
-    layout->removeWidget(imagePlaceholder);
-    delete imagePlaceholder;
+		layout->removeWidget(imagePlaceholder);
+		delete imagePlaceholder;
 
-    layout->addWidget(splitter);
-}
+		layout->addWidget(splitter);
+	}
 
 
-void MainWindow::CreateAssetManager(const QString& assetsRoot) {
-    auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
-    std::filesystem::path assetsRootPath(assetsRoot.toStdString());
+	void MainWindow::CreateAssetManager(const QString& assetsRoot) {
+		auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
+		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
 
-    m_AssetManager = std::make_shared<Assets::SkiaAssetManager>(
-        assetsRootPath,
-        assetManagerLogger,
-        m_RenderingWidget->GetDirectContext(),
-        m_RenderingWidget->GetGlFunctions()
-    );
+		m_AssetManager = std::make_shared<Assets::SkiaAssetManager>(
+			assetsRootPath,
+			assetManagerLogger,
+			m_RenderingWidget->GetDirectContext(),
+			m_RenderingWidget->GetGlFunctions()
+		);
 
-    BOOST_ASSERT(m_AssetManager);
-    m_AssetManager->LoadAssetInfos(assetsRootPath, true);
+		BOOST_ASSERT(m_AssetManager);
+		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
 
-    LoadImagesToSelectionWidget();
-}
+		LoadImagesToSelectionWidget();
+	}
 
-    void MainWindow::LoadImagesToSelectionWidget() const
+	void MainWindow::LoadImagesToSelectionWidget() const
 	{
 		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
 
@@ -135,7 +134,7 @@ void MainWindow::CreateAssetManager(const QString& assetsRoot) {
 		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 	}
 
-void MainWindow::CreateStatusBar()
+	void MainWindow::CreateStatusBar()
 	{
 		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		m_ActiveInstrumentsLabel = new QLabel("");
