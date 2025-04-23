@@ -15,7 +15,6 @@
 #include "CityDraft/Assets/AssetManager.h"
 #include "CityDraft/Assets/Image.h"
 #include "CityDraft/Assets/ImageVariantGroup.h"
-#include "CityDraft/UI/FlowLayout.h"
 
 namespace CityDraft::Assets
 {
@@ -39,9 +38,8 @@ namespace CityDraft::UI
 
 		void resizeEvent(QResizeEvent* event) override;
 	signals:
-		void imageSelected(const QString& imagePath);
-		void imageVariantSelected(std::shared_ptr<CityDraft::Assets::Image>);
-		void imageGroupSelected(std::shared_ptr<CityDraft::Assets::ImageVariantGroup> group);
+		void ImageSelected(std::shared_ptr<CityDraft::Assets::Image>);
+		void ImageGroupSelected(std::shared_ptr<CityDraft::Assets::ImageVariantGroup> group);
 
 	private:
 		QGridLayout* m_ScrollableLayout;

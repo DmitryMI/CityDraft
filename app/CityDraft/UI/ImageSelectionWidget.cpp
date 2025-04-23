@@ -23,7 +23,6 @@
 #include "CityDraft/Assets/ImageVariantGroup.h"
 #include "CityDraft/Assets/SkiaImage.h"
 #include "CityDraft/Assets/SkiaImage.h"
-#include "CityDraft/UI/FlowLayout.h"
 #include "CityDraft/UI/VariantImageButton.h"
 #include "CityDraft/UI/VariantImageButton.h"
 #include "ImageSelectionWidget.h"
@@ -86,13 +85,13 @@ namespace CityDraft::UI
 				[this, variantButton](const std::shared_ptr<CityDraft::Assets::Image>& image) {
 					if (image)
 					{
-						emit imageSelected(QString::fromStdString(image->GetUrl().data()));
+						emit ImageSelected(image);
 						variantButton->updatePreviewIcon(image);
 					}
 				});
 
 			connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this, [this, group]() {
-				emit imageGroupSelected(group);
+				emit ImageGroupSelected(group);
 				});
 			
 			m_ImageButtons.push_back(variantButton);
@@ -118,7 +117,7 @@ namespace CityDraft::UI
 			button->setFixedSize(ImageSize + 1, ImageSize + 1);
 			button->setToolTip(QString::fromStdString(image->GetUrl().data()));
 			connect(button, &QPushButton::clicked, this, [this, image]() {
-				emit imageSelected(QString::fromStdString(image->GetUrl().data()));
+				emit ImageSelected(image);
 				});
 
 			m_ImageButtons.push_back(button);
@@ -140,8 +139,8 @@ namespace CityDraft::UI
 			button->setParent(nullptr);
 		}
 		
-		constexpr int buttonSize = ImageSize + 1;
-		int spacePerButton = buttonSize + m_ScrollableLayout->contentsMargins().left() + m_ScrollableLayout->contentsMargins().right();
+		constexpr int buttonSize = ImageSize;
+		int spacePerButton = buttonSize;
 		int rowSize = size().width() / buttonSize;
 		
 		int col = 0;
