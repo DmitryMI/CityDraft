@@ -69,7 +69,8 @@ namespace CityDraft::UI {
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
-	void MainWindow::ReplacePlaceholdersWithSplitter() {
+	void MainWindow::ReplacePlaceholdersWithSplitter()
+	{
 		if (!m_ImageSelectionWidget) {
 			m_ImageSelectionWidget = new ImageSelectionWidget(this);
 		}
@@ -98,7 +99,8 @@ namespace CityDraft::UI {
 	}
 
 
-	void MainWindow::CreateAssetManager(const QString& assetsRoot) {
+	void MainWindow::CreateAssetManager(const QString& assetsRoot)
+	{
 		auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
 		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
 
@@ -339,7 +341,8 @@ namespace CityDraft::UI {
 		DeactivateInstrument(instrument);
 	}
 
-	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const {
+	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const
+	{
 		const QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.x(), projectedPosition.y());
 		m_CursorProjectedPosition->setText(msg);
 	}
