@@ -19,23 +19,28 @@ namespace CityDraft::Assets
 	class Asset;
 }
 
-class ImageSelectionWidget final : public QWidget
+namespace CityDraft::UI
 {
-	Q_OBJECT
 
-public:
-	explicit ImageSelectionWidget(QWidget* parent = nullptr);
+	class ImageSelectionWidget final : public QWidget
+	{
+		Q_OBJECT
 
-	void loadImagesFromAssets(const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& invariantImages, const std::vector<std::shared_ptr<
-							  CityDraft::Assets::ImageVariantGroup>>& variantImageGroups
-	);
+	public:
+		explicit ImageSelectionWidget(QWidget* parent = nullptr);
 
-	void resizeEvent(QResizeEvent* event) override;
+		void loadImagesFromAssets(const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& invariantImages, const std::vector<std::shared_ptr<
+			CityDraft::Assets::ImageVariantGroup>>&variantImageGroups
+		);
+
+		void resizeEvent(QResizeEvent* event) override;
 	signals:
-	void imageSelected(const QString& imagePath);
-	void imageVariantSelected(std::shared_ptr<CityDraft::Assets::Image>);
-	void imageGroupSelected(std::shared_ptr<CityDraft::Assets::ImageVariantGroup> group);
+		void imageSelected(const QString& imagePath);
+		void imageVariantSelected(std::shared_ptr<CityDraft::Assets::Image>);
+		void imageGroupSelected(std::shared_ptr<CityDraft::Assets::ImageVariantGroup> group);
 
-private:
-	FlowLayout* imagesLayout;
-};
+	private:
+		FlowLayout* imagesLayout;
+	};
+
+}

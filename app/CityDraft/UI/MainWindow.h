@@ -47,7 +47,7 @@ namespace CityDraft::UI
 		// Widgets
 		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
-		ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
+		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
