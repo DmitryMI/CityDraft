@@ -55,7 +55,6 @@ namespace CityDraft::UI {
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
-		ReplacePlaceholdersWithSplitter();
 		CreateStatusBar();
 
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
@@ -101,36 +100,6 @@ namespace CityDraft::UI {
 		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
-	void MainWindow::ReplacePlaceholdersWithSplitter()
-	{
-		if (!m_ImageSelectionWidget) {
-			m_ImageSelectionWidget = new ImageSelectionWidget(this);
-		}
-
-		auto* splitter = new QSplitter(Qt::Horizontal, this);
-		splitter->addWidget(m_ImageSelectionWidget);
-		splitter->addWidget(m_RenderingWidget);
-		splitter->setStretchFactor(0, 0);
-		splitter->setStretchFactor(1, 1);
-		splitter->setCollapsible(0, false);
-		splitter->setCollapsible(1, false);
-		splitter->setSizes({ 230, 774 });
-
-		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
-
-		auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-		if (!layout) {
-			qWarning("Placeholder layout is not a QBoxLayout!");
-			return;
-		}
-
-		layout->removeWidget(imagePlaceholder);
-		delete imagePlaceholder;
-
-		layout->addWidget(splitter);
-	}
-
-
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
 		auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
@@ -145,27 +114,6 @@ namespace CityDraft::UI {
 
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
-
-		LoadImagesToSelectionWidget();
-	}
-
-	void MainWindow::LoadImagesToSelectionWidget() const
-	{
-		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
-
-		for (const auto& group : m_AssetManager->GetVariantImages()) {
-			variantImageGroups.push_back(group);
-		}
-
-
-		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
-
-		for (const auto& image : m_AssetManager->GetInvariantImages()) {
-			invariantImages.push_back(image);
-		}
-
-
-		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 	}
 
 	void MainWindow::CreateStatusBar()
@@ -222,6 +170,7 @@ namespace CityDraft::UI {
 	void MainWindow::CreateImageSelectionWidget()
 	{
 		BOOST_ASSERT(!m_ImageSelectionWidget);
+		BOOST_ASSERT(m_AssetManager);
 		m_ImageSelectionWidget = new ImageSelectionWidget(this);
 
 		/*
@@ -544,12 +493,6 @@ namespace CityDraft::UI {
 
 		m_Scene->SaveToFile(filename.toStdString());
 		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
-	}
-
-	void MainWindow::OnCursorProjectedPositionChanged(const QPointF& projectedPosition) const
-	{
-		const QString msg = QString::asprintf("Cursor at: (%.2f, %.2f)", projectedPosition.x(), projectedPosition.y());
-		m_CursorProjectedPosition->setText(msg);
 	}
 
 	void MainWindow::OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget)

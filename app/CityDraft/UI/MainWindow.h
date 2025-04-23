@@ -69,12 +69,10 @@ namespace CityDraft::UI
 		// Undo-Redo
 		QUndoStack* m_UndoStack;
 
+		// Initialization helpers
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
-		// Initialization helpers
-		void ReplacePlaceholdersWithSplitter();
 		void CreateAssetManager(const QString& assetsRoot);
-		void LoadImagesToSelectionWidget() const;
 		void CreateStatusBar();
 		void CreateInstruments();
 		void CreateImageSelectionWidget();
