@@ -61,6 +61,8 @@ namespace CityDraft::UI {
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
 
+		m_Ui.rootSplitter->setSizes({ (int)(m_Ui.rootSplitter->size().width() * 0.20), int(m_Ui.rootSplitter->size().width() * 0.80) });
+
 		m_Logger->info("MainWindow created");
 	}
 
