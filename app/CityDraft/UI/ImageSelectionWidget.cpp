@@ -45,31 +45,36 @@ namespace CityDraft::UI
 
 		const auto scrollArea = new QScrollArea(this);
 
-		const auto container = new QWidget();
-		m_ImagesLayout = new FlowLayout(container, 0, 5, 5);
-		m_ImagesLayout->setSpacing(2);
-		m_ImagesLayout->setContentsMargins(0, 0, 0, 0);
-		m_ImagesLayout->setAlignment(Qt::AlignTop);
-
-		container->setLayout(m_ImagesLayout);
-		container->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+		const auto container = new QWidget(this);
+		m_ScrollableLayout = new QGridLayout();
+		m_ScrollableLayout->setContentsMargins(QMargins(0, 0, 0, 0));
+		m_ScrollableLayout->setSpacing(0);
+		container->setLayout(m_ScrollableLayout);
+		container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
 
 		scrollArea->setWidget(container);
 		scrollArea->setWidgetResizable(true);
 
-		const auto mainLayout = new QVBoxLayout(this);
-		mainLayout->addWidget(scrollArea);
-		mainLayout->setContentsMargins(0, 0, 0, 0);
-		setLayout(mainLayout);
+		setLayout(new QVBoxLayout());
+		layout()->addWidget(scrollArea);
 
 		loadImagesFromAssets();
+		m_ResizeTimer = new QTimer(this);
+		connect(m_ResizeTimer, &QTimer::timeout, this, &ImageSelectionWidget::OnResizeFinished);
+		// UpdateButtonsPlacement();
+	}
+
+	ImageSelectionWidget::~ImageSelectionWidget()
+	{
+		for (auto* button : m_ImageButtons)
+		{
+			delete button;
+		}
+		m_ImageButtons.clear();
 	}
 
 	void ImageSelectionWidget::loadImagesFromAssets()
 	{
-		qDeleteAll(m_ImagesLayout->children());
-
-		
 		// Variant images
 		for (const auto& group : m_AssetManager->GetVariantImages())
 		{
@@ -86,12 +91,11 @@ namespace CityDraft::UI
 					}
 				});
 
-			auto* row = new QHBoxLayout();
-			row->addWidget(variantButton);
 			connect(variantButton, &CityDraft::UI::VariantImageButton::imageGroupSelected, this, [this, group]() {
 				emit imageGroupSelected(group);
 				});
-			m_ImagesLayout->addLayout(row);
+			
+			m_ImageButtons.push_back(variantButton);
 		}
 		
 		// Invariant images
@@ -110,26 +114,54 @@ namespace CityDraft::UI
 
 			auto* button = new QPushButton(this);
 			button->setIcon(QIcon(pixmap));
-			button->setIconSize(QSize(64, 64));
-			button->setFixedSize(65, 65);
+			button->setIconSize(QSize(ImageSize, ImageSize));
+			button->setFixedSize(ImageSize + 1, ImageSize + 1);
 			button->setToolTip(QString::fromStdString(image->GetUrl().data()));
 			connect(button, &QPushButton::clicked, this, [this, image]() {
 				emit imageSelected(QString::fromStdString(image->GetUrl().data()));
 				});
 
-			auto* row = new QHBoxLayout(this);
-			row->addWidget(button);
-			m_ImagesLayout->addLayout(row);
+			m_ImageButtons.push_back(button);
 		}
-
-		m_ImagesLayout->update();
-		m_ImagesLayout->parentWidget()->update();
 	}
 
 	void ImageSelectionWidget::resizeEvent(QResizeEvent* event)
 	{
 		QWidget::resizeEvent(event);
-		(void)m_ImagesLayout->doLayout(rect(), false);
+		
+		m_ResizeTimer->start(200);
+	}
+
+	void ImageSelectionWidget::UpdateButtonsPlacement()
+	{
+		for (auto* button : m_ImageButtons)
+		{
+			m_ScrollableLayout->removeWidget(button);
+			button->setParent(nullptr);
+		}
+		
+		constexpr int buttonSize = ImageSize + 1;
+		int spacePerButton = buttonSize + m_ScrollableLayout->contentsMargins().left() + m_ScrollableLayout->contentsMargins().right();
+		int rowSize = size().width() / buttonSize;
+		
+		int col = 0;
+		int row = 0;
+		for (auto* button : m_ImageButtons)
+		{
+			m_ScrollableLayout->addWidget(button, row, col);
+			col++;
+			if (col >= rowSize - 1)
+			{
+				col = 0;
+				row++;
+			}
+		}
+	}
+
+	void ImageSelectionWidget::OnResizeFinished()
+	{
+		UpdateButtonsPlacement();
+		m_ResizeTimer->stop();
 	}
 
 }
