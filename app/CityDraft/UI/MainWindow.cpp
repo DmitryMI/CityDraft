@@ -42,35 +42,35 @@ MainWindow::MainWindow(QString assetsRoot, QWidget* parent)
 		m_Logger->info("MainWindow created");
 	}
 
-MainWindow::~MainWindow() = default;
+	MainWindow::~MainWindow() = default;
 
 void MainWindow::ReplacePlaceholdersWithSplitter() {
     if (!m_ImageSelectionWidget) {
         m_ImageSelectionWidget = new ImageSelectionWidget(this);
     }
 
-    auto* splitter = new QSplitter(Qt::Horizontal, this);
-    splitter->addWidget(m_ImageSelectionWidget);
-    splitter->addWidget(m_RenderingWidget);
-    splitter->setStretchFactor(0, 0);
-    splitter->setStretchFactor(1, 1);
-    splitter->setCollapsible(0, false);
-    splitter->setCollapsible(1, false);
-    splitter->setSizes({230, 774});
+		auto* splitter = new QSplitter(Qt::Horizontal, this);
+		splitter->addWidget(m_ImageSelectionWidget);
+		splitter->addWidget(m_RenderingWidget);
+		splitter->setStretchFactor(0, 0);
+		splitter->setStretchFactor(1, 1);
+		splitter->setCollapsible(0, false);
+		splitter->setCollapsible(1, false);
+		splitter->setSizes({ 230, 774 });
 
-    QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
 
-    auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-    if (!layout) {
-        qWarning("Placeholder layout is not a QBoxLayout!");
-        return;
-    }
+		auto* layout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+		if (!layout) {
+			qWarning("Placeholder layout is not a QBoxLayout!");
+			return;
+		}
 
-    layout->removeWidget(imagePlaceholder);
-    delete imagePlaceholder;
+		layout->removeWidget(imagePlaceholder);
+		delete imagePlaceholder;
 
-    layout->addWidget(splitter);
-}
+		layout->addWidget(splitter);
+	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
 	{
@@ -103,7 +103,7 @@ void MainWindow::ReplacePlaceholdersWithSplitter() {
 		layout->insertWidget(index, m_RenderingWidget);
 	}
 
-    void MainWindow::LoadImagesToSelectionWidget() const
+	void MainWindow::LoadImagesToSelectionWidget() const
 	{
 		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
 
