@@ -1,12 +1,13 @@
-#include "VariantImageButton.h"
 #include "CityDraft/Assets/ImageVariantGroup.h"
 #include "CityDraft/Assets/SkiaImage.h"
+#include "VariantImageButton.h"
 
+#include <QAction>
 #include <QDebug>
 #include <QIcon>
-#include <QPixmap>
 #include <QMenu>
-#include <QAction>
+#include <QPixmap>
+#include <memory>
 
 namespace CityDraft::UI
 {

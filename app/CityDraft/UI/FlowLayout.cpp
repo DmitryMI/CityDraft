@@ -3,7 +3,7 @@
 //
 
 #include "FlowLayout.h"
-#include "Rendering/ImageSelectionWidget.h"
+#include "ImageSelectionWidget.h"
 
 FlowLayout::FlowLayout(QWidget *parent, const int margin, const int hSpacing, const int vSpacing)
     : QLayout(parent), m_hSpace(hSpacing), m_vSpace(vSpacing)

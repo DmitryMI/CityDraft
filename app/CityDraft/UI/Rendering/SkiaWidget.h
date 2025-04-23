@@ -1,25 +1,33 @@
 #pragma once
 
-
-
-#include "CityDraft/Assets/SkiaImage.h"
-#include "CityDraft/AxisAlignedBoundingBox2D.h"
-#include "CityDraft/Input/IKeyBindingProvider.h"
-#include "CityDraft/Scene.h"
-#include "CityDraft/Vector2D.h"
-#include "include/core/SkSurface.h"
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
-#include "include/gpu/ganesh/GrBackendSurface.h"
-#include "include/gpu/ganesh/GrDirectContext.h"
-#include "IRenderer.h"
-#include <QMouseEvent>
+#include <GL/gl.h>
+#include <include/core/SkCanvas.h>
+#include <include/core/SkRefCnt.h>
+#include <memory>
+#include <qcolor.h>
+#include <qevent.h>
+#include <qopenglext.h>
 #include <qopenglextrafunctions.h>
 #include <qopenglwidget.h>
-#include <QWheelEvent>
-#include <spdlog/spdlog.h>
-#include "SkiaPainters/Painter.h"
+#include <qpoint.h>
+#include <qtmetamacros.h>
 #include <queue>
-#include <QKeyEvent>
+#include <qwidget.h>
+#include <spdlog/logger.h>
+#include <vector>
+#include "CityDraft/Assets/Asset.h"
+#include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/Transform2D.h"
+#include "CityDraft/Vector2D.h"
+#include "IRenderer.h"
+#include "SkiaPainters/Painter.h"
+#include "include/core/SkSurface.h"
+#include "include/gpu/ganesh/GrBackendSurface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -93,10 +101,10 @@ namespace CityDraft::UI::Rendering
 	private:
 
 		// Skia
-		sk_sp<const GrGLInterface> m_GrInterface;
-		sk_sp<GrDirectContext> m_GrContext;
-		sk_sp<SkSurface> m_SkSurface;
-		SkCanvas* m_Canvas;
+		sk_sp<const GrGLInterface> m_GrInterface = nullptr;
+		sk_sp<GrDirectContext> m_GrContext = nullptr;
+		sk_sp<SkSurface> m_SkSurface = nullptr;
+		SkCanvas* m_Canvas = nullptr;
 		GrBackendRenderTarget m_BackendRenderTarget;
 		QOpenGLExtraFunctions m_GlFuncs;
 		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;

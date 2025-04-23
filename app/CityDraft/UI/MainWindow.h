@@ -22,7 +22,7 @@
 #include "CityDraft/Input/Instruments/Instrument.h"
 #include "CityDraft/Scene.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
-#include "CityDraft/UI/Rendering/ImageSelectionWidget.h"
+#include "CityDraft/UI/ImageSelectionWidget.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
 #include "ui_MainWindow.h"
 
@@ -76,7 +76,6 @@ namespace CityDraft::UI
 		void CreateStatusBar();
 		void CreateInstruments();
 		void CreateImageSelectionWidget();
-		void LoadImagesToSelectionWidget() const;
 
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);

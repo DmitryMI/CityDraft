@@ -10,6 +10,7 @@
 #include <QVBoxLayout>
 #include <QSignalMapper>
 
+#include "CityDraft/Assets/AssetManager.h"
 #include "CityDraft/Assets/Image.h"
 #include "CityDraft/Assets/ImageVariantGroup.h"
 #include "CityDraft/UI/FlowLayout.h"
@@ -27,11 +28,9 @@ namespace CityDraft::UI
 		Q_OBJECT
 
 	public:
-		explicit ImageSelectionWidget(QWidget* parent = nullptr);
+		explicit ImageSelectionWidget(CityDraft::Assets::AssetManager* assetManager, QWidget* parent = nullptr);
 
-		void loadImagesFromAssets(const std::vector<std::shared_ptr<CityDraft::Assets::Image>>& invariantImages, const std::vector<std::shared_ptr<
-			CityDraft::Assets::ImageVariantGroup>>&variantImageGroups
-		);
+		void loadImagesFromAssets();
 
 		void resizeEvent(QResizeEvent* event) override;
 	signals:
@@ -40,7 +39,8 @@ namespace CityDraft::UI
 		void imageGroupSelected(std::shared_ptr<CityDraft::Assets::ImageVariantGroup> group);
 
 	private:
-		FlowLayout* imagesLayout;
+		CityDraft::Assets::AssetManager* m_AssetManager;
+		FlowLayout* m_ImagesLayout;
 	};
 
 }

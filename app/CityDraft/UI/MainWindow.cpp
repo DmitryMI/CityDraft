@@ -36,7 +36,7 @@
 #include "CityDraft/UI/Colors/Factory.h"
 #include "CityDraft/Vector2D.h"
 #include "MainWindow.h"
-#include "Rendering/ImageSelectionWidget.h"
+#include "ImageSelectionWidget.h"
 #include "Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI {
@@ -66,7 +66,11 @@ namespace CityDraft::UI {
 
 	MainWindow::~MainWindow()
 	{
-
+		// Must be destroyed BEFORE RenderingWidget to fix bunch of GL Errors in the log.
+		// This is because m_ImageSelectionWidget holds owning shared references to the Assets.
+		// If RenderingWidget is destroyed first, OpenGL context is destroyed before the SkiaImage assets free their GPU textures
+		// This leads to double-freeing of GPU textures by Skia.
+		delete m_ImageSelectionWidget;
 	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
@@ -171,18 +175,7 @@ namespace CityDraft::UI {
 	{
 		BOOST_ASSERT(!m_ImageSelectionWidget);
 		BOOST_ASSERT(m_AssetManager);
-		m_ImageSelectionWidget = new ImageSelectionWidget(this);
-
-		/*
-		auto* splitter = new QSplitter(Qt::Horizontal, this);
-		splitter->addWidget(m_ImageSelectionWidget);
-		splitter->addWidget(m_RenderingWidget);
-		splitter->setStretchFactor(0, 0);
-		splitter->setStretchFactor(1, 1);
-		splitter->setCollapsible(0, false);
-		splitter->setCollapsible(1, false);
-		splitter->setSizes({ 230, 774 });
-		*/
+		m_ImageSelectionWidget = new CityDraft::UI::ImageSelectionWidget(m_AssetManager.get(), this);
 
 		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
 
@@ -193,26 +186,6 @@ namespace CityDraft::UI {
 		delete imagePlaceholder;
 
 		boxLayout->addWidget(m_ImageSelectionWidget);
-
-		LoadImagesToSelectionWidget();
-	}
-
-	void MainWindow::LoadImagesToSelectionWidget() const
-	{
-		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
-
-		for (const auto& group : m_AssetManager->GetVariantImages()) {
-			variantImageGroups.push_back(group);
-		}
-
-
-		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
-
-		for (const auto& image : m_AssetManager->GetInvariantImages()) {
-			invariantImages.push_back(image);
-		}
-
-		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()

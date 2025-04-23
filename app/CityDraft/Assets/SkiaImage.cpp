@@ -9,8 +9,6 @@
 #include <include/gpu/ganesh/SkImageGanesh.h>
 #include <include/gpu/ganesh/gl/GrGLBackendSurface.h>
 #include <include/gpu/ganesh/GrBackendSurface.h>
-#include <include/gpu/ganesh/SkImageGanesh.h>
-#include "CityDraft/Drafts/SkiaImage.h"
 
 namespace CityDraft::Assets
 {
