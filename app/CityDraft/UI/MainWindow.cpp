@@ -1,18 +1,43 @@
-#include "MainWindow.h"
-#include "CityDraft/Assets/AssetManager.h"
-#include <QString>
-#include "CityDraft/Logging/LogManager.h"
+#include <boost/assert.hpp>
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qevent.h>
+#include <qfiledialog.h>
+#include <qkeysequence.h>
+#include <qlabel.h>
+#include <qmainwindow.h>
+#include <qmenu.h>
+#include <qmessagebox.h>
+#include <qstandardpaths.h>
 #include <qstatusbar.h>
+#include <qstring.h>
+#include <qundostack.h>
+#include <qwidget.h>
+#include <set>
+#include <vector>
+#include "CityDraft/Assets/AssetManager.h"
+#include "CityDraft/Assets/Image.h"
+#include "CityDraft/Assets/ImageVariantGroup.h"
+#include "CityDraft/Assets/SkiaAssetManager.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Input/Factory.h"
+#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
+#include "CityDraft/Input/Instruments/Instrument.h"
 #include "CityDraft/Input/Instruments/Panner.h"
 #include "CityDraft/Input/Instruments/Selector.h"
 #include "CityDraft/Input/Utils.h"
-#include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Scene.h"
 #include "CityDraft/UI/Colors/Factory.h"
-#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
-#include <QFileDialog>
-#include <QStandardPaths>
-#include <QMessageBox>
+#include "CityDraft/Vector2D.h"
+#include "MainWindow.h"
+#include "Rendering/ImageSelectionWidget.h"
+#include "Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI
 {
@@ -67,13 +92,13 @@ namespace CityDraft::UI
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseWheelEvent, this, &MainWindow::OnRenderingWidgetMouseWheelEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::KeyboardEvent, this, &MainWindow::OnRenderingWidgetKeyboardEvent);
 
-		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
-		int index = layout->indexOf(m_Ui.renderingWidgetPlaceholder);
-		layout->removeWidget(m_Ui.renderingWidgetPlaceholder);
+		QBoxLayout* boxLayout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
+		int index = boxLayout->indexOf(m_Ui.renderingWidgetPlaceholder);
+		boxLayout->removeWidget(m_Ui.renderingWidgetPlaceholder);
 		delete m_Ui.renderingWidgetPlaceholder;
 		m_Ui.renderingWidgetPlaceholder = nullptr;
 
-		layout->insertWidget(index, m_RenderingWidget);
+		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
@@ -133,6 +158,53 @@ namespace CityDraft::UI
 
 		ActivateInstrument<CityDraft::Input::Instruments::Selector>();
 		ActivateInstrument<CityDraft::Input::Instruments::Panner>();
+	}
+
+	void MainWindow::CreateImageSelectionWidget()
+	{
+		BOOST_ASSERT(!m_ImageSelectionWidget);
+		m_ImageSelectionWidget = new ImageSelectionWidget(this);
+
+		/*
+		auto* splitter = new QSplitter(Qt::Horizontal, this);
+		splitter->addWidget(m_ImageSelectionWidget);
+		splitter->addWidget(m_RenderingWidget);
+		splitter->setStretchFactor(0, 0);
+		splitter->setStretchFactor(1, 1);
+		splitter->setCollapsible(0, false);
+		splitter->setCollapsible(1, false);
+		splitter->setSizes({ 230, 774 });
+		*/
+
+		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+
+		auto* boxLayout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+		BOOST_ASSERT(boxLayout);
+
+		boxLayout->removeWidget(imagePlaceholder);
+		delete imagePlaceholder;
+
+		boxLayout->addWidget(m_ImageSelectionWidget);
+
+		LoadImagesToSelectionWidget();
+	}
+
+	void MainWindow::LoadImagesToSelectionWidget() const
+	{
+		std::vector<std::shared_ptr<Assets::ImageVariantGroup>> variantImageGroups;
+
+		for (const auto& group : m_AssetManager->GetVariantImages()) {
+			variantImageGroups.push_back(group);
+		}
+
+
+		std::vector<std::shared_ptr<Assets::Image>> invariantImages;
+
+		for (const auto& image : m_AssetManager->GetInvariantImages()) {
+			invariantImages.push_back(image);
+		}
+
+		m_ImageSelectionWidget->loadImagesFromAssets(invariantImages, variantImageGroups);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -420,6 +492,7 @@ namespace CityDraft::UI
 		BOOST_ASSERT(widget == m_RenderingWidget);
 
 		CreateAssetManager(m_AssetsRootDirectory);
+		CreateImageSelectionWidget();
 
 		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
 		if (!m_ScenePath.isEmpty())

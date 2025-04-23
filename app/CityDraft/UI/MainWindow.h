@@ -1,30 +1,33 @@
 #pragma once
 
-#include "CityDraft/Assets/SkiaAssetManager.h"
-#include "CityDraft/Input/Factory.h"
-#include "CityDraft/Scene.h"
-#include "Rendering/SkiaWidget.h"
-#include "spdlog/spdlog.h"
-#include "ui_MainWindow.h"
-#include <boost/signals2.hpp>
-#include <list>
+#include <boost/assert.hpp>
+#include <memory>
+#include <qevent.h>
 #include <qlabel.h>
-#include <QtWidgets/QMainWindow>
-#include "CityDraft/Input/Instruments/Instrument.h"
-#include "CityDraft/Input/Instruments/Selector.h"
-#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include <qmainwindow.h>
+#include <qmenu.h>
+#include <qstring.h>
+#include <qtmetamacros.h>
+#include <qundostack.h>
+#include <qwidget.h>
 #include <set>
+#include <set>
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
-#include <QUndoStack>
-#include <QMenu>
-#include "CityDraft/UI/Colors/IColorsProvider.h"
+#include <vector>
+#include "CityDraft/Assets/SkiaAssetManager.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Input/IKeyBindingProvider.h"
 #include "CityDraft/Input/ISelectionManager.h"
-#include <set>
+#include "CityDraft/Input/Instruments/Instrument.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/UI/Colors/IColorsProvider.h"
+#include "CityDraft/UI/Rendering/ImageSelectionWidget.h"
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
+#include "ui_MainWindow.h"
 
 namespace CityDraft::UI
 {
-
-
 	class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
 	{
 		Q_OBJECT
@@ -44,6 +47,7 @@ namespace CityDraft::UI
 		// Widgets
 		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
+		ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -70,6 +74,8 @@ namespace CityDraft::UI
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 		void CreateInstruments();
+		void CreateImageSelectionWidget();
+		void LoadImagesToSelectionWidget() const;
 
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);
