@@ -1,23 +1,47 @@
-#include "MainWindow.h"
-#include "CityDraft/Assets/AssetManager.h"
-#include <QString>
-#include "CityDraft/Logging/LogManager.h"
+#include <boost/assert.hpp>
+#include <filesystem>
+#include <map>
+#include <memory>
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qevent.h>
+#include <qfiledialog.h>
+#include <qkeysequence.h>
+#include <qlabel.h>
+#include <qmainwindow.h>
+#include <qmenu.h>
+#include <qmessagebox.h>
+#include <qstandardpaths.h>
 #include <qstatusbar.h>
+#include <qstring.h>
+#include <qundostack.h>
+#include <qwidget.h>
+#include <set>
+#include <vector>
+#include "CityDraft/Assets/AssetManager.h"
+#include "CityDraft/Assets/Image.h"
+#include "CityDraft/Assets/ImageVariantGroup.h"
+#include "CityDraft/Assets/SkiaAssetManager.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Input/Factory.h"
+#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
+#include "CityDraft/Input/Instruments/Instrument.h"
 #include "CityDraft/Input/Instruments/Panner.h"
 #include "CityDraft/Input/Instruments/Selector.h"
 #include "CityDraft/Input/Utils.h"
-#include <algorithm>
 #include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Scene.h"
 #include "CityDraft/UI/Colors/Factory.h"
-#include "CityDraft/Input/Instruments/ImageDraftEditor.h"
-#include <QFileDialog>
-#include <QStandardPaths>
-#include <QMessageBox>
+#include "CityDraft/Vector2D.h"
+#include "MainWindow.h"
+#include "ImageSelectionWidget.h"
+#include "Rendering/SkiaWidget.h"
 
-namespace CityDraft::UI
-{
+namespace CityDraft::UI {
 
-	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent):
+	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent) :
 		QMainWindow(parent),
 		m_AssetsRootDirectory(assetsRoot),
 		m_ScenePath(scenePath)
@@ -26,7 +50,7 @@ namespace CityDraft::UI
 
 		m_Logger = CityDraft::Logging::LogManager::CreateLogger("MainWindow");
 		CreateUndoRedoStack(m_Ui.menuEdit);
-		
+
 		m_KeyBindingProvider = CityDraft::Input::Factory::CreateKeyBindingProvider();
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
@@ -42,7 +66,11 @@ namespace CityDraft::UI
 
 	MainWindow::~MainWindow()
 	{
-		
+		// Must be destroyed BEFORE RenderingWidget to fix bunch of GL Errors in the log.
+		// This is because m_ImageSelectionWidget holds owning shared references to the Assets.
+		// If RenderingWidget is destroyed first, OpenGL context is destroyed before the SkiaImage assets free their GPU textures
+		// This leads to double-freeing of GPU textures by Skia.
+		delete m_ImageSelectionWidget;
 	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
@@ -67,26 +95,34 @@ namespace CityDraft::UI
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseWheelEvent, this, &MainWindow::OnRenderingWidgetMouseWheelEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::KeyboardEvent, this, &MainWindow::OnRenderingWidgetKeyboardEvent);
 
-		QBoxLayout* layout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
-		int index = layout->indexOf(m_Ui.renderingWidgetPlaceholder);
-		layout->removeWidget(m_Ui.renderingWidgetPlaceholder);
+		QBoxLayout* boxLayout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
+		int index = boxLayout->indexOf(m_Ui.renderingWidgetPlaceholder);
+		boxLayout->removeWidget(m_Ui.renderingWidgetPlaceholder);
 		delete m_Ui.renderingWidgetPlaceholder;
 		m_Ui.renderingWidgetPlaceholder = nullptr;
 
-		layout->insertWidget(index, m_RenderingWidget);
+		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
 	{
-		auto assetManagerLogger = CityDraft::Logging::LogManager::CreateLogger("Assets");
+		auto assetManagerLogger = Logging::LogManager::CreateLogger("Assets");
 		std::filesystem::path assetsRootPath(assetsRoot.toStdString());
-		m_AssetManager = std::make_shared<CityDraft::Assets::SkiaAssetManager>(assetsRootPath, assetManagerLogger, m_RenderingWidget->GetDirectContext(), m_RenderingWidget->GetGlFunctions());
+
+		m_AssetManager = std::make_shared<Assets::SkiaAssetManager>(
+			assetsRootPath,
+			assetManagerLogger,
+			m_RenderingWidget->GetDirectContext(),
+			m_RenderingWidget->GetGlFunctions()
+		);
+
 		BOOST_ASSERT(m_AssetManager);
 		m_AssetManager->LoadAssetInfos(assetsRootPath, true);
 	}
 
 	void MainWindow::CreateStatusBar()
 	{
+		m_CursorProjectedPosition = new QLabel("Cursor at: N/A");
 		m_ActiveInstrumentsLabel = new QLabel("");
 		m_ActiveInstrumentsLabel->setMinimumWidth(500);
 		statusBar()->addPermanentWidget(m_ActiveInstrumentsLabel);
@@ -135,6 +171,23 @@ namespace CityDraft::UI
 		ActivateInstrument<CityDraft::Input::Instruments::Panner>();
 	}
 
+	void MainWindow::CreateImageSelectionWidget()
+	{
+		BOOST_ASSERT(!m_ImageSelectionWidget);
+		BOOST_ASSERT(m_AssetManager);
+		m_ImageSelectionWidget = new CityDraft::UI::ImageSelectionWidget(m_AssetManager.get(), this);
+
+		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+
+		auto* boxLayout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
+		BOOST_ASSERT(boxLayout);
+
+		boxLayout->removeWidget(imagePlaceholder);
+		delete imagePlaceholder;
+
+		boxLayout->addWidget(m_ImageSelectionWidget);
+	}
+
 	void MainWindow::UpdateActiveInstrumentsLabel()
 	{
 		std::map<CityDraft::Input::Instruments::ToolDescryptor, QString> toolDescriptions;
@@ -151,7 +204,7 @@ namespace CityDraft::UI
 		}
 
 		QStringList toolsMessages;
-		for (const auto[descryptor, description] : toolDescriptions)
+		for (const auto [descryptor, description] : toolDescriptions)
 		{
 			QStringList keysList;
 
@@ -171,7 +224,7 @@ namespace CityDraft::UI
 			{
 				keysList.push_back(QString::fromStdString(CityDraft::Input::Utils::ToString(descryptor.Key.value())));
 			}
-						
+
 			toolsMessages.push_back("[" + keysList.join(" + ") + ": " + description + "]");
 		}
 		m_ActiveInstrumentsLabel->setText(toolsMessages.join(", "));
@@ -420,6 +473,7 @@ namespace CityDraft::UI
 		BOOST_ASSERT(widget == m_RenderingWidget);
 
 		CreateAssetManager(m_AssetsRootDirectory);
+		CreateImageSelectionWidget();
 
 		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
 		if (!m_ScenePath.isEmpty())

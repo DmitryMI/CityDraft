@@ -33,6 +33,8 @@ namespace CityDraft::Assets
 		Asset(const std::filesystem::path& localFilePath, AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger);
 		Asset(const boost::url& url, AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger);
 
+		virtual ~Asset();
+
 		/// <summary>
 		/// Creates a Draft based on this Asset
 		/// </summary>

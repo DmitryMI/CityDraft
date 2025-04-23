@@ -1,49 +1,53 @@
 #pragma once
 
-#include "CityDraft/Assets/SkiaAssetManager.h"
-#include "CityDraft/Input/Factory.h"
-#include "CityDraft/Scene.h"
-#include "Rendering/SkiaWidget.h"
-#include "spdlog/spdlog.h"
-#include "ui_MainWindow.h"
-#include <boost/signals2.hpp>
-#include <list>
+#include <boost/assert.hpp>
+#include <memory>
+#include <qevent.h>
 #include <qlabel.h>
-#include <QtWidgets/QMainWindow>
-#include "CityDraft/Input/Instruments/Instrument.h"
-#include "CityDraft/Input/Instruments/Selector.h"
-#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include <qmainwindow.h>
+#include <qmenu.h>
+#include <qstring.h>
+#include <qtmetamacros.h>
+#include <qundostack.h>
+#include <qwidget.h>
 #include <set>
+#include <set>
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
-#include <QUndoStack>
-#include <QMenu>
-#include "CityDraft/UI/Colors/IColorsProvider.h"
+#include <vector>
+#include "CityDraft/Assets/SkiaAssetManager.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Input/IKeyBindingProvider.h"
 #include "CityDraft/Input/ISelectionManager.h"
-#include <set>
+#include "CityDraft/Input/Instruments/Instrument.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/UI/Colors/IColorsProvider.h"
+#include "CityDraft/UI/ImageSelectionWidget.h"
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
+#include "ui_MainWindow.h"
 
 namespace CityDraft::UI
 {
-	
+	class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
+	{
+		Q_OBJECT
 
-    class MainWindow : public QMainWindow, public CityDraft::Input::ISelectionManager
-    {
-        Q_OBJECT
-
-    public:
-        MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent = nullptr);
-        virtual ~MainWindow();
+	public:
+		MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent = nullptr);
+		virtual ~MainWindow();
 
 		// ISelectionManager
 		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
 		void ClearSelectedDrafts() override;
 		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
 
-    private:
+	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
 
 		// Widgets
-        Ui::MainWindow m_Ui;
+		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
+		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -65,11 +69,13 @@ namespace CityDraft::UI
 		// Undo-Redo
 		QUndoStack* m_UndoStack;
 
+		// Initialization helpers
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
 		void CreateStatusBar();
 		void CreateInstruments();
+		void CreateImageSelectionWidget();
 
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);
@@ -104,7 +110,7 @@ namespace CityDraft::UI
 			BOOST_ASSERT(instrument);
 			from.erase(iter);
 			to.insert(instrument);
-			
+
 			UpdateActiveInstrumentsLabel();
 			return instrument;
 		}
@@ -129,7 +135,7 @@ namespace CityDraft::UI
 
 		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
-	
+
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
 		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);

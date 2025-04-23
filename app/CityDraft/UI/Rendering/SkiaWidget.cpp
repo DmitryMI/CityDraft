@@ -1,15 +1,46 @@
-#include "SkiaWidget.h"
-#include "include/core/SkCanvas.h"
-#include "include/gpu/ganesh/gl/GrGLBackendSurface.h"
-#include "include/gpu/ganesh/gl/GrGLDirectContext.h"
-#include "include/gpu/ganesh/SkSurfaceGanesh.h"
-#include "include/core/SkColorSpace.h"
-#include "CityDraft/Logging/LogManager.h"
+#include <boost/assert.hpp>
+#include <include/core/SkCanvas.h>
+#include <include/core/SkColor.h>
+#include <include/core/SkColorSpace.h>
+#include <include/core/SkColorType.h>
+#include <include/core/SkRefCnt.h>
+#include <include/gpu/ganesh/GrDirectContext.h>
+#include <include/gpu/ganesh/GrTypes.h>
+#include <include/gpu/ganesh/SkSurfaceGanesh.h>
+#include <include/gpu/ganesh/gl/GrGLBackendSurface.h>
+#include <include/gpu/ganesh/gl/GrGLDirectContext.h>
+#include <include/gpu/ganesh/gl/GrGLInterface.h>
+#include <include/gpu/ganesh/gl/GrGLTypes.h>
+#include <memory>
+#include <qcolor.h>
+#include <qevent.h>
+#include <qopenglcontext.h>
+#include <qopenglext.h>
+#include <qopenglextrafunctions.h>
+#include <qopenglwidget.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <set>
+#include <string>
+#include <utility>
+#include "CityDraft/Assets/Asset.h"
 #include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Drafts/Draft.h"
+#include "CityDraft/Logging/LogManager.h"
+#include "CityDraft/Scene.h"
+#include "CityDraft/Transform2D.h"
+#include "CityDraft/Vector2D.h"
 #include "OpenGlUtils.h"
-#include "SkiaPainters/Image.h"
-#include "SkiaPainters/Rect.h"
 #include "SkiaPainters/Circle.h"
+#include "SkiaPainters/Image.h"
+#include "SkiaPainters/Painter.h"
+#include "SkiaPainters/Rect.h"
+#include "SkiaWidget.h"
+
+// Must be included the latest, or else does not compile
+#include <GL/gl.h>
 
 namespace CityDraft::UI::Rendering
 {

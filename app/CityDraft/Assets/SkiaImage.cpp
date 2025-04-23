@@ -9,8 +9,6 @@
 #include <include/gpu/ganesh/SkImageGanesh.h>
 #include <include/gpu/ganesh/gl/GrGLBackendSurface.h>
 #include <include/gpu/ganesh/GrBackendSurface.h>
-#include <include/gpu/ganesh/SkImageGanesh.h>
-#include "CityDraft/Drafts/SkiaImage.h"
 
 namespace CityDraft::Assets
 {
@@ -52,6 +50,11 @@ namespace CityDraft::Assets
 	sk_sp<SkImage> SkiaImage::GetGpuImage() const
 	{
 		return m_GpuImage;
+	}
+
+	const QPixmap& SkiaImage::GetPixmap() const
+	{
+		return m_QtImage;
 	}
 
 	Vector2D SkiaImage::GetImageSize() const

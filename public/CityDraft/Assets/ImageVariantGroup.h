@@ -6,21 +6,21 @@
 
 namespace CityDraft::Assets
 {
-	class ImageVariantGroup
+	class ImageVariantGroup final
 	{
 	public:
-		inline ImageVariantGroup(std::list<std::shared_ptr<Image>> images):
+		explicit ImageVariantGroup(const std::list<std::shared_ptr<Image>>& images):
 			m_Images(images)
 		{
 			
 		}
 
-		virtual inline const std::list<std::shared_ptr<Image>>& GetImageVariants() const
+		const std::list<std::shared_ptr<Image>>& GetImageVariants() const
 		{
 			return m_Images;
 		}
 
-		virtual std::shared_ptr<Image> GetDefaultImage() const
+		std::shared_ptr<Image> GetDefaultImage() const
 		{
 			return *(m_Images.begin());
 		}
