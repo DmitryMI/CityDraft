@@ -50,6 +50,7 @@ void LayerItem::onToggleVisibility()
 
 void LayerItem::updateIcon() const
 {
+    // TODO: Add icons to resources
     QIcon icon = m_visible ? QIcon(":/icons/eye.png") : QIcon(":/icons/eye-off.png");
     m_eyeButton->setIcon(icon);
 }
