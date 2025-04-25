@@ -10,6 +10,7 @@
 #include "CityDraft/Serialization/IArchive.h"
 #include "CityDraft/Serialization/ISerializable.h"
 #include <cstdint>
+#include "IRenderProxy.h"
 
 namespace CityDraft
 {
@@ -90,11 +91,21 @@ namespace CityDraft::Drafts
 			return m_Scene;
 		}
 
+		int64_t GetZOrder() const;
+
+		inline std::shared_ptr<IRenderProxy> GetRenderProxy() const
+		{
+			return m_RenderProxy;
+		}
+
+		inline void SetRenderProxy(std::shared_ptr<IRenderProxy> renderProxy)
+		{
+			m_RenderProxy = renderProxy;
+		}
+
 		// ISerializable
 		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
-
-		int64_t GetZOrder() const;
 
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
@@ -107,6 +118,8 @@ namespace CityDraft::Drafts
 		std::string m_Name{};
 		Transform2D m_Transform{};
 		int64_t m_ZOrder = 0;
+
+		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
 
 		friend class CityDraft::Scene;
 	};
