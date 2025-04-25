@@ -67,7 +67,6 @@ namespace CityDraft::UI::Rendering
 		Vector2D Project(const QPointF& pixelCoord) const override;
 		QPointF Deproject(const Vector2D& pixelCoord) const override;
 
-
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
 		void GraphicsPainting(SkiaWidget* source);
@@ -93,8 +92,9 @@ namespace CityDraft::UI::Rendering
 
 		// Drawing
 		void PaintScene();
-		void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
 		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
+		std::shared_ptr<SkiaPainters::Painter> CreatePainter(CityDraft::Assets::Asset* asset, const Transform2D& transform);
+
 
 		// Utility
 		Vector2D GetViewportProjectedSize() const;

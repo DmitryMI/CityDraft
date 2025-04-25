@@ -13,6 +13,11 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 	void Image::Paint(SkCanvas* canvas)
 	{
+		if(m_Owner)
+		{
+			m_Transform = m_Owner->GetTransform();
+		}
+
 		canvas->save();
 		canvas->translate(m_Transform.Translation.GetX(), m_Transform.Translation.GetY());
 		canvas->scale(m_Transform.Scale.GetX(), m_Transform.Scale.GetY());

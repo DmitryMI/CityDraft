@@ -335,14 +335,16 @@ namespace CityDraft::UI::Rendering
 
 		for (const auto& draft : orderedVisibleDrafts)
 		{
-			Paint(draft.Draft->GetAsset(), draft.Draft->GetTransform());
+			auto renderProxy = draft.second->GetRenderProxy();
+			auto painter = std::dynamic_pointer_cast<SkiaPainters::Painter>(renderProxy);
+			if(!painter)
+			{
+				painter = CreatePainter(draft.second->GetAsset(),draft.second->GetTransform());
+				painter->SetOwner(draft.second);
+				draft.second->SetRenderProxy(painter);
+			}
+			PaintOrQueue(painter);
 		}
-	}
-
-	void SkiaWidget::Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform)
-	{
-		auto painter = std::make_shared<SkiaPainters::Image>(image, transform);
-		PaintOrQueue(painter);
 	}
 
 	void SkiaWidget::PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter)
@@ -355,6 +357,17 @@ namespace CityDraft::UI::Rendering
 		{
 			m_QueuedPainters.push(painter);
 		}
+	}
+
+	std::shared_ptr<SkiaPainters::Painter> SkiaWidget::CreatePainter(CityDraft::Assets::Asset* asset,const Transform2D& transform)
+	{
+		if(CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
+		{
+			return std::make_shared<SkiaPainters::Image>(imageAsset, transform);
+		}
+
+		BOOST_ASSERT(false);
+		return nullptr;
 	}
 
 	Vector2D SkiaWidget::GetViewportProjectedSize() const
