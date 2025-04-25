@@ -119,7 +119,7 @@ namespace CityDraft::Curves
 			{
 				double t = static_cast<double>(i) / samples;
 				CityDraft::Vector2D pt = GetPoint(t);
-				double distSq = (pt - target).LengthSquared();
+				double distSq = (pt - target).GetSizeSquared();
 
 				if(distSq < bestDistSquared)
 				{
