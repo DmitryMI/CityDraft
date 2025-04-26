@@ -54,6 +54,7 @@ namespace CityDraft::Drafts
 
 	AxisAlignedBoundingBox2D Curve::GetAxisAlignedBoundingBox() const
 	{
+		AxisAlignedBoundingBox2D boxDefault{{-50, -50}, {50, 50}};
 		return AxisAlignedBoundingBox2D(Vector2D{}, Vector2D{});
 	}
 
