@@ -177,5 +177,14 @@ namespace CityDraft
 			double y = (1 - t) * a.GetY() + t * b.GetY();
 			return {x, y};
 		}
+
+		Vector2D& ComponentMultiply(const Vector2D& other)
+		{
+			double x = GetX() * other.GetX();
+			double y = GetY() * other.GetY();
+			SetX(x);
+			SetY(y);
+			return *this;
+		}
 	};
 }
