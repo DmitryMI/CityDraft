@@ -47,9 +47,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		BOOST_ASSERT(m_FillWidth);
 		BOOST_ASSERT(m_OutlineWidth);
 
-		for(size_t i = 0; i <= 10; i++)
+		for(size_t i = 0; i <= 100; i++)
 		{
-			double t = i / 10.0;
+			double t = i / 100.0;
 			Vector2D point = m_Curve->GetPoint(t);
 
 			SkColor skColor = SkColorSetARGB(
@@ -59,14 +59,12 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 				m_FillColor.Blue<uint8_t>()
 			);
 
-			auto matrix = canvas->getLocalToDeviceAs3x3();
-
 			SkPaint paint;
 			paint.setAntiAlias(true);
 			paint.setColor(skColor);
 			paint.setStyle(SkPaint::kFill_Style);
 
-			canvas->drawCircle(point.GetX(), point.GetY(), 10, paint);
+			canvas->drawCircle(point.GetX(), point.GetY(), m_FillWidth->GetWidth(m_Curve->GetLength(t)), paint);
 		}
 	}
 

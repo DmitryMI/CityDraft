@@ -11,8 +11,8 @@ namespace CityDraft::Assets
 	SkiaColorCurve::SkiaColorCurve(AssetManager* assetManager, std::shared_ptr<spdlog::logger> logger):
 		ColorCurve(assetManager, logger)
 	{
-		m_LineSegments.push_back(std::make_shared<CityDraft::Curves::LineSegment>(Vector2D{-100, -100}, Vector2D{100, 100}));
-		m_LineSegments.push_back(std::make_shared<CityDraft::Curves::LineSegment>(Vector2D{-100, 100}, Vector2D{100, -100}));
+		m_LineSegments.push_back(std::make_shared<CityDraft::Curves::LineSegment>(Vector2D{-1000, -1000}, Vector2D{1000, 1000}));
+		m_LineSegments.push_back(std::make_shared<CityDraft::Curves::LineSegment>(Vector2D{-1000, 1000}, Vector2D{1000, -1000}));
 	}
 
 	std::shared_ptr<Drafts::Draft> CityDraft::Assets::SkiaColorCurve::CreateDraft()
