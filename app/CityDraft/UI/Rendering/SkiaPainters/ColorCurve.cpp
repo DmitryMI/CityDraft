@@ -10,17 +10,23 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::IWidthProvider* fillWidth,
 		CityDraft::Curves::IWidthProvider* outlineWidth,
 		const LinearColorF& fillColor,
-		const LinearColorF& outlineColor,
-		const CityDraft::Transform2D& transform
+		const LinearColorF& outlineColor
 	):
 		m_Curve(curve),
 		m_FillWidth(fillWidth),
 		m_OutlineWidth(outlineWidth),
 		m_FillColor(fillColor),
 		m_OutlineColor(outlineColor),
-		Asset(transform)
+		Asset(Transform2D{})
 	{
 
+	}
+
+	ColorCurve::ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft):
+		Asset(Transform2D{})
+	{
+		BOOST_ASSERT(draft);
+		SetOwner(draft);
 	}
 
 	void ColorCurve::Paint(SkCanvas* canvas)
@@ -41,9 +47,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		BOOST_ASSERT(m_FillWidth);
 		BOOST_ASSERT(m_OutlineWidth);
 
-		for(size_t i = 0; i < 10; i++)
+		for(size_t i = 0; i <= 10; i++)
 		{
-			/*
 			double t = i / 10.0;
 			Vector2D point = m_Curve->GetPoint(t);
 
@@ -59,11 +64,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			SkPaint paint;
 			paint.setAntiAlias(true);
 			paint.setColor(skColor);
-			paint.setStyle(SkPaint::kStroke_Style);
-			paint.setStrokeWidth(m_Thickness);
+			paint.setStyle(SkPaint::kFill_Style);
 
-			canvas->drawCircle(m_Center.GetX(), m_Center.GetY(), m_Radius, paint);
-			*/
+			canvas->drawCircle(point.GetX(), point.GetY(), 10, paint);
 		}
 	}
 

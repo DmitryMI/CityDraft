@@ -36,7 +36,10 @@
 #include "SkiaPainters/Image.h"
 #include "SkiaPainters/Painter.h"
 #include "SkiaPainters/Rect.h"
+#include "SkiaPainters/ColorCurve.h"
 #include "SkiaWidget.h"
+#include "CityDraft/Assets/SkiaColorCurve.h"
+#include "CityDraft/Drafts/SkiaImage.h"
 
 // Must be included the latest, or else does not compile
 #include <GL/gl.h>
@@ -338,7 +341,7 @@ namespace CityDraft::UI::Rendering
 			auto painter = std::dynamic_pointer_cast<SkiaPainters::Painter>(renderProxy);
 			if(!painter)
 			{
-				painter = CreatePainter(draft.second->GetAsset(),draft.second->GetTransform());
+				painter = CreatePainter(draft.second,draft.second->GetTransform());
 				painter->SetOwner(draft.second);
 				draft.second->SetRenderProxy(painter);
 			}
@@ -358,11 +361,15 @@ namespace CityDraft::UI::Rendering
 		}
 	}
 
-	std::shared_ptr<SkiaPainters::Painter> SkiaWidget::CreatePainter(CityDraft::Assets::Asset* asset,const Transform2D& transform)
+	std::shared_ptr<SkiaPainters::Painter> SkiaWidget::CreatePainter(CityDraft::Drafts::Draft* draft, const Transform2D& transform)
 	{
-		if(CityDraft::Assets::SkiaImage* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(asset))
+		if(auto* imageAsset = dynamic_cast<CityDraft::Assets::SkiaImage*>(draft->GetAsset()))
 		{
 			return std::make_shared<SkiaPainters::Image>(imageAsset, transform);
+		}
+		else if(auto* colorCurve = dynamic_cast<CityDraft::Drafts::SkiaColorCurve*>(draft))
+		{
+			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve);
 		}
 
 		BOOST_ASSERT(false);

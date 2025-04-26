@@ -14,7 +14,7 @@ namespace CityDraft::Drafts
 
 	std::shared_ptr<CityDraft::Curves::IWidthProvider> Curve::GetFillWidth() const
 	{
-		return std::shared_ptr<CityDraft::Curves::IWidthProvider>();
+		return m_FillWidth;
 	}
 
 	void Curve::SetFillWidth(std::shared_ptr<CityDraft::Curves::IWidthProvider> width)

@@ -2,6 +2,7 @@
 #include <fstream>
 #include <boost/throw_exception.hpp>
 #include <boost/assert.hpp>
+#include "CityDraft/Assets/ColorCurve.h"
 
 namespace CityDraft::Assets
 {
@@ -17,6 +18,11 @@ namespace CityDraft::Assets
 
 	std::shared_ptr<Asset> AssetManager::GetByUrl(const boost::url& url)
 	{
+		if(m_ColorCurve->GetUrl() == url)
+		{
+			return m_ColorCurve;
+		}
+
 		for (const auto& variantImage : m_VariantImages)
 		{
 			for (const auto& variant : variantImage->GetImageVariants())
@@ -78,6 +84,8 @@ namespace CityDraft::Assets
 		}
 
 		loadedNum += LoadImageInfos(imagesDirAbsolute);
+		
+		m_ColorCurve = CreateColorCurve();
 
 		m_Logger->info("Found {} assets in {}", loadedNum, assetsDirAbsolute.string());
 		return loadedNum;
@@ -152,6 +160,16 @@ namespace CityDraft::Assets
 	const std::list<std::shared_ptr<Image>>& AssetManager::GetInvariantImages() const
 	{
 		return m_InvariantImages;
+	}
+
+	const std::list<std::shared_ptr<Curve>>& AssetManager::GetCurves() const
+	{
+		return m_Curves;
+	}
+
+	std::shared_ptr<ColorCurve> AssetManager::GetColorCurve() const
+	{
+		return m_ColorCurve;
 	}
 
 	FileSystemError AssetManager::ReadFileBytes(const std::filesystem::path& filePath, std::vector<uint8_t>& outBytes)
