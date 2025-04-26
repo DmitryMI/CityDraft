@@ -36,6 +36,7 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
+	"CityDraft/UI/Rendering/SkiaPainters/ColorCurve.cpp"
 	"CityDraft/UI/VariantImageButton.cpp"
 )
 

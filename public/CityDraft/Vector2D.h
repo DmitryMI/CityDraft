@@ -170,5 +170,12 @@ namespace CityDraft
 			SetY(y);
 			return *this;
 		}
+
+		constexpr static Vector2D Lerp(const Vector2D& a, const Vector2D& b, double t)
+		{
+			double x = (1 - t) * a.GetX() + t * b.GetX();
+			double y = (1 - t) * a.GetY() + t * b.GetY();
+			return {x, y};
+		}
 	};
 }
