@@ -33,9 +33,24 @@ namespace CityDraft
 			return Data.min_corner();
 		}
 
+		void SetMin(const Vector2D& min)
+		{
+			Data = UnderlyingType(min, GetMax());
+		}
+
 		constexpr Vector2D GetMax() const
 		{
 			return Data.max_corner();
+		}
+
+		void SetMax(const Vector2D& max)
+		{
+			Data = UnderlyingType(GetMin(), max);
+		}
+
+		void SetMinMax(const Vector2D& min, const Vector2D& max)
+		{
+			Data = UnderlyingType(min, max);
 		}
 
 		constexpr Vector2D GetSize() const
@@ -71,14 +86,14 @@ namespace CityDraft
 			radius = 0.5f * sqrt(GetSize().GetX() * GetSize().GetX() + GetSize().GetY() * GetSize().GetY());
 		}
 
-		static AxisAlignedBoundingBox2D Transform(const AxisAlignedBoundingBox2D& box, const Transform2D& transform)
+		AxisAlignedBoundingBox2D& Transform(const Transform2D& transform)
 		{
 			std::array<Vector2D, 4> corners =
 			{
-				Vector2D{box.GetMin().GetX(), box.GetMin().GetY()},
-				Vector2D{box.GetMax().GetX(), box.GetMin().GetY()},
-				Vector2D{box.GetMax().GetX(), box.GetMax().GetY()},
-				Vector2D{box.GetMin().GetX(), box.GetMax().GetY()}
+				Vector2D{GetMin().GetX(), GetMin().GetY()},
+				Vector2D{GetMax().GetX(), GetMin().GetY()},
+				Vector2D{GetMax().GetX(), GetMax().GetY()},
+				Vector2D{GetMin().GetX(), GetMax().GetY()}
 			};
 
 			double cosA = std::cos(transform.Rotation);
@@ -89,7 +104,7 @@ namespace CityDraft
 
 			for(const Vector2D& corner : corners)
 			{
-				Vector2D scaledCorner = (corner - box.GetCenter()).ComponentMultiply(transform.Scale) + box.GetCenter();
+				Vector2D scaledCorner = (corner - GetCenter()).ComponentMultiply(transform.Scale) + GetCenter();
 
 				double rotatedX = scaledCorner.GetX() * cosA - scaledCorner.GetY() * sinA;
 				double rotatedY = scaledCorner.GetX() * sinA + scaledCorner.GetY() * cosA;
@@ -107,7 +122,14 @@ namespace CityDraft
 				};
 			}
 
-			return AxisAlignedBoundingBox2D(min, max);
+			SetMinMax(min, max);
+			return *this;
+		}
+
+		AxisAlignedBoundingBox2D GetTransformed(const Transform2D& transform)
+		{
+			AxisAlignedBoundingBox2D copy = *this;
+			return copy.Transform(transform);
 		}
 	};
 }

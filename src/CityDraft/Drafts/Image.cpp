@@ -25,7 +25,7 @@ namespace CityDraft::Drafts
 
 		const Transform2D& transform = GetTransform();
 
-		return AxisAlignedBoundingBox2D::Transform(imageBox, transform);
+		return imageBox.Transform(transform);
 	}
 
 
