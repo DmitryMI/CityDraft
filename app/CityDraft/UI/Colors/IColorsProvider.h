@@ -1,17 +1,17 @@
 #pragma once
 
-#include <QColor>
+#include <CityDraft/LinearColor.h>
 
 namespace CityDraft::UI::Colors
 {
 	class IColorsProvider
 	{
 	public:
-		virtual QColor GetSelectionBoxColor() = 0;
-		virtual QColor GetDraftPreSelectionBoxColor() = 0;
-		virtual QColor GetDraftScaleBoxColor() = 0;
-		virtual QColor GetDraftScaleKnobsColor() = 0;
-		virtual QColor GetDraftRotationCircleColor() = 0;
-		virtual QColor GetDraftRotationCircleHighlightedColor() = 0;
+		virtual LinearColorF GetSelectionBoxColor() = 0;
+		virtual LinearColorF GetDraftPreSelectionBoxColor() = 0;
+		virtual LinearColorF GetDraftScaleBoxColor() = 0;
+		virtual LinearColorF GetDraftScaleKnobsColor() = 0;
+		virtual LinearColorF GetDraftRotationCircleColor() = 0;
+		virtual LinearColorF GetDraftRotationCircleHighlightedColor() = 0;
 	};
 }

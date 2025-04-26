@@ -12,7 +12,6 @@
 #include <include/gpu/ganesh/gl/GrGLInterface.h>
 #include <include/gpu/ganesh/gl/GrGLTypes.h>
 #include <memory>
-#include <qcolor.h>
 #include <qevent.h>
 #include <qopenglcontext.h>
 #include <qopenglext.h>
@@ -104,32 +103,32 @@ namespace CityDraft::UI::Rendering
 		}
 	}
 
-	void SkiaWidget::PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness)
+	void SkiaWidget::PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const LinearColorF& color, double thickness)
 	{
 		Vector2D min = Project(pixelMin);
 		Vector2D max = Project(pixelMax);
 		PaintRect(min, max, color, thickness / GetViewportZoom());
 	}
 
-	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness)
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness)
 	{
 		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness);
 		PaintOrQueue(painter);
 	}
 
-	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor)
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness, const LinearColorF& fillColor)
 	{
 		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, outlineColor, outlineThickness, fillColor);
 		PaintOrQueue(painter);
 	}
 
-	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor)
+	void SkiaWidget::PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor)
 	{
 		auto painter = std::make_shared<SkiaPainters::Rect>(min, max, fillColor);
 		PaintOrQueue(painter);
 	}
 
-	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness)
+	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness)
 	{
 		auto painter = std::make_shared<SkiaPainters::Circle>(pos, radius, color, thickness);
 		PaintOrQueue(painter);

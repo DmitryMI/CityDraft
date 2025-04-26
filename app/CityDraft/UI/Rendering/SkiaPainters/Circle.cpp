@@ -1,8 +1,9 @@
 #include "Circle.h"
+#include "CityDraft/UI/Colors/Utils.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
-	Circle::Circle(const Vector2D& pos, double radius, const QColor& color, double thickness):
+	Circle::Circle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness):
 		m_Center(pos),
 		m_Radius(radius),
 		m_Color(color),
@@ -13,7 +14,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 	void Circle::Paint(SkCanvas* canvas)
 	{
-		SkColor skColor = SkColorSetARGB(m_Color.alpha(), m_Color.red(), m_Color.green(), m_Color.blue());
+		SkColor skColor = CityDraft::UI::Colors::Utils::ToSkColor(m_Color);
 
 		auto matrix = canvas->getLocalToDeviceAs3x3();
 

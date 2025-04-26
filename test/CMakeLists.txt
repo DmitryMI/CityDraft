@@ -10,7 +10,9 @@ set(CityDraft.Test.Sources
 	"CityDraft/Assets/AssetManagerTest.cpp"
 	"CityDraft/LogManager.cpp"
 	"CityDraft/LogManager.h"
- "CityDraft/AnglesTest.cpp")
+	"CityDraft/AnglesTest.cpp" 
+	"CityDraft/LinearColorTest.cpp"
+)
 
 enable_testing()
 

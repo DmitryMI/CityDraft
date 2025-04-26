@@ -5,6 +5,7 @@
 #include "CityDraft/Transform2D.h"
 #include <boost/signals2.hpp>
 #include <QMouseEvent>
+#include "CityDraft/LinearColor.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -18,11 +19,11 @@ namespace CityDraft::UI::Rendering
 
 		// Drawing
 		virtual void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) = 0;
-		virtual void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) = 0;
-		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness) = 0;
-		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor) = 0;
-		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor) = 0;
-		virtual void PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness) = 0;
+		virtual void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const LinearColorF& color, double thickness) = 0;
+		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness) = 0;
+		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness, const LinearColorF& fillColor) = 0;
+		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor) = 0;
+		virtual void PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness) = 0;
 		virtual void Repaint() = 0;
 
 		// Model
