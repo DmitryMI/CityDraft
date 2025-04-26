@@ -14,5 +14,7 @@ namespace CityDraft::Assets
 		MOCK_METHOD(const std::list<std::shared_ptr<ImageVariantGroup>>&, GetVariantImages, ());
 		MOCK_METHOD(const std::list<std::shared_ptr<Image>>&, GetInvariantImages, ());
 		MOCK_METHOD(std::shared_ptr<Image>, CreateImage, (const std::filesystem::path& imageFilePath));
+		MOCK_METHOD(std::shared_ptr<Curve>, CreateCurve, ());
+		MOCK_METHOD(std::shared_ptr<ColorCurve>, CreateColorCurve, ());
 	};
 }

@@ -87,10 +87,15 @@ namespace CityDraft
 		BOOST_ASSERT(tower1);
 		tower1->SetTranslation(Vector2D(500, 100));
 
+		auto line1 = assetManager->GetColorCurve()->CreateDraft();
+		auto line2 = assetManager->GetColorCurve()->CreateDraft();
+		
 		scene->AddDraft(building1, InsertOrder::Highest);
 		scene->AddDraft(building2, InsertOrder::Highest);
+		scene->AddDraft(line1, InsertOrder::Highest);
+		scene->AddDraft(line2, InsertOrder::Highest);
 		scene->AddDraft(tower1, InsertOrder::Highest);
-
+		
 		logger->warn("Scene created with hardcoded drafts");
 
 		return scene;

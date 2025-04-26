@@ -92,7 +92,7 @@ namespace CityDraft::UI::Rendering
 		// Drawing
 		void PaintScene();
 		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
-		std::shared_ptr<SkiaPainters::Painter> CreatePainter(CityDraft::Assets::Asset* asset, const Transform2D& transform);
+		std::shared_ptr<SkiaPainters::Painter> CreatePainter(CityDraft::Drafts::Draft* draft, const Transform2D& transform);
 
 
 		// Utility

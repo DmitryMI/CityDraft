@@ -1,6 +1,7 @@
 #include "SkiaAssetManager.h"
 #include "SkiaImage.h"
 #include "CityDraft/Logging/LogManager.h"
+#include "SkiaColorCurve.h"
 
 namespace CityDraft::Assets
 {
@@ -16,6 +17,17 @@ namespace CityDraft::Assets
 	{
 		auto logger = CityDraft::Logging::LogManager::CreateLogger("SkiaImage");
 		return std::make_shared<SkiaImage>(imageFilePath, this, logger);
+	}
+
+	std::shared_ptr<Curve> SkiaAssetManager::CreateCurve()
+	{
+		throw std::exception("Not Implemented");
+	}
+
+	std::shared_ptr<ColorCurve> SkiaAssetManager::CreateColorCurve()
+	{
+		auto logger = CityDraft::Logging::LogManager::CreateLogger("SkiaColorCurve");
+		return std::make_shared<SkiaColorCurve>(this, logger);
 	}
 
 	sk_sp<GrDirectContext> SkiaAssetManager::GetDirectContext() const

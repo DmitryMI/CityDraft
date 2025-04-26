@@ -27,6 +27,7 @@ set(AppSources
 	"CityDraft/Logging/LogManager.cpp"
 	"CityDraft/Assets/SkiaAssetManager.cpp"
 	"CityDraft/Assets/SkiaImage.cpp"
+	"CityDraft/Assets/SkiaColorCurve.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
 	"CityDraft/Input/Factory.cpp"
 	"CityDraft/Input/Instruments/Instrument.cpp"

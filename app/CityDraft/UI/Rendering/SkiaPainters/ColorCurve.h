@@ -3,7 +3,8 @@
 #include "Asset.h"
 #include "CityDraft/Curves/ICurve.h"
 #include "CityDraft/Curves/IWidthProvider.h"
-#include <CityDraft/LinearColor.h>
+#include "CityDraft/LinearColor.h"
+#include "CityDraft/Drafts/SkiaColorCurve.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -15,8 +16,11 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			CityDraft::Curves::IWidthProvider* fillWidth,
 			CityDraft::Curves::IWidthProvider* outlineWidth,
 			const LinearColorF& fillColor,
-			const LinearColorF& outlineColor,
-			const CityDraft::Transform2D& transform
+			const LinearColorF& outlineColor
+		);
+
+		ColorCurve(
+			CityDraft::Drafts::SkiaColorCurve* draft
 		);
 
 		void Paint(SkCanvas* canvas) override;
