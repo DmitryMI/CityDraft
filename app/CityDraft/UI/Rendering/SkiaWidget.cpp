@@ -192,23 +192,8 @@ namespace CityDraft::UI::Rendering
 			return;
 		}
 
-		auto surfaceFormat = QOpenGLContext::currentContext()->format();
-
-		GrGLFramebufferInfo fbInfo;
-		fbInfo.fFBOID = defaultFramebufferObject();
-		fbInfo.fFormat = GL_RGBA8;
-
-		m_BackendRenderTarget = GrBackendRenderTargets::MakeGL(w, h, surfaceFormat.samples(), surfaceFormat.stencilBufferSize(), fbInfo);
-
-		sk_sp<SkColorSpace> srgb = SkColorSpace::MakeSRGB();
-		m_SkSurface = SkSurfaces::WrapBackendRenderTarget(
-			m_GrContext.get(),
-			m_BackendRenderTarget,
-			kBottomLeft_GrSurfaceOrigin,
-			kRGBA_8888_SkColorType,
-			srgb,
-			nullptr
-		);
+		m_BackendRenderTarget = CreateRenderTarget(w, h);
+		m_SkSurface = CreateSurface(m_BackendRenderTarget);
 
 		if (!m_SkSurface)
 		{
@@ -254,6 +239,31 @@ namespace CityDraft::UI::Rendering
 		m_IsGlPainting = false;
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
 		m_Canvas->restore();
+	}
+
+	GrBackendRenderTarget SkiaWidget::CreateRenderTarget(int w, int h)
+	{
+		auto surfaceFormat = QOpenGLContext::currentContext()->format();
+
+		GrGLFramebufferInfo fbInfo;
+		fbInfo.fFBOID = defaultFramebufferObject();
+		fbInfo.fFormat = GL_RGBA8;
+
+		return GrBackendRenderTargets::MakeGL(w, h, surfaceFormat.samples(), surfaceFormat.stencilBufferSize(), fbInfo);
+	}
+
+	sk_sp<SkSurface> SkiaWidget::CreateSurface(const GrBackendRenderTarget& target)
+	{
+		sk_sp<SkColorSpace> srgb = SkColorSpace::MakeSRGB();
+		auto surface = SkSurfaces::WrapBackendRenderTarget(
+			m_GrContext.get(),
+			target,
+			kBottomLeft_GrSurfaceOrigin,
+			kRGBA_8888_SkColorType,
+			srgb,
+			nullptr
+		);
+		return surface;
 	}
 
 	void SkiaWidget::mousePressEvent(QMouseEvent* event)

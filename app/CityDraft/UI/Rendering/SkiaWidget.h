@@ -82,6 +82,10 @@ namespace CityDraft::UI::Rendering
 		void resizeGL(int w, int h) override;
 		void paintGL() override;
 
+		// Skia
+		GrBackendRenderTarget CreateRenderTarget(int w, int h);
+		sk_sp<SkSurface> CreateSurface(const GrBackendRenderTarget& target);
+
 		// Input
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;
@@ -103,8 +107,10 @@ namespace CityDraft::UI::Rendering
 		sk_sp<const GrGLInterface> m_GrInterface = nullptr;
 		sk_sp<GrDirectContext> m_GrContext = nullptr;
 		sk_sp<SkSurface> m_SkSurface = nullptr;
+		sk_sp<SkSurface> m_CurveMaskSurface = nullptr;
 		SkCanvas* m_Canvas = nullptr;
 		GrBackendRenderTarget m_BackendRenderTarget;
+
 		QOpenGLExtraFunctions m_GlFuncs;
 		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;
 
