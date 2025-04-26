@@ -2,6 +2,7 @@
 
 #include <boost/geometry.hpp>
 #include <boost/math/ccmath/abs.hpp>
+#include "CityDraft/Angles.h"
 
 namespace CityDraft
 {
@@ -145,25 +146,25 @@ namespace CityDraft
 			return a.GetX() * b.GetY() - a.GetY() * b.GetX();
 		}
 
-		static inline double GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
+		static inline Radians GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
 		{
 			double dot = Dot(a, b);
 			double cross = Cross(a, b);
 			double angle = std::atan2(cross, dot);
-			return angle;
+			return Radians(angle);
 		}
 
-		Vector2D GetRotated(double angleRadians) const
+		Vector2D GetRotated(const Radians& angleRadians) const
 		{
 			Vector2D copy{ GetX(), GetY() };
 			copy.Rotate(angleRadians);
 			return copy;
 		}
 
-		Vector2D& Rotate(double angleRadians)
+		Vector2D& Rotate(const Radians& angleRadians)
 		{
-			double cosA = std::cos(angleRadians);
-			double sinA = std::sin(angleRadians);
+			double cosA = std::cos(angleRadians.Value);
+			double sinA = std::sin(angleRadians.Value);
 			double x = GetX() * cosA - GetY() * sinA;
 			double y = GetX() * sinA + GetY() * cosA;
 			SetX(x);

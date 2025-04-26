@@ -100,7 +100,7 @@ namespace CityDraft::Input::Instruments
 
 		void DetectTransformationTool(const AxisAlignedBoundingBox2D& bbox, QMouseEvent* event);
 		AxisAlignedBoundingBox2D GetSelectionBoundingBox() const;
-		double GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center);
+		Radians GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center);
 
 		void Drag(QMouseEvent* event);
 		void Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox);

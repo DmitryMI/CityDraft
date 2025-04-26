@@ -96,8 +96,8 @@ namespace CityDraft
 				Vector2D{GetMin().GetX(), GetMax().GetY()}
 			};
 
-			double cosA = std::cos(transform.Rotation);
-			double sinA = std::sin(transform.Rotation);
+			double cosA = std::cos(transform.Rotation.Value);
+			double sinA = std::sin(transform.Rotation.Value);
 
 			Vector2D min = {std::numeric_limits<double>::max(), std::numeric_limits<double>::max()};
 			Vector2D max = {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::lowest()};

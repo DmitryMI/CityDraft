@@ -2,6 +2,7 @@
 
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
+#include "CityDraft/Transform2D.h"
 
 namespace CityDraft::Curves
 {
@@ -54,5 +55,11 @@ namespace CityDraft::Curves
 		/// <param name="target">Target Point</param>
 		/// <returns>Curve Parameter, associated with a point, closest to Target</returns>
 		virtual double GetClosestParameter(const CityDraft::Vector2D& target) const = 0;
+
+		/// <summary>
+		/// Transforms the curve
+		/// </summary>
+		/// <param name="transform">Transform</param>
+		virtual void Transform(const Transform2D& transform) = 0;
 	};
 }
