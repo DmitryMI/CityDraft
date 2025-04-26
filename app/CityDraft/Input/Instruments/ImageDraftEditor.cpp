@@ -182,7 +182,7 @@ namespace CityDraft::Input::Instruments
 		bbox.GetCircumcircle(center, radius);
 		m_Renderer->PaintRect(bbox.GetMin(), bbox.GetMax(), m_ColorsProvider->GetDraftScaleBoxColor(), 2.0 / m_Renderer->GetViewportZoom());
 
-		QColor circleColor;
+		LinearColorF circleColor;
 		if (m_Tool == Tool::Rotate)
 		{
 			circleColor = m_ColorsProvider->GetDraftRotationCircleHighlightedColor();

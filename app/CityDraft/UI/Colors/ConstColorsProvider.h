@@ -6,11 +6,11 @@ namespace CityDraft::UI::Colors
 {
 	class ConstColorsProvider : public IColorsProvider
 	{
-		QColor GetSelectionBoxColor() override { return QColor(66, 133, 244, 255); }
-		QColor GetDraftPreSelectionBoxColor() override { return QColor(255, 191, 0, 153); }
-		QColor GetDraftScaleBoxColor() override { return QColor(220, 235, 255, 160); }
-		QColor GetDraftScaleKnobsColor() override { return QColor(220, 235, 255, 255); }
-		QColor GetDraftRotationCircleColor() override { return QColor(255, 138, 101, 160); };
-		QColor GetDraftRotationCircleHighlightedColor() override { return QColor(255, 168, 131, 250); };
+		LinearColorF GetSelectionBoxColor() override { return "#4285F4FF"_frgba; }
+		LinearColorF GetDraftPreSelectionBoxColor() override { return "#FFBF0099"_frgba; }
+		LinearColorF GetDraftScaleBoxColor() override { return "#DCEBFFA0"_frgba; }
+		LinearColorF GetDraftScaleKnobsColor() override { return "#DCEBFFFF"_frgba; }
+		LinearColorF GetDraftRotationCircleColor() override { return "#FF8A65A0"_frgba; };
+		LinearColorF GetDraftRotationCircleHighlightedColor() override { return "#FFA883FA"_frgba; };
 	};
 }

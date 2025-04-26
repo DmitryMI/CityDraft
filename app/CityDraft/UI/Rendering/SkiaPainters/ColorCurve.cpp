@@ -1,4 +1,6 @@
 #include "ColorCurve.h"
+#include "CityDraft/Drafts/Curve.h"
+#include <QColor>
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -7,8 +9,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::ICurve* curve,
 		CityDraft::Curves::IWidthProvider* fillWidth,
 		CityDraft::Curves::IWidthProvider* outlineWidth,
-		const QColor& fillColor,
-		const QColor& outlineColor,
+		const LinearColorF& fillColor,
+		const LinearColorF& outlineColor,
 		const CityDraft::Transform2D& transform
 	):
 		m_Curve(curve),
@@ -18,11 +20,51 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		m_OutlineColor(outlineColor),
 		Asset(transform)
 	{
+
 	}
 
 	void ColorCurve::Paint(SkCanvas* canvas)
 	{
+		if(GetOwner())
+		{
+			auto owner = dynamic_cast<CityDraft::Drafts::Curve*>(GetOwner());
+			BOOST_ASSERT(owner);
 
+			m_Curve = owner->GetCurve().get();
+			m_FillWidth = owner->GetFillWidth().get();
+			m_OutlineWidth = owner->GetOutlineWidth().get();
+			m_FillColor = owner->GetFillColor();
+			m_OutlineColor = owner->GetOutlineColor();
+		}
+
+		BOOST_ASSERT(m_Curve);
+		BOOST_ASSERT(m_FillWidth);
+		BOOST_ASSERT(m_OutlineWidth);
+
+		for(size_t i = 0; i < 10; i++)
+		{
+			/*
+			double t = i / 10.0;
+			Vector2D point = m_Curve->GetPoint(t);
+
+			SkColor skColor = SkColorSetARGB(
+				m_FillColor.Alpha<uint8_t>(),
+				m_FillColor.Red<uint8_t>(),
+				m_FillColor.Green<uint8_t>(),
+				m_FillColor.Blue<uint8_t>()
+			);
+
+			auto matrix = canvas->getLocalToDeviceAs3x3();
+
+			SkPaint paint;
+			paint.setAntiAlias(true);
+			paint.setColor(skColor);
+			paint.setStyle(SkPaint::kStroke_Style);
+			paint.setStrokeWidth(m_Thickness);
+
+			canvas->drawCircle(m_Center.GetX(), m_Center.GetY(), m_Radius, paint);
+			*/
+		}
 	}
 
 }

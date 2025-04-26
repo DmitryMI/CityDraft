@@ -3,7 +3,7 @@
 #include "Asset.h"
 #include "CityDraft/Curves/ICurve.h"
 #include "CityDraft/Curves/IWidthProvider.h"
-#include <QColor>
+#include <CityDraft/LinearColor.h>
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -14,8 +14,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			CityDraft::Curves::ICurve* curve,
 			CityDraft::Curves::IWidthProvider* fillWidth,
 			CityDraft::Curves::IWidthProvider* outlineWidth,
-			const QColor& fillColor,
-			const QColor& outlineColor,
+			const LinearColorF& fillColor,
+			const LinearColorF& outlineColor,
 			const CityDraft::Transform2D& transform
 		);
 
@@ -25,7 +25,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::ICurve* m_Curve = nullptr;
 		CityDraft::Curves::IWidthProvider* m_FillWidth = nullptr;
 		CityDraft::Curves::IWidthProvider* m_OutlineWidth = nullptr;
-		QColor m_FillColor;
-		QColor m_OutlineColor;
+		LinearColorF m_FillColor{};
+		LinearColorF m_OutlineColor{};
 	};
 }

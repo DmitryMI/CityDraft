@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "CityDraft/Angles.h"
 
-namespace CityDraft::Assets
+namespace CityDraft
 {
 	TEST(AnglesTest, RadiansLiteral)
 	{
