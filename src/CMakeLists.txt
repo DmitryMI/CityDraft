@@ -9,7 +9,7 @@ set(
 	"CityDraft/Utils/ImageLoader.cpp"
 	"CityDraft/Serialization/BoostArchive.cpp"
 	
- "CityDraft/Utils/ImageUtils.cpp" "CityDraft/Curves/LineSegment.cpp" "CityDraft/Drafts/Curve.cpp")
+ "CityDraft/Utils/ImageUtils.cpp" "CityDraft/Curves/LineSegment.cpp" "CityDraft/Drafts/Curve.cpp" )
 
 add_library(CityDraft ${CityDraft.Sources})
 target_include_directories(CityDraft PUBLIC "../public")

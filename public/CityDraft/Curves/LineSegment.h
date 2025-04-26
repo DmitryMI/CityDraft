@@ -34,6 +34,8 @@ namespace CityDraft::Curves
 
 		double GetClosestParameter(const CityDraft::Vector2D& target) const override;
 
+		void Transform(const Transform2D& transform) override;
+
 	private:
 		CityDraft::Vector2D m_Start;
 		CityDraft::Vector2D m_End;

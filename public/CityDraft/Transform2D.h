@@ -2,6 +2,7 @@
 
 #include <boost/geometry.hpp>
 #include "Vector2D.h"
+#include "Angles.h"
 
 namespace CityDraft
 {
@@ -11,10 +12,10 @@ namespace CityDraft
 	struct Transform2D
 	{
 		Vector2D Translation{0, 0};
-		double Rotation{0};
+		Radians Rotation{0};
 		Vector2D Scale{1, 1};
 
-		void RotateAroundPoint(double angleRadians, const Vector2D& point)
+		void RotateAroundPoint(const Radians& angleRadians, const Vector2D& point)
 		{
 			Vector2D relativePos = Translation - point;
 			relativePos.Rotate(angleRadians);

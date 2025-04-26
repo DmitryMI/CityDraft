@@ -60,7 +60,7 @@ namespace CityDraft::Serialization
 	IInputArchive& BoostInputArchive::operator>>(CityDraft::Transform2D& value)
 	{
 		*this >> value.Translation;
-		*this >> value.Rotation;
+		*this >> value.Rotation.Value;
 		*this >> value.Scale;
 		return *this;
 	}
@@ -124,7 +124,7 @@ namespace CityDraft::Serialization
 	IOutputArchive& BoostOutputArchive::operator<<(const CityDraft::Transform2D& value)
 	{
 		*this << value.Translation;
-		*this << value.Rotation;
+		*this << value.Rotation.Value;
 		*this << value.Scale;
 		return *this;
 	}

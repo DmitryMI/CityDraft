@@ -80,4 +80,20 @@ namespace CityDraft::Curves
 		double t = Vector2D::Dot(targetStartDelta, segmentDelta) / lengthSquared;
 		return std::clamp(t, 0.0, 1.0);
 	}
+
+	void LineSegment::Transform(const Transform2D& transform)
+	{
+		Vector2D center = (m_End + m_Start) / 2;
+		std::array<Vector2D, 2> points{m_Start, m_End};
+		for(Vector2D& point : points)
+		{
+			point = (point - center).ComponentMultiply(transform.Scale) + center;
+			point = (point - center).GetRotated(transform.Rotation) + center;
+			point += transform.Translation;
+		}
+
+		m_Start = points[0];
+		m_End = points[1];
+		m_Length = (m_End - m_Start).GetSize();
+	}
 }
