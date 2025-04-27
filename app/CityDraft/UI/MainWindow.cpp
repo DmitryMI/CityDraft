@@ -56,7 +56,6 @@ namespace CityDraft::UI {
 
 		CreateRenderingWidget();
 		CreateStatusBar();
-		CreateLayersWidget();
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
@@ -199,25 +198,15 @@ namespace CityDraft::UI {
 	void MainWindow::CreateLayersWidget()
 	{
 		BOOST_ASSERT(!m_LayersWidget);
+		m_LayersWidget = new LayersWidget(m_Scene.get(), this);
+		QSplitter* splitter = m_Ui.rootSplitter;
+		const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
+		QWidget* parent = layersPlaceholder->parentWidget();
 
-		m_LayersWidget = new CityDraft::UI::LayersWidget(this);
+		const int index = splitter->indexOf(parent);
+		splitter->insertWidget(index, m_LayersWidget);
+		parent->deleteLater();
 
-		QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
-		m_LayersWidget->setMinimumWidth(layersPlaceholder->width());
-		m_LayersWidget->setMinimumHeight(layersPlaceholder->height());
-
-		m_LayersWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		QWidget* parentWidget = layersPlaceholder->parentWidget();
-
-		QLayout* layout = parentWidget ? parentWidget->layout() : nullptr;
-		BOOST_ASSERT(layout);
-
-		if (layout) {
-			layout->removeWidget(layersPlaceholder);
-			delete layersPlaceholder;
-
-			layout->addWidget(m_LayersWidget);
-		}
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -523,6 +512,7 @@ namespace CityDraft::UI {
 		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
+		CreateLayersWidget();
 	}
 
 }

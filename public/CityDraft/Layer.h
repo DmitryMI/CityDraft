@@ -4,7 +4,7 @@
 
 namespace CityDraft
 {
-	class DraftScene;
+	class Scene;
 
 	/// <summary>
 	/// Descriptor of a layer
@@ -67,6 +67,6 @@ namespace CityDraft
 		bool m_IsLocked = false;
 		int m_ZOrder = 0;
 
-		friend class DraftScene;
+		friend class Scene;
 	};
 }

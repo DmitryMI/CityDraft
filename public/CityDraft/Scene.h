@@ -89,6 +89,24 @@ namespace CityDraft
 		}
 
 		/// <summary>
+		/// Adds a Layer to the Scene
+		/// </summary>
+		void AddLayer(const std::shared_ptr<Layer>& layer)
+		{
+			m_Layers.push_back(layer);
+		}
+
+		/// <summary>
+		/// Removes a Layer from the Scene
+		/// </summary>
+		void RemoveLayer(const std::shared_ptr<Layer>& layer)
+		{
+			m_Layers.remove_if([&](const std::shared_ptr<Layer>& l) {
+				return l == layer;
+			});
+		}
+
+		/// <summary>
 		/// Called by Drafts when their Transform changes. No need to be called manually.
 		/// </summary>
 		/// <param name="obj">Draft</param>
