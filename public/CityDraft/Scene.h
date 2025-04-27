@@ -81,11 +81,9 @@ namespace CityDraft
 		/// Returns collection of Layers
 		/// </summary>
 		/// <returns>Layers</returns>
-		inline const std::vector<Layer*>& GetLayers() const
+		inline const std::list<std::shared_ptr<Layer>>& GetLayers() const
 		{
-			std::vector<Layer*> result;
-			std::transform(m_Layers.begin(), m_Layers.end(), result.begin(), [](const auto& layerPtr) {return layerPtr.get(); });
-			return result;
+			return m_Layers;
 		}
 
 		/// <summary>

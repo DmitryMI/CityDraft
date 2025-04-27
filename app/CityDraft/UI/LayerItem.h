@@ -7,31 +7,36 @@
 #include <QLabel>
 #include "ImageSelectionWidget.h"
 
-class LayerItem : public QWidget
+namespace CityDraft::UI
 {
-	Q_OBJECT
 
-public:
-	LayerItem(const QString& layerName, QWidget* parent = nullptr);
+	class LayerItem : public QWidget
+	{
+		Q_OBJECT
 
-	void setVisibleState(bool visible);
-	bool isVisible() const;
-	bool eventFilter(QObject* obj, QEvent* event) override;
+	public:
+		LayerItem(const QString& layerName, QWidget* parent = nullptr);
 
-signals:
-	void visibilityToggled(const QString& layerName, bool visible);
-	void removeLayer(const QString& layerName);
-	void layerRenamed(const QString& oldName, const QString& newName);
+		void setVisibleState(bool visible);
+		bool isVisible() const;
+		bool eventFilter(QObject* obj, QEvent* event) override;
 
-private slots:
-	void onToggleVisibility();
+	signals:
+		void visibilityToggled(const QString& layerName, bool visible);
+		void removeLayer(const QString& layerName);
+		void layerRenamed(const QString& oldName, const QString& newName);
 
-private:
-	QString m_layerName;
-	QLabel* m_label;
-	QPushButton* m_eyeButton;
-	QPushButton* m_removeButton;
-	bool m_visible;
+	private slots:
+		void onToggleVisibility();
 
-	void updateIcon() const;
-};
+	private:
+		QString m_layerName;
+		QLabel* m_label;
+		QPushButton* m_eyeButton;
+		QPushButton* m_removeButton;
+		bool m_visible;
+
+		void updateIcon() const;
+	};
+
+}
