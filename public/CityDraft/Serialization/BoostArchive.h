@@ -25,6 +25,7 @@ namespace CityDraft::Serialization
 		IInputArchive& operator>>(std::string& value) override;
 		IInputArchive& operator>>(CityDraft::Vector2D& value) override;
 		IInputArchive& operator>>(CityDraft::Transform2D& value) override;
+		IInputArchive& operator>>(CityDraft::LinearColorF& value) override;
 		IInputArchive& operator>>(ISerializable& serializable) override;
 
 	private:
@@ -46,6 +47,7 @@ namespace CityDraft::Serialization
 		IOutputArchive& operator<<(const std::string& value) override;
 		IOutputArchive& operator<<(const CityDraft::Vector2D& value) override;
 		IOutputArchive& operator<<(const CityDraft::Transform2D& value) override;
+		IOutputArchive& operator<<(const CityDraft::LinearColorF& value) override;
 		IOutputArchive& operator<<(const ISerializable& serializable) override;
 
 	private:

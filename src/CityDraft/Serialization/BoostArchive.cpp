@@ -71,6 +71,15 @@ namespace CityDraft::Serialization
 		return *this;
 	}
 
+	IInputArchive& BoostInputArchive::operator>>(CityDraft::LinearColorF& value)
+	{
+		*this >> value.R();
+		*this >> value.G();
+		*this >> value.B();
+		*this >> value.A();
+		return *this;
+	}
+
 	IInputArchive& BoostInputArchive::operator>>(ISerializable& serializable)
 	{
 		serializable.Deserialize(*this);
@@ -138,6 +147,15 @@ namespace CityDraft::Serialization
 		*this << value.Translation;
 		*this << value.Rotation.Value;
 		*this << value.Scale;
+		return *this;
+	}
+
+	IOutputArchive& BoostOutputArchive::operator<<(const CityDraft::LinearColorF& value)
+	{
+		*this << value.R();
+		*this << value.G();
+		*this << value.B();
+		*this << value.A();
 		return *this;
 	}
 

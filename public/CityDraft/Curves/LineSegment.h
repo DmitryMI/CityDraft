@@ -47,7 +47,7 @@ namespace CityDraft::Curves
 		CityDraft::Vector2D m_End;
 		double m_Length;
 
-		REGISTER_CURVE_TYPE(LineSegment)
+		REGISTER_TYPE(LineSegment)
 	};
 
 	

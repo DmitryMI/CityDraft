@@ -8,30 +8,35 @@
 namespace CityDraft::Curves
 {
 	class ICurve;
+	class IWidthProvider;
 
 	class Factory
 	{
 	public:
-		using Constructor = std::function<std::shared_ptr<ICurve>()>;
+		using CurveConstructor = std::function<std::shared_ptr<ICurve>()>;
+		using WidthProviderConstructor = std::function<std::shared_ptr<IWidthProvider>()>;
 
-		std::shared_ptr<ICurve> Create(const std::string& curveType);
-		void RegisterCurveType(std::string name, Constructor constructor);
+		std::shared_ptr<ICurve> CreateCurve(const std::string& curveType);
+		std::shared_ptr<IWidthProvider> CreateWidthProvider(const std::string& widthProviderType);
+		void RegisterType(std::string name, CurveConstructor constructor);
+		void RegisterType(std::string name, WidthProviderConstructor constructor);
 
 		static Factory& GetInstance();
 	private:
-		std::unordered_map<std::string, Constructor> m_CurveTypes;
+		std::unordered_map<std::string, CurveConstructor> m_CurveTypes;
+		std::unordered_map<std::string, WidthProviderConstructor> m_WidthProviderTypes;
 
 		static std::unique_ptr<Factory> Instance;
 
 	};
 
-	#define REGISTER_CURVE_TYPE(classname) \
+	#define REGISTER_TYPE(classname) \
 	public:	\
-		inline std::string GetCurveTypeName() const override {return boost::typeindex::type_id<classname>().pretty_name();} \
+		inline std::string GetTypeName() const override {return boost::typeindex::type_id<classname>().pretty_name();} \
 	private:\
         struct classname##Registrator { \
             classname##Registrator() { \
-                Factory::GetInstance().RegisterCurveType(boost::typeindex::type_id<classname>().pretty_name(), []() { return std::make_shared<classname>(); }); \
+                Factory::GetInstance().RegisterType(boost::typeindex::type_id<classname>().pretty_name(), []() { return std::make_shared<classname>(); }); \
             } \
         }; \
         static inline classname##Registrator global_##classname##Registrator{};

@@ -66,8 +66,17 @@ namespace CityDraft::Drafts
 	void Curve::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
 	{
 		Draft::Serialize(archive);
-		archive << m_Curve->GetCurveTypeName();
+		archive << m_Curve->GetTypeName();
 		archive << *m_Curve;
+
+		archive << m_FillWidth->GetTypeName();
+		archive << *m_FillWidth;
+
+		archive << m_OutlineWidth->GetTypeName();
+		archive << *m_OutlineWidth;
+
+		archive << m_FillColor;
+		archive << m_OutlineColor;
 	}
 
 	void Curve::Deserialize(CityDraft::Serialization::IInputArchive& archive)
@@ -76,9 +85,22 @@ namespace CityDraft::Drafts
 
 		std::string curveTypeName;
 		archive >> curveTypeName;
-		m_Curve = CityDraft::Curves::Factory::GetInstance().Create(curveTypeName);
+		m_Curve = CityDraft::Curves::Factory::GetInstance().CreateCurve(curveTypeName);
 		BOOST_ASSERT(m_Curve);
 		archive >> *m_Curve;
+
+		std::string fillWidthTypeName;
+		archive >> fillWidthTypeName;
+		m_FillWidth = CityDraft::Curves::Factory::GetInstance().CreateWidthProvider(fillWidthTypeName);
+		archive >> *m_FillWidth;
+
+		std::string oulineWidthTypeName;
+		archive >> oulineWidthTypeName;
+		m_OutlineWidth = CityDraft::Curves::Factory::GetInstance().CreateWidthProvider(oulineWidthTypeName);
+		archive >> *m_OutlineWidth;
+
+		archive >> m_FillColor;
+		archive >> m_OutlineColor;
 	}
 
 }
