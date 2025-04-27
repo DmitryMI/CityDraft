@@ -69,11 +69,11 @@ namespace CityDraft::Curves
 		/// <returns>Bounding box</returns>
 		virtual AxisAlignedBoundingBox2D GetBoundingBox() const = 0;
 
-		// ISerializable
-		virtual void Serialize(CityDraft::Serialization::IOutputArchive& archive) const = 0;
-		virtual void Deserialize(CityDraft::Serialization::IInputArchive& archive) = 0;
-
-		virtual std::string GetCurveTypeName() const = 0;
+		/// <summary>
+		/// Type reflection. Do not override it manually, use REGISTER_CURVE_TYPE() macro instead.
+		/// </summary>
+		/// <returns>Human-readable type name in format 'class CityDraft::Curves::CLASS_NAME'</returns>
+		virtual std::string GetTypeName() const = 0;
 	};
 
 	
