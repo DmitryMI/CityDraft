@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include "CityDraft/Serialization/ISerializable.h"
+#include "CityDraft/Serialization/IArchive.h"
 
 namespace CityDraft
 {
@@ -9,7 +11,7 @@ namespace CityDraft
 	/// <summary>
 	/// Descriptor of a layer
 	/// </summary>
-	class Layer
+	class Layer : public Serialization::ISerializable
 	{
 	public:
 		Layer() = default;
@@ -59,6 +61,23 @@ namespace CityDraft
 		inline void SetZOrder(int zOrder)
 		{
 			m_ZOrder = zOrder;
+		}
+
+		// ISerializable
+		inline void Serialize(Serialization::IOutputArchive& archive) const override
+		{
+			archive << m_Name;
+			archive << m_IsVisible;
+			archive << m_IsLocked;
+			archive << m_ZOrder;
+		}
+
+		inline void Deserialize(Serialization::IInputArchive& archive) override
+		{
+			archive >> m_Name;
+			archive >> m_IsVisible;
+			archive >> m_IsLocked;
+			archive >> m_ZOrder;
 		}
 
 	private:

@@ -98,7 +98,25 @@ namespace CityDraft
 
 	std::shared_ptr<Scene> Scene::LoadFromFile(const std::filesystem::path& path, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
 	{
+		if(!std::filesystem::is_regular_file(path))
+		{
+			logger->error("Cannot load scene from {}: path does not point to a file.", path.string());
+			return nullptr;
+		}
+
 		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
+
+		CityDraft::Serialization::BoostInputArchive archive(path);
+		archive >> scene->m_Name;
+
+		size_t layersNum;
+		archive >> layersNum;
+		for(size_t i = 0; i < layersNum; i++)
+		{
+			auto layer = std::make_shared<Layer>();
+			archive >> *layer;
+			scene->m_Layers.push_back(layer);
+		}
 
 		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
 		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
@@ -113,8 +131,7 @@ namespace CityDraft
 			return nullptr;
 		}
 
-		CityDraft::Serialization::BoostInputArchive archive(path);
-		archive >> scene->m_Name;
+		
 		size_t draftsNum;
 		archive >> draftsNum;
 		for (size_t i = 0; i < draftsNum; i++)
@@ -248,7 +265,13 @@ namespace CityDraft
 
 		m_Name = path.stem().string();
 		archive << m_Name;
-		// TODO Serialize layers
+		
+		archive << m_Layers.size();
+		for(const auto& layer : m_Layers)
+		{
+			archive << *layer;
+		}
+
 		archive << m_DraftsRtree.size();
 		for (const auto& draftEntry : m_DraftsRtree)
 		{
