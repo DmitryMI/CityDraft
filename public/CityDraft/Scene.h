@@ -28,8 +28,12 @@ namespace CityDraft
 		/// </summary>
 		using RTreeValue = std::pair<AxisAlignedBoundingBox2D::UnderlyingType, std::shared_ptr<Drafts::Draft>>;
 
-		using LayerChangedFunc = void(Layer*);
-		using LayerMarkedForDeletionFunc = void(Layer*);
+		using LayerAddedFunc = void(Layer*);
+		using LayerAddedSignal = boost::signals2::signal<LayerAddedFunc>;
+		using LayerZChangedFunc = void(Layer*, int64_t, int64_t);
+		using LayerZChangedSignal = boost::signals2::signal<LayerZChangedFunc>;
+		using LayerRemovedFunc = void(Layer*);
+		using LayerRemovedSignal = boost::signals2::signal<LayerRemovedFunc>;
 
 		using DraftAddedFunc = void(std::shared_ptr<Drafts::Draft>);
 		using DraftRemovedFunc = void(Drafts::Draft*);
@@ -37,7 +41,8 @@ namespace CityDraft
 		enum class InsertOrder
 		{
 			Highest,
-			Lowest
+			Lowest,
+			KeepExisting
 		};
 
 		/// <summary>
@@ -69,7 +74,7 @@ namespace CityDraft
 		/// </summary>
 		/// <param name="obj">Draft to add</param>
 		/// <param name="order">Indicates what ZOrder should be assigned to the Draft</param>
-		void AddDraft(std::shared_ptr<Drafts::Draft> obj, InsertOrder order);
+		bool AddDraft(std::shared_ptr<Drafts::Draft> obj, Layer* layer, InsertOrder order);
 
 		/// <summary>
 		/// Removes the Draft from the Scene
@@ -77,31 +82,51 @@ namespace CityDraft
 		/// <param name="objPtr">Draft to remove</param>
 		void RemoveDraft(Drafts::Draft* objPtr);
 
+		void AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);
+
+		std::shared_ptr<Layer> AddLayer(std::string_view name, InsertOrder order);
+
 		/// <summary>
 		/// Returns collection of Layers
 		/// </summary>
 		/// <returns>Layers</returns>
-		inline const std::list<std::shared_ptr<Layer>>& GetLayers() const
+		inline std::list<std::shared_ptr<Layer>> GetLayers() const
 		{
-			return m_Layers;
+			std::list<std::shared_ptr<Layer>> result;
+			std::transform(m_Layers.begin(), m_Layers.end(), std::back_inserter(result), [](auto& pair){return pair.second;});
+			return result;
 		}
 
-		/// <summary>
-		/// Adds a Layer to the Scene
-		/// </summary>
-		void AddLayer(const std::shared_ptr<Layer>& layer)
+		inline std::shared_ptr<Layer> GetLayer(int64_t z) const
 		{
-			m_Layers.push_back(layer);
+			if(!m_Layers.contains(z))
+			{
+				return nullptr;
+			}
+
+			return m_Layers.at(z);
 		}
+
+		void SwapLayersZ(Layer* layerA, Layer* layerB);
 
 		/// <summary>
 		/// Removes a Layer from the Scene
 		/// </summary>
-		void RemoveLayer(const std::shared_ptr<Layer>& layer)
+		void RemoveLayer(Layer* layer);
+
+		inline boost::signals2::connection ConnectToLayerAdded(const LayerAddedSignal::slot_type& slot)
 		{
-			m_Layers.remove_if([&](const std::shared_ptr<Layer>& l) {
-				return l == layer;
-			});
+			return m_LayerAdded.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToLayerRemoved(const LayerRemovedSignal::slot_type& slot)
+		{
+			return m_LayerRemoved.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToLayerZChanged(const LayerZChangedSignal::slot_type& slot)
+		{
+			return m_LayerZChanged.connect(slot);
 		}
 
 		/// <summary>
@@ -117,6 +142,8 @@ namespace CityDraft
 		/// <param name="outEntries">Collection to write found entries into.</param>
 		/// <returns>Number of found RTree Entries</returns>
 		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& outEntries);
+
+		size_t QueryDrafts(Layer* layer, std::vector<std::shared_ptr<Drafts::Draft>>& outDraft);
 
 		/// <summary>
 		/// Looks for Drafts inside a Bounding Box
@@ -162,22 +189,20 @@ namespace CityDraft
 		std::shared_ptr<Assets::AssetManager> m_AssetManager;
 		std::string m_Name;
 
-		std::list<std::shared_ptr<Layer>> m_Layers;
+		std::map<int64_t, std::shared_ptr<Layer>> m_Layers;
 
 		boost::geometry::index::rtree<RTreeValue, boost::geometry::index::quadratic<16>> m_DraftsRtree;
-		std::map<int64_t, CityDraft::Drafts::Draft*> m_ZOrderMap;
-
-		boost::signals2::signal<LayerChangedFunc> m_LayerChanged;
-		boost::signals2::signal<LayerMarkedForDeletionFunc> m_LayerMarkedForDeletion;
+		
+		LayerAddedSignal m_LayerAdded;
+		LayerZChangedSignal m_LayerZChanged;
+		LayerRemovedSignal m_LayerRemoved;
 
 		boost::signals2::signal<DraftAddedFunc> m_DraftAdded;
 		boost::signals2::signal<DraftRemovedFunc> m_DraftRemoved;
 
-		void AddDraft(std::shared_ptr<Drafts::Draft> obj);
+		bool AddDraft(std::shared_ptr<Drafts::Draft> obj);
 		void InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj);
 		bool RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj);
 		std::shared_ptr<Drafts::Draft> RemoveObjectFromRtree(Drafts::Draft* obj);
-
-		friend class Draft;
 	};
 }

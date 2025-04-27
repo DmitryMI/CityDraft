@@ -48,16 +48,26 @@ namespace CityDraft::Drafts
 
 	void Draft::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
 	{
+		BOOST_ASSERT(m_Layer);
+
 		archive << m_Name;
 		archive << m_Transform;
 		archive << m_ZOrder;
+		archive << m_Layer->GetZOrder();
 	}
 
 	void Draft::Deserialize(CityDraft::Serialization::IInputArchive& archive)
 	{
+		BOOST_ASSERT(m_Scene);
+
 		archive >> m_Name;
 		archive >> m_Transform;
 		archive >> m_ZOrder;
+
+		int64_t layerZ;
+		archive >> layerZ;
+		m_Layer = m_Scene->GetLayer(layerZ).get();
+		BOOST_ASSERT(m_Layer);
 	}
 
 	int64_t Draft::GetZOrder() const

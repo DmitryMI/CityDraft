@@ -5,7 +5,9 @@
 #pragma once
 
 #include <QLabel>
+#include <memory>
 #include "ImageSelectionWidget.h"
+#include "CityDraft/Layer.h"
 
 namespace CityDraft::UI
 {
@@ -15,26 +17,28 @@ namespace CityDraft::UI
 		Q_OBJECT
 
 	public:
-		LayerItem(const QString& layerName, QWidget* parent = nullptr);
+		LayerItem(CityDraft::Layer* layer, QWidget* parent = nullptr);
 
 		void setVisibleState(bool visible);
-		bool isVisible() const;
 		bool eventFilter(QObject* obj, QEvent* event) override;
 
+		inline CityDraft::Layer* GetLayer() const
+		{
+			return m_Layer;
+		}
+
 	signals:
-		void visibilityToggled(const QString& layerName, bool visible);
-		void removeLayer(const QString& layerName);
+		void removeLayer(CityDraft::Layer* layer);
 		void layerRenamed(const QString& oldName, const QString& newName);
 
 	private slots:
 		void onToggleVisibility();
 
 	private:
-		QString m_layerName;
 		QLabel* m_label;
 		QPushButton* m_eyeButton;
 		QPushButton* m_removeButton;
-		bool m_visible;
+		CityDraft::Layer* m_Layer;
 
 		void updateIcon() const;
 	};

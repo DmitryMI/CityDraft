@@ -11,10 +11,13 @@
 
 using namespace CityDraft::UI;
 
-LayerItem::LayerItem(const QString& layerName, QWidget* parent)
-	: QWidget(parent), m_layerName(layerName), m_visible(true)
+LayerItem::LayerItem(CityDraft::Layer* layer, QWidget* parent): 
+	QWidget(parent),
+	m_Layer(layer)
 {
-	m_label = new QLabel(layerName, this);
+	BOOST_ASSERT(layer);
+
+	m_label = new QLabel(QString::fromStdString(layer->GetName()), this);
 	m_label->installEventFilter(this);
 
 	m_eyeButton = new QPushButton(this);
@@ -28,7 +31,7 @@ LayerItem::LayerItem(const QString& layerName, QWidget* parent)
 	connect(m_eyeButton, &QPushButton::clicked, this, &LayerItem::onToggleVisibility);
 	connect(m_removeButton, &QPushButton::clicked, this, [this]()
 		{
-			emit removeLayer(m_layerName);
+			emit removeLayer(m_Layer);
 		});
 
 	auto layout = new QHBoxLayout(this);
@@ -43,31 +46,27 @@ LayerItem::LayerItem(const QString& layerName, QWidget* parent)
 
 void LayerItem::onToggleVisibility()
 {
-	m_visible = !m_visible;
+	bool visibleOld = m_Layer->IsVisible();
+	bool visibleNew = !visibleOld;
+	m_Layer->SetVisible(visibleNew);
 	updateIcon();
-	emit visibilityToggled(m_layerName, m_visible);
 }
 
 void LayerItem::updateIcon() const
 {
-	// TODO: Add icons to resources
-	QIcon icon = m_visible ? QIcon(":/icons/eye.png") : QIcon(":/icons/eye-off.png");
+	QIcon icon = m_Layer->IsVisible() ? QIcon(":/icons/visible.png") : QIcon(":/icons/invisible.png");
 	m_eyeButton->setIcon(icon);
 }
 
 void LayerItem::setVisibleState(bool visible)
 {
-	m_visible = visible;
+	m_Layer->SetVisible(visible);
 	updateIcon();
-}
-
-bool LayerItem::isVisible() const
-{
-	return m_visible;
 }
 
 bool LayerItem::eventFilter(QObject* obj, QEvent* event)
 {
+	QString oldName = QString::fromStdString(m_Layer->GetName());
 	if (obj == m_label && event->type() == QEvent::MouseButtonDblClick)
 	{
 		auto mouseEvent = static_cast<QMouseEvent*>(event);
@@ -76,13 +75,11 @@ bool LayerItem::eventFilter(QObject* obj, QEvent* event)
 			bool ok;
 			QString newName = QInputDialog::getText(this, tr("Rename Layer"),
 				tr("Enter new name:"), QLineEdit::Normal,
-				m_layerName, &ok);
-			if (ok && !newName.isEmpty() && newName != m_layerName)
+				oldName, &ok);
+			if (ok && !newName.isEmpty() && newName != oldName)
 			{
-				QString oldName = m_layerName;
-				m_layerName = newName;
 				m_label->setText(newName);
-				emit layerRenamed(oldName, newName);
+				m_Layer->SetName(newName.toStdString());
 			}
 			return true;
 		}

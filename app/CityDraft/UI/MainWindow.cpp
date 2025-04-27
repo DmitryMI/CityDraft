@@ -198,16 +198,24 @@ namespace CityDraft::UI
 
 	void MainWindow::CreateLayersWidget()
 	{
-		BOOST_ASSERT(!m_LayersWidget);
-		m_LayersWidget = new LayersWidget(m_Scene.get(), this);
-		QSplitter* splitter = m_Ui.rootSplitter;
-		const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
-		QWidget* parent = layersPlaceholder->parentWidget();
+		if(!m_LayersWidget)
+		{
+			m_LayersWidget = new LayersWidget(m_Scene.get(), this);
+			QSplitter* splitter = m_Ui.rootSplitter;
+			const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
+			QWidget* parent = layersPlaceholder->parentWidget();
 
-		const int index = splitter->indexOf(parent);
-		splitter->insertWidget(index, m_LayersWidget);
-		parent->deleteLater();
-
+			const int index = splitter->indexOf(parent);
+			splitter->insertWidget(index, m_LayersWidget);
+			parent->deleteLater();
+		}
+		else
+		{
+			int layersWidgetIndex = m_Ui.rootSplitter->indexOf(m_LayersWidget);
+			delete m_LayersWidget;
+			m_LayersWidget = new LayersWidget(m_Scene.get(), this);
+			m_Ui.rootSplitter->insertWidget(layersWidgetIndex, m_LayersWidget);
+		}		
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -453,6 +461,7 @@ namespace CityDraft::UI
 		m_ScenePath = filename;
 		m_RenderingWidget->SetScene(m_Scene);
 		CreateInstruments();
+		CreateLayersWidget();
 	}
 
 	void MainWindow::OnNewSceneClicked()
@@ -464,6 +473,7 @@ namespace CityDraft::UI
 		m_RenderingWidget->SetScene(m_Scene);
 		m_RenderingWidget->Repaint();
 		CreateInstruments();
+		CreateLayersWidget();
 	}
 
 	void MainWindow::OnSaveSceneAsClicked()

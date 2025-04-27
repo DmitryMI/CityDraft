@@ -1,12 +1,17 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include "CityDraft/Serialization/ISerializable.h"
 #include "CityDraft/Serialization/IArchive.h"
 
 namespace CityDraft
 {
 	class Scene;
+	namespace Drafts
+	{
+		class Draft;
+	}
 
 	/// <summary>
 	/// Descriptor of a layer
@@ -16,9 +21,9 @@ namespace CityDraft
 	public:
 		Layer() = default;
 
-		inline Layer(const std::string& name, int zOrder):
+		inline Layer(const std::string& name):
 			m_Name(name),
-			m_ZOrder(zOrder)
+			m_ZOrder(0)
 		{
 
 		}
@@ -53,14 +58,9 @@ namespace CityDraft
 			m_Name = name;
 		}
 
-		inline int GetZOrder() const
+		inline int64_t GetZOrder() const
 		{
 			return m_ZOrder;
-		}
-
-		inline void SetZOrder(int zOrder)
-		{
-			m_ZOrder = zOrder;
 		}
 
 		// ISerializable
@@ -84,7 +84,9 @@ namespace CityDraft
 		std::string m_Name = "";
 		bool m_IsVisible = true;
 		bool m_IsLocked = false;
-		int m_ZOrder = 0;
+		int64_t m_ZOrder = 0;
+
+		std::map<int64_t, CityDraft::Drafts::Draft*> m_Drafts;
 
 		friend class Scene;
 	};

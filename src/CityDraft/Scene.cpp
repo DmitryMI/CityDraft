@@ -9,22 +9,32 @@ namespace CityDraft
 		return m_Name;
 	}
 
-	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj, InsertOrder order)
+	bool Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj, Layer* layer, InsertOrder order)
 	{
-		if (m_ZOrderMap.size() == 0)
+		BOOST_ASSERT(obj);
+		BOOST_ASSERT(layer);
+		BOOST_ASSERT(obj->m_Scene == nullptr);
+
+		obj->m_Layer = layer;
+
+		if(order == InsertOrder::KeepExisting)
+		{
+
+		}
+		else if (layer->m_Drafts.size() == 0)
 		{
 			obj->m_ZOrder = 0;
 		}
 		else if (order == InsertOrder::Highest)
 		{
-			obj->m_ZOrder = m_ZOrderMap.rbegin()->first + 1;
+			obj->m_ZOrder = layer->m_Drafts.rbegin()->first + 1;
 		}
 		else
 		{
-			obj->m_ZOrder = m_ZOrderMap.begin()->first - 1;
+			obj->m_ZOrder = layer->m_Drafts.begin()->first - 1;
 		}
 
-		AddDraft(obj);
+		return AddDraft(obj);
 	}
 
 	void Scene::RemoveDraft(Drafts::Draft* obj)
@@ -43,10 +53,68 @@ namespace CityDraft
 
 		BOOST_ASSERT(obj->m_Scene == this);
 
-		obj->m_Scene = nullptr;
-		m_ZOrderMap.erase(obj->m_ZOrder);
+		obj->m_Layer->m_Drafts.erase(obj->m_ZOrder);
 		m_DraftRemoved(obj);
+		obj->m_Layer = nullptr;
+		obj->m_Scene = nullptr;
 		m_Logger->debug("{} removed from scene", obj->GetName());
+	}
+
+	void Scene::AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order)
+	{
+		if(m_Layers.size() == 0)
+		{
+			layer->m_ZOrder = 0;
+		}
+		else if(order == InsertOrder::Highest)
+		{
+			layer->m_ZOrder = m_Layers.rbegin()->first + 1;
+		}
+		else
+		{
+			layer->m_ZOrder = m_Layers.begin()->first - 1;
+		}
+		BOOST_ASSERT(!m_Layers.contains(layer->m_ZOrder));
+		m_Layers[layer->m_ZOrder] = layer;
+		m_LayerAdded(layer.get());
+	}
+
+	std::shared_ptr<Layer> Scene::AddLayer(std::string_view name, InsertOrder order)
+	{
+		std::shared_ptr<Layer> layer = std::make_shared<Layer>(std::string(name));
+		AddLayer(layer, order);
+		return layer;
+	}
+
+	void Scene::SwapLayersZ(Layer* layerA, Layer* layerB)
+	{
+		int64_t za = layerA->GetZOrder();
+		int64_t zb = layerB->GetZOrder();
+		std::shared_ptr<Layer> layerAPtr = m_Layers[za];
+		std::shared_ptr<Layer> layerBPtr = m_Layers[zb];
+		m_Layers.erase(za);
+		m_Layers.erase(zb);
+		m_Layers[zb] = layerAPtr;
+		m_Layers[za] = layerBPtr;
+		layerAPtr->m_ZOrder = zb;
+		layerBPtr->m_ZOrder = za;
+
+		m_LayerZChanged(layerA, za, zb);
+		m_LayerZChanged(layerB, zb, za);
+	}
+
+	void Scene::RemoveLayer(Layer* layer)
+	{
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> drafts;
+		QueryDrafts(layer, drafts);
+		for(const auto draft : drafts)
+		{
+			RemoveDraft(draft.get());
+		}
+
+		std::shared_ptr<Layer> layerPtr = m_Layers[layer->GetZOrder()]; // To prevent deallocation during m_LayerRemoved execution
+		m_Layers.erase(layer->GetZOrder());
+		m_LayerRemoved(layerPtr.get());
 	}
 
 	std::shared_ptr<Scene> Scene::NewScene(const std::string& name, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
@@ -60,12 +128,13 @@ namespace CityDraft
 		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
 		scene->m_Name = nameStr;
 
-		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Roads", 2));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Walls", 3));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
+		auto backgroundLayer = scene->AddLayer("Background", InsertOrder::Highest);
+		auto terrainLayer = scene->AddLayer("Terrain", InsertOrder::Highest);
+		auto roadsLayer = scene->AddLayer("Roads", InsertOrder::Highest);
+		auto foliageLayer = scene->AddLayer("Foliage", InsertOrder::Highest);
+		auto wallsLayer = scene->AddLayer("Walls", InsertOrder::Highest);
+		auto buildingsLayer = scene->AddLayer("Buildings", InsertOrder::Highest);
+		auto annotationsLayer = scene->AddLayer("Annotations", InsertOrder::Highest);
 
 		// file://assets/images/BuildingSmallHorisontal/Building%2012,%20blue.png
 		auto building20blueAsset = assetManager->GetByUrl("file://assets/images/BuildingSmallHorisontal/Building%202,%20blue.png");
@@ -87,9 +156,9 @@ namespace CityDraft
 		BOOST_ASSERT(tower1);
 		tower1->SetTranslation(Vector2D(500, 100));
 
-		scene->AddDraft(building1, InsertOrder::Highest);
-		scene->AddDraft(building2, InsertOrder::Highest);
-		scene->AddDraft(tower1, InsertOrder::Highest);
+		scene->AddDraft(building1, buildingsLayer.get(), InsertOrder::Highest);
+		scene->AddDraft(building2, buildingsLayer.get(), InsertOrder::Highest);
+		scene->AddDraft(tower1, wallsLayer.get(), InsertOrder::Highest);
 
 		logger->warn("Scene created with hardcoded drafts");
 
@@ -115,15 +184,8 @@ namespace CityDraft
 		{
 			auto layer = std::make_shared<Layer>();
 			archive >> *layer;
-			scene->m_Layers.push_back(layer);
+			scene->m_Layers[layer->GetZOrder()] = layer;
 		}
-
-		scene->m_Layers.push_back(std::make_shared<Layer>("Background", 0));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Terrain", 1));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Roads", 2));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Walls", 3));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Buildings", 4));
-		scene->m_Layers.push_back(std::make_shared<Layer>("Annotations", 5));
 
 		if(!std::filesystem::is_regular_file(path))
 		{
@@ -131,7 +193,6 @@ namespace CityDraft
 			return nullptr;
 		}
 
-		
 		size_t draftsNum;
 		archive >> draftsNum;
 		for (size_t i = 0; i < draftsNum; i++)
@@ -141,8 +202,10 @@ namespace CityDraft
 			auto asset = assetManager->GetByUrl(assetUrl);
 			auto draft = asset->CreateDraft();
 			CityDraft::Drafts::Draft* draftRaw = draft.get();
+			draftRaw->m_Scene = scene.get();
 			archive >> *draftRaw;
-			scene->AddDraft(draft);
+			bool ok = scene->AddDraft(draft);
+			BOOST_ASSERT(ok);
 		}
 
 		logger->info("Scene loaded from {}", path.string());
@@ -162,6 +225,21 @@ namespace CityDraft
 		size_t entriesNum = entries.size();
 		m_DraftsRtree.query(boost::geometry::index::intersects(box.Data), std::back_inserter(entries));
 		return entries.size() - entriesNum;
+	}
+
+	size_t Scene::QueryDrafts(Layer* layer, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts)
+	{
+		BOOST_ASSERT(layer);
+		size_t num = outDrafts.size();
+		for(const auto& pair : m_DraftsRtree)
+		{
+			if(pair.second->GetLayer() == layer)
+			{
+				outDrafts.push_back(pair.second);
+			}
+		}
+
+		return outDrafts.size() - num;
 	}
 
 	size_t Scene::QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts)
@@ -198,9 +276,17 @@ namespace CityDraft
 		return draftsZOrders.rbegin()->second;
 	}
 
-	void Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
+	bool Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
 	{
-		BOOST_ASSERT(obj->m_Scene == nullptr);
+		BOOST_ASSERT(obj->m_Layer);
+		if(obj->m_Layer->m_Drafts.contains(obj->m_ZOrder))
+		{
+			return false;
+		}
+
+		// Ensure that layer exists on the Scene
+		BOOST_ASSERT(std::any_of(m_Layers.begin(), m_Layers.end(), [obj](auto& pair){return pair.second.get() == obj->GetLayer();}));
+
 		obj->m_Scene = this;
 		if (obj->GetName() == "")
 		{
@@ -209,11 +295,12 @@ namespace CityDraft
 		std::shared_ptr<Drafts::Draft> objPtr(obj);
 
 		InsertObjectToRtree(obj);
-		BOOST_ASSERT(!m_ZOrderMap.contains(obj->m_ZOrder));
-		m_ZOrderMap[obj->m_ZOrder] = obj.get();
+		
+		obj->m_Layer->m_Drafts[obj->m_ZOrder] = obj.get();
 
 		m_DraftAdded(obj);
-		m_Logger->debug("{} added to scene", obj->GetName());
+		m_Logger->debug("{} added to layer {}({}) with Z-Order {}", obj->GetName(), obj->GetLayer()->GetName(), obj->GetLayer()->GetZOrder(), obj->GetZOrder());
+		return true;
 	}
 
 	void Scene::InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj)
@@ -267,9 +354,9 @@ namespace CityDraft
 		archive << m_Name;
 		
 		archive << m_Layers.size();
-		for(const auto& layer : m_Layers)
+		for(const auto& layerPair : m_Layers)
 		{
-			archive << *layer;
+			archive << *layerPair.second;
 		}
 
 		archive << m_DraftsRtree.size();
