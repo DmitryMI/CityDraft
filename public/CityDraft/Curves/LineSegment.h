@@ -36,6 +36,8 @@ namespace CityDraft::Curves
 
 		void Transform(const Transform2D& transform) override;
 
+		AxisAlignedBoundingBox2D GetBoundingBox() const override;
+
 	private:
 		CityDraft::Vector2D m_Start;
 		CityDraft::Vector2D m_End;

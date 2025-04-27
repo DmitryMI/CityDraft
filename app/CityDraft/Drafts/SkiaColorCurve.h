@@ -9,5 +9,6 @@ namespace CityDraft::Drafts
 	public:
 		using Curve::Curve;
 
+		void SetTransform(const Transform2D& transform) override;
 	};
 }

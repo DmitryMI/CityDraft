@@ -61,5 +61,11 @@ namespace CityDraft::Curves
 		/// </summary>
 		/// <param name="transform">Transform</param>
 		virtual void Transform(const Transform2D& transform) = 0;
+
+		/// <summary>
+		/// Gets bounding box
+		/// </summary>
+		/// <returns>Bounding box</returns>
+		virtual AxisAlignedBoundingBox2D GetBoundingBox() const = 0;
 	};
 }
