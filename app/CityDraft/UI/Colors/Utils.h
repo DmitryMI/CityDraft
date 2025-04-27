@@ -10,7 +10,19 @@ namespace CityDraft::UI::Colors
 	{
 	public:
 
-		static QColor ToQColor(const LinearColorF& color);
-		static SkColor ToSkColor(const LinearColorF& color);
+		constexpr static QColor ToQColor(const LinearColorF& color)
+		{
+			return QColor(color.Red<uint8_t>(), color.Green<uint8_t>(), color.Blue<uint8_t>(), color.Alpha<uint8_t>());
+		}
+
+		constexpr static SkColor ToSkColor(const LinearColorF& color)
+		{
+			return SkColorSetARGB(
+				color.Alpha<uint8_t>(),
+				color.Red<uint8_t>(),
+				color.Green<uint8_t>(),
+				color.Blue<uint8_t>()
+			);
+		}
 	};
 }

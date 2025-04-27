@@ -70,7 +70,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_FillColor));
 		PaintCurve(canvas, paint, m_FillWidth, nullptr);
 
-		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor("#000000FF"_frgba));
+		constexpr auto skColor = CityDraft::UI::Colors::Utils::ToSkColor("#000000FF"_frgba);
+		paint.setColor(skColor);
 		PaintCurve(m_MaskCanvas, paint, m_FillWidth, nullptr);
 	}
 
