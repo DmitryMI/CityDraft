@@ -1,4 +1,5 @@
 #include "CityDraft/Curves/LineSegment.h"
+#include <cmath>
 
 namespace CityDraft::Curves
 {
@@ -83,17 +84,26 @@ namespace CityDraft::Curves
 
 	void LineSegment::Transform(const Transform2D& transform)
 	{
-		Vector2D center = (m_End + m_Start) / 2;
 		std::array<Vector2D, 2> points{m_Start, m_End};
 		for(Vector2D& point : points)
 		{
-			point = (point - center).ComponentMultiply(transform.Scale) + center;
-			point = (point - center).GetRotated(transform.Rotation) + center;
+			point.ComponentMultiply(transform.Scale);
+			point.Rotate(transform.Rotation);
 			point += transform.Translation;
 		}
 
 		m_Start = points[0];
 		m_End = points[1];
 		m_Length = (m_End - m_Start).GetSize();
+	}
+
+	AxisAlignedBoundingBox2D LineSegment::GetBoundingBox() const
+	{
+		double minX = fmin(m_Start.GetX(), m_End.GetX());
+		double minY = fmin(m_Start.GetY(), m_End.GetY());
+		double maxX = fmax(m_Start.GetX(), m_End.GetX());
+		double maxY = fmax(m_Start.GetY(), m_End.GetY());
+
+		return {{minX, minY}, {maxX, maxY}};
 	}
 }

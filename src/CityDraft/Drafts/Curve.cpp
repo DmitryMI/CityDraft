@@ -54,8 +54,8 @@ namespace CityDraft::Drafts
 
 	AxisAlignedBoundingBox2D Curve::GetAxisAlignedBoundingBox() const
 	{
-		AxisAlignedBoundingBox2D boxDefault{{-50, -50}, {50, 50}};
-		return boxDefault.Transform(GetTransform());
+		BOOST_ASSERT(m_Curve);
+		return m_Curve->GetBoundingBox();
 	}
 
 	void Curve::OnAssetLoaded(Assets::Asset* asset, bool loadingOk)

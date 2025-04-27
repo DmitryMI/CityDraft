@@ -29,6 +29,7 @@ set(AppSources
 	"CityDraft/Assets/SkiaImage.cpp"
 	"CityDraft/Assets/SkiaColorCurve.cpp"
 	"CityDraft/Drafts/SkiaImage.cpp"
+	"CityDraft/Drafts/SkiaColorCurve.cpp"
 	"CityDraft/Input/Factory.cpp"
 	"CityDraft/Input/Instruments/Instrument.cpp"
 	"CityDraft/Input/Instruments/Panner.cpp"
