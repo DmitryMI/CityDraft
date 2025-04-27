@@ -8,6 +8,8 @@
 #include <QIcon>
 #include <QInputDialog>
 #include <QMouseEvent>
+#include <QFile>
+#include <QDir>
 
 using namespace CityDraft::UI;
 
@@ -54,7 +56,9 @@ void LayerItem::onToggleVisibility()
 
 void LayerItem::updateIcon() const
 {
-	QIcon icon = m_Layer->IsVisible() ? QIcon(":/icons/visible.png") : QIcon(":/icons/invisible.png");
+	BOOST_ASSERT(QFile(":/Resources/visible.png").exists());
+	BOOST_ASSERT(QFile(":/Resources/invisible.png").exists());
+	QIcon icon = m_Layer->IsVisible() ? QIcon(":/Resources/visible.png") : QIcon(":/Resources/invisible.png");
 	m_eyeButton->setIcon(icon);
 }
 

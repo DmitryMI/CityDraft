@@ -1,6 +1,6 @@
 <RCC>
-    <qresource prefix="/icons">
-        <file alias="visible.png">C:/Users/DmitriyPC/Downloads/visible.png</file>
-        <file alias="invisible.png">C:/Users/DmitriyPC/Downloads/invisible.png</file>
+    <qresource prefix="/">
+        <file>Resources/visible.png</file>
+        <file>Resources/invisible.png</file>
     </qresource>
 </RCC>

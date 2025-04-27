@@ -39,7 +39,10 @@ set(AppSources
 	"CityDraft/UI/VariantImageButton.cpp"
 	"CityDraft/UI/LayerItem.cpp"
 	"CityDraft/UI/LayersWidget.cpp"
+	"CityDraft/Resources.qrc"
 )
+
+qt_add_resources(AppSources "CityDraft/Resources.qrc")
 
 if(${CITYDRAFT_NO_TERMINAL})
 	qt_add_executable (
@@ -53,8 +56,6 @@ else()
 		${AppSources}
 	)
 endif()
-
-qt_add_resources(${AppName} "Resources.qrc")
 
 target_link_libraries(${AppName} PRIVATE 
     Qt6::Core
