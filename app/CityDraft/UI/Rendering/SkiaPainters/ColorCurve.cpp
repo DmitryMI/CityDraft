@@ -1,6 +1,13 @@
 #include "ColorCurve.h"
 #include "CityDraft/Drafts/Curve.h"
 #include <QColor>
+#include "CityDraft/UI/Colors/Utils.h"
+#include <include/core/SkPath.h>
+#include <include/core/SkSurface.h>
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
+#include <include/encode/SkPngEncoder.h>
+#include <QStandardPaths>
+#include <fstream>
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -10,26 +17,29 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::IWidthProvider* fillWidth,
 		CityDraft::Curves::IWidthProvider* outlineWidth,
 		const LinearColorF& fillColor,
-		const LinearColorF& outlineColor
+		const LinearColorF& outlineColor,
+		SkCanvas* maskCanvas
 	):
 		m_Curve(curve),
 		m_FillWidth(fillWidth),
 		m_OutlineWidth(outlineWidth),
 		m_FillColor(fillColor),
 		m_OutlineColor(outlineColor),
+		m_MaskCanvas(maskCanvas),
 		Asset(Transform2D{})
 	{
 
 	}
 
-	ColorCurve::ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft):
+	ColorCurve::ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft, SkCanvas* maskCanvas):
+		m_MaskCanvas(maskCanvas),
 		Asset(Transform2D{})
 	{
 		BOOST_ASSERT(draft);
 		SetOwner(draft);
 	}
 
-	void ColorCurve::Paint(SkCanvas* canvas)
+	void ColorCurve::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		if(GetOwner())
 		{
@@ -47,25 +57,114 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		BOOST_ASSERT(m_FillWidth);
 		BOOST_ASSERT(m_OutlineWidth);
 
-		for(size_t i = 0; i <= 100; i++)
+		auto matrix = canvas->getLocalToDeviceAs3x3();
+		double zoom = matrix.getScaleX();
+
+		PaintFill(canvas);
+		PaintOutline(renderer, canvas);
+	}
+
+	void ColorCurve::PaintFill(SkCanvas* canvas)
+	{
+		SkPaint paint;
+		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_FillColor));
+		PaintCurve(canvas, paint, m_FillWidth, nullptr);
+
+		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor("#000000FF"_frgba));
+		PaintCurve(m_MaskCanvas, paint, m_FillWidth, nullptr);
+	}
+
+	void ColorCurve::PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	{
+		sk_sp<SkImage> maskImage = m_MaskCanvas->getSurface()->makeImageSnapshot();
+		DebugDumpImage(renderer, maskImage);
+
+		Vector2D rendererCenter = renderer->GetViewportCenter();
+		double rendererScale = renderer->GetViewportZoom();
+		
+		SkRect layerRect = SkRect::MakeXYWH(
+			0,
+			0,
+			renderer->size().width(),
+			renderer->size().height()
+		);
+
+		canvas->saveLayer(layerRect, nullptr);
+		// canvas->sae
+		// canvas->save();
+
+		SkPaint outlinePaint;
+		outlinePaint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_OutlineColor));
+		PaintCurve(canvas, outlinePaint, m_FillWidth, m_OutlineWidth);
+
+		SkPaint maskedPaint;
+		maskedPaint.setBlendMode(SkBlendMode::kDstOut);
+
+		canvas->translate(rendererCenter.GetX(), rendererCenter.GetY());
+		canvas->scale(1 / rendererScale, 1 / rendererScale);
+		canvas->translate(-renderer->size().width() / 2, -renderer->size().height() / 2);
+
+		canvas->drawImage(maskImage, 0, 0, SkSamplingOptions(), &maskedPaint);
+
+		canvas->restore();
+	}
+
+	void ColorCurve::PaintCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB)
+	{
+		size_t segments = 100;
+
+		double width = 0;
+		if(widthA)
 		{
-			double t = i / 100.0;
+			width += widthA->GetWidth(0);
+		}
+		if(widthB)
+		{
+			width += widthB->GetWidth(0);
+		}
+
+		paint.setStrokeWidth(width);
+		paint.setStyle(SkPaint::kStroke_Style);
+
+		paint.setAntiAlias(true);
+		SkPath path;
+		Vector2D start = m_Curve->GetPoint(0);
+		path.moveTo(start.GetX(), start.GetY());
+		for(size_t i = 1; i <= segments; i++)
+		{
+			double t = (double)i / segments;
 			Vector2D point = m_Curve->GetPoint(t);
 
-			SkColor skColor = SkColorSetARGB(
-				m_FillColor.Alpha<uint8_t>(),
-				m_FillColor.Red<uint8_t>(),
-				m_FillColor.Green<uint8_t>(),
-				m_FillColor.Blue<uint8_t>()
-			);
-
-			SkPaint paint;
-			paint.setAntiAlias(true);
-			paint.setColor(skColor);
-			paint.setStyle(SkPaint::kFill_Style);
-
-			canvas->drawCircle(point.GetX(), point.GetY(), m_FillWidth->GetWidth(m_Curve->GetLength(t)), paint);
+			path.lineTo(point.GetX(), point.GetY());
 		}
+
+		canvas->drawPath(path, paint);
+	}
+
+	void ColorCurve::DebugDumpImage(CityDraft::UI::Rendering::SkiaWidget* renderer, sk_sp<SkImage> image)
+	{
+		BOOST_ASSERT(image);
+		std::filesystem::path dir = (QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/debug").toStdString();
+
+		std::filesystem::path path = dir / std::format("CurveMask-{}.png", GetOwner()->GetName());
+		if(std::filesystem::exists(path))
+		{
+			return;
+		}
+
+		std::filesystem::create_directories(path.parent_path());
+
+		sk_sp<SkData> pngData = SkPngEncoder::Encode(
+			renderer->GetDirectContext().get(),
+			image.get(),
+			SkPngEncoder::Options()
+		);
+
+		BOOST_ASSERT(pngData);
+
+		// Write to file
+		std::ofstream file(path, std::ios::binary);
+		file.write((const char*)pngData->data(), pngData->size());
 	}
 
 }
