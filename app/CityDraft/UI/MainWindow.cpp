@@ -39,7 +39,8 @@
 #include "ImageSelectionWidget.h"
 #include "Rendering/SkiaWidget.h"
 
-namespace CityDraft::UI {
+namespace CityDraft::UI
+{
 
 	MainWindow::MainWindow(const QString& assetsRoot, const QString& scenePath, QWidget* parent) :
 		QMainWindow(parent),
@@ -65,8 +66,8 @@ namespace CityDraft::UI {
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.20),
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.70),
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.10)
+				});
 			});
-		});
 
 		m_Logger->info("MainWindow created");
 	}

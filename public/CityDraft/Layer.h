@@ -60,7 +60,7 @@ namespace CityDraft
 		{
 			m_ZOrder = zOrder;
 		}
-		
+
 	private:
 		std::string m_Name = "";
 		bool m_IsVisible = true;
