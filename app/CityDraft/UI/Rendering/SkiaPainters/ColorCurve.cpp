@@ -89,9 +89,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			renderer->size().height()
 		);
 
-		canvas->saveLayer(layerRect, nullptr);
-		// canvas->sae
-		// canvas->save();
+		canvas->saveLayer(nullptr, nullptr);
 
 		SkPaint outlinePaint;
 		outlinePaint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_OutlineColor));
