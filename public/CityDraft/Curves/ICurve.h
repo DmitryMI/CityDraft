@@ -3,10 +3,11 @@
 #include "CityDraft/Vector2D.h"
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Transform2D.h"
+#include "CityDraft/Serialization/ISerializable.h"
 
 namespace CityDraft::Curves
 {
-	class ICurve
+	class ICurve : public CityDraft::Serialization::ISerializable
 	{
 	public:
 		virtual ~ICurve() = default;
@@ -67,5 +68,14 @@ namespace CityDraft::Curves
 		/// </summary>
 		/// <returns>Bounding box</returns>
 		virtual AxisAlignedBoundingBox2D GetBoundingBox() const = 0;
+
+		// ISerializable
+		virtual void Serialize(CityDraft::Serialization::IOutputArchive& archive) const = 0;
+		virtual void Deserialize(CityDraft::Serialization::IInputArchive& archive) = 0;
+
+		virtual std::string GetCurveTypeName() const = 0;
 	};
+
+	
+
 }

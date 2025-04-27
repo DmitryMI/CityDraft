@@ -1,4 +1,5 @@
 #include "CityDraft/Drafts/Curve.h"
+#include "CityDraft/Curves/Factory.h"
 
 namespace CityDraft::Drafts
 {
@@ -62,5 +63,22 @@ namespace CityDraft::Drafts
 	{
 	}
 
+	void Curve::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
+	{
+		Draft::Serialize(archive);
+		archive << m_Curve->GetCurveTypeName();
+		archive << *m_Curve;
+	}
+
+	void Curve::Deserialize(CityDraft::Serialization::IInputArchive& archive)
+	{
+		Draft::Deserialize(archive);
+
+		std::string curveTypeName;
+		archive >> curveTypeName;
+		m_Curve = CityDraft::Curves::Factory::GetInstance().Create(curveTypeName);
+		BOOST_ASSERT(m_Curve);
+		archive >> *m_Curve;
+	}
 
 }

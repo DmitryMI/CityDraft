@@ -32,6 +32,10 @@ namespace CityDraft::Drafts
 		AxisAlignedBoundingBox2D GetAxisAlignedBoundingBox() const override;
 		void OnAssetLoaded(Assets::Asset* asset, bool loadingOk) override;
 
+		// ISerializable
+		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
+		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
+
 	protected:
 		std::shared_ptr<CityDraft::Curves::ICurve> m_Curve;
 		std::shared_ptr<CityDraft::Curves::IWidthProvider> m_FillWidth;
