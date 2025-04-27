@@ -1,5 +1,7 @@
 #include "CityDraft/Curves/LineSegment.h"
 #include <cmath>
+#include "CityDraft/Serialization/IArchive.h"
+#include <boost/type_index.hpp>
 
 namespace CityDraft::Curves
 {
@@ -106,4 +108,18 @@ namespace CityDraft::Curves
 
 		return {{minX, minY}, {maxX, maxY}};
 	}
+
+	void LineSegment::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
+	{
+		archive << m_Start;
+		archive << m_End;
+	}
+
+	void LineSegment::Deserialize(CityDraft::Serialization::IInputArchive& archive)
+	{
+		archive >> m_Start;
+		archive >> m_End;
+		m_Length = (m_End - m_Start).GetSize();
+	}
+
 }

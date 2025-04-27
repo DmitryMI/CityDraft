@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ICurve.h"
+#include "Factory.h"
 
 namespace CityDraft::Curves
 {
@@ -38,9 +39,16 @@ namespace CityDraft::Curves
 
 		AxisAlignedBoundingBox2D GetBoundingBox() const override;
 
+		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
+		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
+
 	private:
 		CityDraft::Vector2D m_Start;
 		CityDraft::Vector2D m_End;
 		double m_Length;
+
+		REGISTER_CURVE_TYPE(LineSegment)
 	};
+
+	
 }
