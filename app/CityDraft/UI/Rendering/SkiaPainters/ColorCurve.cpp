@@ -77,17 +77,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	void ColorCurve::PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		sk_sp<SkImage> maskImage = m_MaskCanvas->getSurface()->makeImageSnapshot();
-		DebugDumpImage(renderer, maskImage);
 
 		Vector2D rendererCenter = renderer->GetViewportCenter();
 		double rendererScale = renderer->GetViewportZoom();
-		
-		SkRect layerRect = SkRect::MakeXYWH(
-			0,
-			0,
-			renderer->size().width(),
-			renderer->size().height()
-		);
 
 		canvas->saveLayer(nullptr, nullptr);
 
@@ -160,7 +152,6 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 		BOOST_ASSERT(pngData);
 
-		// Write to file
 		std::ofstream file(path, std::ios::binary);
 		file.write((const char*)pngData->data(), pngData->size());
 	}
