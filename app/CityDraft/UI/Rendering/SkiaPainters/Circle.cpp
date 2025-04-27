@@ -12,7 +12,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		
 	}
 
-	void Circle::Paint(SkCanvas* canvas)
+	void Circle::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		SkColor skColor = CityDraft::UI::Colors::Utils::ToSkColor(m_Color);
 

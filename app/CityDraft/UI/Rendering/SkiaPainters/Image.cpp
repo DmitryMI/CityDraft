@@ -11,7 +11,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	}
 
-	void Image::Paint(SkCanvas* canvas)
+	void Image::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		if(m_Owner)
 		{

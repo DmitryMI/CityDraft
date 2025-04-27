@@ -49,7 +49,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	}
 
-	void Rect::Paint(SkCanvas* canvas)
+	void Rect::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		double rectWidth = m_Max.GetX() - m_Min.GetX();
 		double rectHeight = m_Max.GetY() - m_Min.GetY();

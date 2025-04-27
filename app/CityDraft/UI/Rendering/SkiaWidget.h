@@ -1,11 +1,14 @@
 #pragma once
 
-#include <GL/gl.h>
+
 #include <include/core/SkCanvas.h>
 #include <include/core/SkRefCnt.h>
 #include <memory>
 #include <qevent.h>
-#include <qopenglext.h>
+#include <include/core/SkSurface.h>
+#include <include/gpu/ganesh/GrBackendSurface.h>
+#include <include/gpu/ganesh/GrDirectContext.h>
+#include <include/gpu/ganesh/gl/GrGLInterface.h>
 #include <qopenglextrafunctions.h>
 #include <qopenglwidget.h>
 #include <qpoint.h>
@@ -23,10 +26,10 @@
 #include "CityDraft/Vector2D.h"
 #include "IRenderer.h"
 #include "SkiaPainters/Painter.h"
-#include "include/core/SkSurface.h"
-#include "include/gpu/ganesh/GrBackendSurface.h"
-#include "include/gpu/ganesh/GrDirectContext.h"
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
+
+// Must be included last and in this order
+#include <GL/gl.h>
+#include <qopenglext.h>
 
 namespace CityDraft::UI::Rendering
 {
@@ -94,6 +97,8 @@ namespace CityDraft::UI::Rendering
 		void keyPressEvent(QKeyEvent* event) override;
 
 		// Drawing
+		void CanvasStart(SkCanvas* canvas, const SkColor& clearColor);
+		void CanvasEnd(SkCanvas* canvas);
 		void PaintScene();
 		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
 		std::shared_ptr<SkiaPainters::Painter> CreatePainter(CityDraft::Drafts::Draft* draft, const Transform2D& transform);
@@ -106,10 +111,13 @@ namespace CityDraft::UI::Rendering
 		// Skia
 		sk_sp<const GrGLInterface> m_GrInterface = nullptr;
 		sk_sp<GrDirectContext> m_GrContext = nullptr;
-		sk_sp<SkSurface> m_SkSurface = nullptr;
-		sk_sp<SkSurface> m_CurveMaskSurface = nullptr;
-		SkCanvas* m_Canvas = nullptr;
 		GrBackendRenderTarget m_BackendRenderTarget;
+		sk_sp<SkSurface> m_SkSurface = nullptr;
+		SkCanvas* m_Canvas = nullptr;
+		
+		GrBackendRenderTarget m_CurveMaskRenderTarget;
+		sk_sp<SkSurface> m_CurveMaskSurface = nullptr;
+		SkCanvas* m_CurveMaskCanvas = nullptr;
 
 		QOpenGLExtraFunctions m_GlFuncs;
 		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;

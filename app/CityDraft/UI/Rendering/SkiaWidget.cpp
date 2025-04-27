@@ -217,13 +217,15 @@ namespace CityDraft::UI::Rendering
 
 		m_BackendRenderTarget = CreateRenderTarget(w, h);
 		m_SkSurface = CreateSurface(m_BackendRenderTarget);
-
-		if (!m_SkSurface)
-		{
-			m_SkiaLogger->critical("Failed to create m_SkSurface");
-		}
-
+		BOOST_ASSERT(m_SkSurface);
 		m_Canvas = m_SkSurface->getCanvas();
+		BOOST_ASSERT(m_Canvas);
+
+		m_CurveMaskRenderTarget = CreateRenderTarget(w, h);
+		m_CurveMaskSurface = CreateSurface(m_CurveMaskRenderTarget);
+		BOOST_ASSERT(m_CurveMaskSurface);
+		m_CurveMaskCanvas = m_CurveMaskSurface->getCanvas();
+		BOOST_ASSERT(m_CurveMaskCanvas);
 	}
 
 	void SkiaWidget::paintGL()
@@ -242,11 +244,8 @@ namespace CityDraft::UI::Rendering
 
 		m_GrContext->resetContext(kAll_GrBackendState);
 
-		m_Canvas->clear(SK_ColorTRANSPARENT);
-		m_Canvas->save();
-		m_Canvas->translate(size().width() / 2, size().height() / 2);
-		m_Canvas->scale(m_ViewportZoom, m_ViewportZoom);
-		m_Canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
+		CanvasStart(m_Canvas, SK_ColorTRANSPARENT);
+		CanvasStart(m_CurveMaskCanvas, SK_ColorTRANSPARENT);
 
 		PaintScene();
 
@@ -254,14 +253,16 @@ namespace CityDraft::UI::Rendering
 		{
 			auto painter = m_QueuedPainters.front();
 			m_QueuedPainters.pop();
-			painter->Paint(m_Canvas);
+			painter->Paint(this, m_Canvas);
 		}
 
 		emit GraphicsPainting(this);
 
 		m_IsGlPainting = false;
 		m_GrContext->flushAndSubmit(m_SkSurface.get());
-		m_Canvas->restore();
+
+		CanvasEnd(m_CurveMaskCanvas);
+		CanvasEnd(m_Canvas);
 	}
 
 	GrBackendRenderTarget SkiaWidget::CreateRenderTarget(int w, int h)
@@ -314,6 +315,20 @@ namespace CityDraft::UI::Rendering
 		emit KeyboardEvent(event);
 	}
 
+	void SkiaWidget::CanvasStart(SkCanvas* canvas, const SkColor& clearColor)
+	{
+		canvas->clear(clearColor);
+		canvas->save();
+		canvas->translate(size().width() / 2, size().height() / 2);
+		canvas->scale(m_ViewportZoom, m_ViewportZoom);
+		canvas->translate(-m_ViewportCenter.GetX(), -m_ViewportCenter.GetY());
+	}
+
+	void SkiaWidget::CanvasEnd(SkCanvas * canvas)
+	{
+		canvas->restore();
+	}
+
 	void SkiaWidget::PaintScene()
 	{
 		if (!m_Scene)
@@ -363,7 +378,7 @@ namespace CityDraft::UI::Rendering
 	{
 		if (m_IsGlPainting)
 		{
-			painter->Paint(m_Canvas);
+			painter->Paint(this, m_Canvas);
 		}
 		else
 		{
@@ -379,7 +394,7 @@ namespace CityDraft::UI::Rendering
 		}
 		else if(auto* colorCurve = dynamic_cast<CityDraft::Drafts::SkiaColorCurve*>(draft))
 		{
-			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve);
+			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve, m_CurveMaskCanvas);
 		}
 
 		BOOST_ASSERT(false);
