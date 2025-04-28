@@ -22,11 +22,7 @@ CityDraft::UI::LayersWidget::LayersWidget(Scene* scene, QWidget* parent):
 	m_LayerRemovedConnection = scene->ConnectToLayerRemoved(std::bind(&LayersWidget::OnSceneLayerRemoved, this, std::placeholders::_1));
 	m_LayerZChangedConnection = scene->ConnectToLayerZChanged(std::bind(&LayersWidget::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-	for(const auto& layer : scene->GetLayers())
-	{
-		OnSceneLayerAdded(layer.get());
-	}
-	// Sorting not required, since Scene::GetLayers() ensures Z-decreasing order.
+	LoadLayersFromScene();
 }
 
 void CityDraft::UI::LayersWidget::addLayer(const QString& layerName)
@@ -41,29 +37,16 @@ CityDraft::UI::LayersWidget::~LayersWidget()
 	m_LayerZChangedConnection.disconnect();
 }
 
-void CityDraft::UI::LayersWidget::SortLayerItems()
+void CityDraft::UI::LayersWidget::LoadLayersFromScene()
 {
-	QList<LayerItem*> layerItemWidgets;
-	for(int i = 0; i < m_layerList->count(); ++i)
+	m_layerList->clear();
+	for(const auto& layer : m_scene->GetLayers())
 	{
-		QWidget* widget = m_layerList->itemWidget(m_layerList->item(i));
-		LayerItem* itemWidget = dynamic_cast<LayerItem*>(widget);
-		layerItemWidgets.append(itemWidget);
-	}
-
-	std::sort(layerItemWidgets.begin(), layerItemWidgets.end(), [this](LayerItem* a, LayerItem* b)
-	{
-		return a->GetLayer()->GetZOrder() > b->GetLayer()->GetZOrder();
-	});
-
-	for(int i = 0; i < m_layerList->count(); ++i)
-	{
-		auto item = m_layerList->item(i);
-		m_layerList->setItemWidget(item, layerItemWidgets[i]);
+		AddLayerToUi(layer.get());
 	}
 }
 
-void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
+void CityDraft::UI::LayersWidget::AddLayerToUi(CityDraft::Layer* layer)
 {
 	QListWidgetItem* listItem = new QListWidgetItem();
 	LayerItem* layerItem = new LayerItem(m_scene, layer, this);
@@ -71,31 +54,21 @@ void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
 	m_layerList->addItem(listItem);
 	m_layerList->setItemWidget(listItem, layerItem);
 	m_layerList->setStyleSheet("QListWidget::item { height: 50px; }");
+}
 
-	SortLayerItems();
+void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
+{
+	LoadLayersFromScene();
 }
 
 void CityDraft::UI::LayersWidget::OnSceneLayerRemoved(CityDraft::Layer* layer)
 {
-	for(size_t i = 0; i < m_layerList->count(); i++)
-	{
-		QListWidgetItem* item = m_layerList->item(i);
-		QWidget* widget = m_layerList->itemWidget(item);
-		LayerItem* layerWidget = dynamic_cast<LayerItem*>(widget);
-		if(layerWidget->GetLayer() == layer)
-		{
-			m_layerList->removeItemWidget(item);
-			delete item;
-			return;
-		}
-	}
-
-	BOOST_ASSERT(false);
+	LoadLayersFromScene();
 }
 
 void CityDraft::UI::LayersWidget::OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ)
 {
-	SortLayerItems();
+	LoadLayersFromScene();
 }
 
 void CityDraft::UI::LayersWidget::onAddLayer()

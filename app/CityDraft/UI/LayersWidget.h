@@ -29,8 +29,8 @@ namespace CityDraft::UI
 		boost::signals2::connection m_LayerRemovedConnection;
 		boost::signals2::connection m_LayerZChangedConnection;
 
-		void SortLayerItems();
-
+		void LoadLayersFromScene();
+		void AddLayerToUi(CityDraft::Layer* layer);
 		void OnSceneLayerAdded(CityDraft::Layer* layer);
 		void OnSceneLayerRemoved(CityDraft::Layer* layer);
 		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
