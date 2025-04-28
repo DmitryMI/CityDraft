@@ -32,6 +32,10 @@ namespace CityDraft
 		using LayerAddedSignal = boost::signals2::signal<LayerAddedFunc>;
 		using LayerZChangedFunc = void(Layer*, int64_t, int64_t);
 		using LayerZChangedSignal = boost::signals2::signal<LayerZChangedFunc>;
+		using LayerNameChangedFunc = void(Layer*, const std::string&, const std::string&);
+		using LayerNameChangedSignal = boost::signals2::signal<LayerNameChangedFunc>;
+		using LayerFlagChangedFunc = void(Layer*);
+		using LayerFlagChangedSignal = boost::signals2::signal<LayerFlagChangedFunc>;
 		using LayerRemovedFunc = void(Layer*);
 		using LayerRemovedSignal = boost::signals2::signal<LayerRemovedFunc>;
 
@@ -82,8 +86,6 @@ namespace CityDraft
 		/// <param name="objPtr">Draft to remove</param>
 		void RemoveDraft(Drafts::Draft* objPtr);
 
-		void AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);
-
 		std::shared_ptr<Layer> AddLayer(std::string_view name, InsertOrder order);
 
 		/// <summary>
@@ -114,6 +116,11 @@ namespace CityDraft
 		/// </summary>
 		void RemoveLayer(Layer* layer);
 
+		void RenameLayer(CityDraft::Layer*, const std::string& name);
+
+		void SetLayerVisibile(CityDraft::Layer*, bool isVisible);
+		void SetLayerLocked(CityDraft::Layer*, bool isLocked);
+
 		inline boost::signals2::connection ConnectToLayerAdded(const LayerAddedSignal::slot_type& slot)
 		{
 			return m_LayerAdded.connect(slot);
@@ -127,6 +134,16 @@ namespace CityDraft
 		inline boost::signals2::connection ConnectToLayerZChanged(const LayerZChangedSignal::slot_type& slot)
 		{
 			return m_LayerZChanged.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToLayerNameChanged(const LayerNameChangedSignal::slot_type& slot)
+		{
+			return m_LayerNameChanged.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToLayerFlagChanged(const LayerFlagChangedSignal::slot_type& slot)
+		{
+			return m_LayerFlagChanged.connect(slot);
 		}
 
 		/// <summary>
@@ -195,12 +212,15 @@ namespace CityDraft
 		
 		LayerAddedSignal m_LayerAdded;
 		LayerZChangedSignal m_LayerZChanged;
+		LayerNameChangedSignal m_LayerNameChanged;
+		LayerFlagChangedSignal m_LayerFlagChanged;
 		LayerRemovedSignal m_LayerRemoved;
 
 		boost::signals2::signal<DraftAddedFunc> m_DraftAdded;
 		boost::signals2::signal<DraftRemovedFunc> m_DraftRemoved;
 
 		bool AddDraft(std::shared_ptr<Drafts::Draft> obj);
+		void AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);
 		void InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj);
 		bool RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj);
 		std::shared_ptr<Drafts::Draft> RemoveObjectFromRtree(Drafts::Draft* obj);

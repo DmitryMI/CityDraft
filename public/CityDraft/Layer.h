@@ -19,23 +19,10 @@ namespace CityDraft
 	class Layer : public Serialization::ISerializable
 	{
 	public:
-		Layer() = default;
-
-		inline Layer(const std::string& name):
-			m_Name(name),
-			m_ZOrder(0)
-		{
-
-		}
-
+		
 		inline bool IsVisible() const
 		{
 			return m_IsVisible;
-		}
-
-		inline void SetVisible(bool visible)
-		{
-			m_IsVisible = visible;
 		}
 
 		inline bool IsLocked() const
@@ -43,24 +30,31 @@ namespace CityDraft
 			return m_IsLocked;
 		}
 
-		inline void SetLocked(bool locked)
-		{
-			m_IsLocked = locked;
-		}
-
 		inline const std::string& GetName() const
 		{
 			return m_Name;
 		}
 
-		inline void SetName(const std::string& name)
-		{
-			m_Name = name;
-		}
-
 		inline int64_t GetZOrder() const
 		{
 			return m_ZOrder;
+		}
+
+	private:
+		std::string m_Name = "";
+		bool m_IsVisible = true;
+		bool m_IsLocked = false;
+		int64_t m_ZOrder = 0;
+
+		std::map<int64_t, CityDraft::Drafts::Draft*> m_Drafts;
+
+		Layer() = default;
+
+		inline Layer(const std::string& name):
+			m_Name(name),
+			m_ZOrder(0)
+		{
+
 		}
 
 		// ISerializable
@@ -80,14 +74,29 @@ namespace CityDraft
 			archive >> m_ZOrder;
 		}
 
-	private:
-		std::string m_Name = "";
-		bool m_IsVisible = true;
-		bool m_IsLocked = false;
-		int64_t m_ZOrder = 0;
-
-		std::map<int64_t, CityDraft::Drafts::Draft*> m_Drafts;
+		static inline std::shared_ptr<Layer> Make(const std::string& name);
+		static inline std::shared_ptr<Layer> Make();
 
 		friend class Scene;
+		struct MakeSharedEnabler;
 	};
+
+	struct Layer::MakeSharedEnabler: public Layer
+	{
+		MakeSharedEnabler(): Layer()
+		{}
+
+		MakeSharedEnabler(const std::string& name): Layer(name)
+		{}
+	};
+
+	std::shared_ptr<Layer> Layer::Make(const std::string& name)
+	{
+		return std::make_shared<MakeSharedEnabler>(name);
+	}
+
+	std::shared_ptr<Layer> Layer::Make()
+	{
+		return std::make_shared<MakeSharedEnabler>();
+	}
 }

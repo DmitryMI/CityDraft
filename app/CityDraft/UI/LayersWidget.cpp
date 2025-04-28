@@ -43,21 +43,11 @@ CityDraft::UI::LayersWidget::~LayersWidget()
 void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
 {
 	QListWidgetItem* listItem = new QListWidgetItem();
-	LayerItem* layerItem = new LayerItem(layer, this);
+	LayerItem* layerItem = new LayerItem(m_scene, layer, this);
 
 	m_layerList->addItem(listItem);
 	m_layerList->setItemWidget(listItem, layerItem);
 	m_layerList->setStyleSheet("QListWidget::item { height: 50px; }");
-
-	connect(layerItem, &LayerItem::removeLayer, this, [this, listItem, layer]()
-	{
-		m_scene->RemoveLayer(layer);
-	});
-
-	connect(layerItem, &LayerItem::layerRenamed, this, [layer](const QString&, const QString& newName)
-	{
-		layer->SetName(newName.toStdString());
-	});
 }
 
 void CityDraft::UI::LayersWidget::OnSceneLayerRemoved(CityDraft::Layer * layer)

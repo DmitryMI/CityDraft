@@ -81,7 +81,7 @@ namespace CityDraft
 
 	std::shared_ptr<Layer> Scene::AddLayer(std::string_view name, InsertOrder order)
 	{
-		std::shared_ptr<Layer> layer = std::make_shared<Layer>(std::string(name));
+		std::shared_ptr<Layer> layer = Layer::Make(std::string(name));
 		AddLayer(layer, order);
 		return layer;
 	}
@@ -117,12 +117,45 @@ namespace CityDraft
 		m_LayerRemoved(layerPtr.get());
 	}
 
+	void Scene::RenameLayer(CityDraft::Layer* layer, const std::string& name)
+	{
+		if(layer->m_Name == name)
+		{
+			return;
+		}
+		std::string oldName = layer->m_Name;
+		layer->m_Name = name;
+		m_LayerNameChanged(layer, oldName, name);
+	}
+
+	void Scene::SetLayerVisibile(CityDraft::Layer* layer, bool isVisible)
+	{
+		if(layer->m_IsVisible == isVisible)
+		{
+			return;
+		}
+
+		layer->m_IsVisible = isVisible;
+		m_LayerFlagChanged(layer);
+	}
+
+	void Scene::SetLayerLocked(CityDraft::Layer* layer, bool isLocked)
+	{
+		if(layer->m_IsLocked == isLocked)
+		{
+			return;
+		}
+
+		layer->m_IsLocked = isLocked;
+		m_LayerFlagChanged(layer);
+	}
+
 	std::shared_ptr<Scene> Scene::NewScene(const std::string& name, std::shared_ptr<Assets::AssetManager> assetManager, std::shared_ptr<spdlog::logger> logger)
 	{
 		std::string nameStr = name;
 		if (nameStr.empty())
 		{
-			nameStr = "New Draft Scene";
+			nameStr = "New Scene";
 		}
 
 		std::shared_ptr<Scene> scene(new Scene(assetManager, logger));
@@ -182,7 +215,7 @@ namespace CityDraft
 		archive >> layersNum;
 		for(size_t i = 0; i < layersNum; i++)
 		{
-			auto layer = std::make_shared<Layer>();
+			std::shared_ptr<Layer> layer = Layer::Make();
 			archive >> *layer;
 			scene->m_Layers[layer->GetZOrder()] = layer;
 		}

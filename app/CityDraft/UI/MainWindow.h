@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CityDraft/Layer.h>
 #include <boost/assert.hpp>
 #include <memory>
 #include <qevent.h>
@@ -15,7 +16,6 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <vector>
-#include "LayersWidget.h"
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/IKeyBindingProvider.h"
@@ -25,6 +25,7 @@
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include "CityDraft/UI/ImageSelectionWidget.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
+#include "LayersWidget.h"
 #include "ui_MainWindow.h"
 
 namespace CityDraft::UI
@@ -56,6 +57,11 @@ namespace CityDraft::UI
 		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
 		std::shared_ptr<CityDraft::Scene> m_Scene;
+		boost::signals2::connection m_LayerAddedConnection;
+		boost::signals2::connection m_LayerRemovedConnection;
+		boost::signals2::connection m_LayerZChangedConnection;
+		boost::signals2::connection m_LayerFlagChangedConnection;
+
 
 		// Config
 		QString m_AssetsRootDirectory;
@@ -72,6 +78,7 @@ namespace CityDraft::UI
 		QUndoStack* m_UndoStack;
 
 		// Initialization helpers
+		void InitializeUiForScene(std::shared_ptr<CityDraft::Scene> scene);
 		void CreateUndoRedoStack(QMenu* menu);
 		void CreateRenderingWidget();
 		void CreateAssetManager(const QString& assetsRoot);
@@ -80,6 +87,7 @@ namespace CityDraft::UI
 		void CreateImageSelectionWidget();
 		void CreateLayersWidget();
 
+		// Instruments
 		void UpdateActiveInstrumentsLabel();
 		void ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed);
 		void ProcessInstrumentsMouseMoveEvent(QMouseEvent* event);
@@ -139,6 +147,12 @@ namespace CityDraft::UI
 		void ActivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 		void DeactivateInstrument(CityDraft::Input::Instruments::Instrument* instrument);
 
+		// Scene signals
+		void OnSceneLayerAdded(CityDraft::Layer* layer);
+		void OnSceneLayerRemoved(CityDraft::Layer* layer);
+		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
+		void OnSceneLayerFlagChanged(CityDraft::Layer* layer);
+
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
 		void OnGraphicsPainting(UI::Rendering::SkiaWidget* widget);
@@ -146,6 +160,7 @@ namespace CityDraft::UI
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnRenderingWidgetMouseWheelEvent(QWheelEvent* event);
 		void OnRenderingWidgetKeyboardEvent(QKeyEvent* event);
+		void OnLayerModified(CityDraft::Layer* layer);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();

@@ -79,6 +79,26 @@ namespace CityDraft::UI
 		// If RenderingWidget is destroyed first, OpenGL context is destroyed before the SkiaImage assets free their GPU textures
 		// This leads to double-freeing of GPU textures by Skia.
 		delete m_ImageSelectionWidget;
+
+		m_LayerAddedConnection.disconnect();
+		m_LayerRemovedConnection.disconnect();
+		m_LayerZChangedConnection.disconnect();
+	}
+
+	void MainWindow::InitializeUiForScene(std::shared_ptr<CityDraft::Scene> scene)
+	{
+		m_Scene = scene;
+		m_UndoStack->clear();
+		m_RenderingWidget->SetScene(scene);
+		m_RenderingWidget->Repaint();
+		CreateInstruments();
+		CreateLayersWidget();
+		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
+
+		m_LayerAddedConnection = m_Scene->ConnectToLayerAdded(std::bind(&MainWindow::OnSceneLayerAdded, this, std::placeholders::_1));
+		m_LayerRemovedConnection = m_Scene->ConnectToLayerRemoved(std::bind(&MainWindow::OnSceneLayerRemoved, this, std::placeholders::_1));
+		m_LayerZChangedConnection = m_Scene->ConnectToLayerZChanged(std::bind(&MainWindow::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&MainWindow::OnSceneLayerFlagChanged, this, std::placeholders::_1));
 	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
@@ -350,6 +370,30 @@ namespace CityDraft::UI
 		UpdateActiveInstrumentsLabel();
 	}
 
+	void MainWindow::OnSceneLayerAdded(CityDraft::Layer* layer)
+	{
+		BOOST_ASSERT(m_RenderingWidget);
+		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneLayerRemoved(CityDraft::Layer* layer)
+	{
+		BOOST_ASSERT(m_RenderingWidget);
+		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ)
+	{
+		BOOST_ASSERT(m_RenderingWidget);
+		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneLayerFlagChanged(CityDraft::Layer* layer)
+	{
+		BOOST_ASSERT(m_RenderingWidget);
+		m_RenderingWidget->Repaint();
+	}
+
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
 	{
 		return m_SelectedDrafts;
@@ -418,6 +462,12 @@ namespace CityDraft::UI
 		ProcessInstrumentsKeyboardEvent(event);
 	}
 
+	void MainWindow::OnLayerModified(CityDraft::Layer* layer)
+	{
+		BOOST_ASSERT(m_RenderingWidget);
+		m_RenderingWidget->Repaint();
+	}
+
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
 	{
 		BOOST_ASSERT(instrument);
@@ -456,12 +506,7 @@ namespace CityDraft::UI
 			return;
 		}
 
-		m_UndoStack->clear();
-		m_Scene = sceneOpened;
-		m_ScenePath = filename;
-		m_RenderingWidget->SetScene(m_Scene);
-		CreateInstruments();
-		CreateLayersWidget();
+		InitializeUiForScene(sceneOpened);
 	}
 
 	void MainWindow::OnNewSceneClicked()
@@ -469,11 +514,9 @@ namespace CityDraft::UI
 		m_UndoStack->clear();
 		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
 		m_Scene = Scene::NewScene("New Scene", m_AssetManager, sceneLogger);
+		
 		m_ScenePath = "";
-		m_RenderingWidget->SetScene(m_Scene);
-		m_RenderingWidget->Repaint();
-		CreateInstruments();
-		CreateLayersWidget();
+		InitializeUiForScene(m_Scene);
 	}
 
 	void MainWindow::OnSaveSceneAsClicked()
@@ -508,22 +551,20 @@ namespace CityDraft::UI
 		CreateImageSelectionWidget();
 
 		const auto sceneLogger = Logging::LogManager::CreateLogger("Scene");
+		std::shared_ptr<CityDraft::Scene> scene;
 		if (!m_ScenePath.isEmpty())
 		{
 			std::filesystem::path scenePath = m_ScenePath.toStdString();
-			m_Scene = Scene::LoadFromFile(scenePath, m_AssetManager, sceneLogger);
+			scene = Scene::LoadFromFile(scenePath, m_AssetManager, sceneLogger);
 		}
 
 		if (!m_Scene)
 		{
-			m_Scene = Scene::NewScene("New Scene", m_AssetManager, sceneLogger);
+			scene = Scene::NewScene("New Scene", m_AssetManager, sceneLogger);
 		}
 
-		BOOST_ASSERT(m_Scene);
-		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
-		m_RenderingWidget->SetScene(m_Scene);
-		CreateInstruments();
-		CreateLayersWidget();
+		BOOST_ASSERT(scene);
+		InitializeUiForScene(scene);
 	}
 
 }

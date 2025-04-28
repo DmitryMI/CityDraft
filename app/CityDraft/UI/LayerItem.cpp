@@ -13,11 +13,16 @@
 
 using namespace CityDraft::UI;
 
-LayerItem::LayerItem(CityDraft::Layer* layer, QWidget* parent): 
+LayerItem::LayerItem(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent):
 	QWidget(parent),
+	m_Scene(scene),
 	m_Layer(layer)
 {
+	BOOST_ASSERT(scene);
 	BOOST_ASSERT(layer);
+
+	m_LayerRenamedConnection = m_Scene->ConnectToLayerNameChanged(std::bind(&LayerItem::OnLayerRenamed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+	m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&LayerItem::OnLayerFlagChanged, this, std::placeholders::_1));
 
 	m_label = new QLabel(QString::fromStdString(layer->GetName()), this);
 	m_label->installEventFilter(this);
@@ -33,7 +38,7 @@ LayerItem::LayerItem(CityDraft::Layer* layer, QWidget* parent):
 	connect(m_eyeButton, &QPushButton::clicked, this, &LayerItem::onToggleVisibility);
 	connect(m_removeButton, &QPushButton::clicked, this, [this]()
 		{
-			emit removeLayer(m_Layer);
+			m_Scene->RemoveLayer(m_Layer);
 		});
 
 	auto layout = new QHBoxLayout(this);
@@ -45,12 +50,35 @@ LayerItem::LayerItem(CityDraft::Layer* layer, QWidget* parent):
 	setLayout(layout);
 }
 
+CityDraft::UI::LayerItem::~LayerItem()
+{
+	m_LayerRenamedConnection.disconnect();
+	m_LayerFlagChangedConnection.disconnect();
+}
 
 void LayerItem::onToggleVisibility()
 {
 	bool visibleOld = m_Layer->IsVisible();
 	bool visibleNew = !visibleOld;
-	m_Layer->SetVisible(visibleNew);
+	m_Scene->SetLayerVisibile(m_Layer, visibleNew);
+}
+
+void CityDraft::UI::LayerItem::OnLayerRenamed(CityDraft::Layer* layer, const std::string& nameOld, const std::string& nameNew)
+{
+	if(layer != m_Layer)
+	{
+		return;
+	}
+
+	m_label->setText(QString::fromStdString(nameNew));
+}
+
+void CityDraft::UI::LayerItem::OnLayerFlagChanged(CityDraft::Layer* layer)
+{
+	if(layer != m_Layer)
+	{
+		return;
+	}
 	updateIcon();
 }
 
@@ -64,8 +92,7 @@ void LayerItem::updateIcon() const
 
 void LayerItem::setVisibleState(bool visible)
 {
-	m_Layer->SetVisible(visible);
-	updateIcon();
+	m_Scene->SetLayerVisibile(m_Layer, visible);
 }
 
 bool LayerItem::eventFilter(QObject* obj, QEvent* event)
@@ -82,8 +109,7 @@ bool LayerItem::eventFilter(QObject* obj, QEvent* event)
 				oldName, &ok);
 			if (ok && !newName.isEmpty() && newName != oldName)
 			{
-				m_label->setText(newName);
-				m_Layer->SetName(newName.toStdString());
+				m_Scene->RenameLayer(m_Layer, newName.toStdString());
 			}
 			return true;
 		}
