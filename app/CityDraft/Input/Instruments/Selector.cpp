@@ -79,7 +79,7 @@ namespace CityDraft::Input::Instruments
 		else
 		{
 			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
-			auto* draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected).get();
+			auto* draft = m_Scene->QueryHighestDraft(cursorProjected, CityDraft::Scene::QueryParams()).get();
 			if (draft != m_DraftUnderCursor)
 			{
 				m_DraftUnderCursor = draft;
@@ -97,7 +97,7 @@ namespace CityDraft::Input::Instruments
 		{
 			std::vector<std::shared_ptr<Drafts::Draft>> drafts;
 			AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
-			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+			m_Scene->QueryDrafts(bbox, CityDraft::Scene::QueryParams(), drafts);
 			for (const auto& draft : drafts)
 			{
 				auto draftBbox = draft->GetAxisAlignedBoundingBox();
@@ -130,7 +130,7 @@ namespace CityDraft::Input::Instruments
 	{
 		size_t draftsNum = drafts.size();
 		AxisAlignedBoundingBox2D bbox = GetProjectedSelectionBox();
-		m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+		m_Scene->QueryDrafts(bbox, CityDraft::Scene::QueryParams(), drafts);
 
 		return drafts.size() - draftsNum;
 	}
@@ -162,12 +162,12 @@ namespace CityDraft::Input::Instruments
 		if (m_IsMultiSelection)
 		{
 			const auto& bbox = GetProjectedSelectionBox();
-			m_Scene->QueryDraftsOnAllLayers(bbox, drafts);
+			m_Scene->QueryDrafts(bbox, CityDraft::Scene::QueryParams(), drafts);
 		}
 		else
 		{
 			Vector2D cursorProjected = m_Renderer->Project(m_LastMousePosition);
-			std::shared_ptr<Drafts::Draft> draft = m_Scene->QueryHighestDraftAllLayers(cursorProjected);
+			std::shared_ptr<Drafts::Draft> draft = m_Scene->QueryHighestDraft(cursorProjected, CityDraft::Scene::QueryParams());
 			if (draft)
 			{
 				drafts.push_back(draft);

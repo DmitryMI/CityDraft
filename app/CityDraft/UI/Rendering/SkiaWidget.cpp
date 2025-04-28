@@ -40,32 +40,10 @@
 #include "SkiaWidget.h"
 #include "CityDraft/Assets/SkiaColorCurve.h"
 #include "CityDraft/Drafts/SkiaImage.h"
+#include "CityDraft/DraftZSortKey.h"
 
 // Must be included the latest, or else does not compile
 #include <GL/gl.h>
-
-struct ZSortKey
-{
-	int64_t LayerZ;
-	int64_t DraftZ;
-	CityDraft::Drafts::Draft* Draft;
-
-	ZSortKey(CityDraft::Drafts::Draft* draft)
-	{
-		LayerZ = draft->GetLayer()->GetZOrder();
-		DraftZ = draft->GetZOrder();
-		Draft = draft;
-	}
-
-	bool operator<(const ZSortKey& other) const
-	{
-		if (LayerZ != other.LayerZ)
-			return LayerZ < other.LayerZ;
-		if (DraftZ != other.DraftZ)
-			return DraftZ < other.DraftZ;
-		return Draft < other.Draft;
-	}
-};
 
 namespace CityDraft::UI::Rendering
 {
@@ -336,10 +314,10 @@ namespace CityDraft::UI::Rendering
 			return;
 		}
 
-		m_ViewportDraftsBuffer.clear();
+		std::set<CityDraft::DraftZSortKey<std::shared_ptr<CityDraft::Drafts::Draft>>> orderedVisibleDrafts;
 
 		auto vieportBox = GetViewportBox();
-		size_t draftsInViewportNum = m_Scene->QueryDraftsOnAllLayers(vieportBox, m_ViewportDraftsBuffer);
+		size_t draftsInViewportNum = m_Scene->QueryDrafts(vieportBox, CityDraft::Scene::QueryParams(), orderedVisibleDrafts);
 
 		m_WidgetLogger->trace("{} drafts inside the viewport box: [({},{}), ({},{})]", draftsInViewportNum,
 			vieportBox.GetMin().GetX(),
@@ -347,15 +325,6 @@ namespace CityDraft::UI::Rendering
 			vieportBox.GetMax().GetX(),
 			vieportBox.GetMax().GetY()
 			);
-
-		std::set<ZSortKey> orderedVisibleDrafts;
-		for (const auto& draftPtr : m_ViewportDraftsBuffer)
-		{
-			if (draftPtr->GetLayer()->IsVisible())
-			{
-				orderedVisibleDrafts.emplace(draftPtr.get());
-			}
-		}
 
 		SkCanvas* canvas = m_SkSurface->getCanvas();
 		BOOST_ASSERT(canvas);
@@ -366,8 +335,8 @@ namespace CityDraft::UI::Rendering
 			auto painter = std::dynamic_pointer_cast<SkiaPainters::Painter>(renderProxy);
 			if(!painter)
 			{
-				painter = CreatePainter(draft.Draft, draft.Draft->GetTransform());
-				painter->SetOwner(draft.Draft);
+				painter = CreatePainter(draft.Draft.get(), draft.Draft->GetTransform());
+				painter->SetOwner(draft.Draft.get());
 				draft.Draft->SetRenderProxy(painter);
 			}
 			PaintOrQueue(painter);

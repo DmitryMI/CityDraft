@@ -1,6 +1,7 @@
 #include "CityDraft/Scene.h"
 #include <algorithm>
 #include "CityDraft/Serialization/BoostArchive.h"
+#include "CityDraft/DraftZSortKey.h"
 
 namespace CityDraft
 {
@@ -114,11 +115,9 @@ namespace CityDraft
 
 	void Scene::RemoveLayer(Layer* layer)
 	{
-		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> drafts;
-		QueryDrafts(layer, drafts);
-		for(const auto draft : drafts)
+		for(const auto draft : layer->m_Drafts)
 		{
-			RemoveDraft(draft.get());
+			RemoveDraft(draft.second);
 		}
 
 		std::shared_ptr<Layer> layerPtr = m_Layers[layer->GetZOrder()]; // To prevent deallocation during m_LayerRemoved execution
@@ -272,13 +271,12 @@ namespace CityDraft
 		return entries.size() - entriesNum;
 	}
 
-	size_t Scene::QueryDrafts(Layer* layer, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts)
+	size_t Scene::QueryDrafts(const QueryParams& params, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts)
 	{
-		BOOST_ASSERT(layer);
 		size_t num = outDrafts.size();
 		for(const auto& pair : m_DraftsRtree)
 		{
-			if(pair.second->GetLayer() == layer)
+			if(SatisfiesQueryParams(pair.second.get(), params))
 			{
 				outDrafts.push_back(pair.second);
 			}
@@ -287,28 +285,65 @@ namespace CityDraft
 		return outDrafts.size() - num;
 	}
 
-	size_t Scene::QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts)
+	size_t Scene::QueryDrafts(const AxisAlignedBoundingBox2D& box, const QueryParams& params, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts)
 	{
-		size_t draftsSize = drafts.size();
+		size_t draftsSize = outDrafts.size();
 		m_DraftsRtree.query(
 			boost::geometry::index::intersects(box.Data),
-			boost::make_function_output_iterator([&drafts](const auto& entry) {drafts.push_back(std::get<1>(entry)); })
+			boost::make_function_output_iterator
+			(
+				[&](const auto& entry) 
+				{
+					if(SatisfiesQueryParams(std::get<1>(entry).get(), params))
+					{
+						outDrafts.push_back(std::get<1>(entry));
+					}
+				}
+			)
 		);
-		return drafts.size() - draftsSize;
+		return outDrafts.size() - draftsSize;
 	}
 
-	std::shared_ptr<Drafts::Draft> Scene::QueryHighestDraftAllLayers(const Vector2D& point)
+	size_t Scene::QueryDrafts(const AxisAlignedBoundingBox2D& box, const QueryParams& params, std::set<CityDraft::DraftZSortKey<std::shared_ptr<Drafts::Draft>>>& outDrafts)
 	{
-		std::set<std::pair<int64_t, std::shared_ptr<Drafts::Draft>>> draftsZOrders;
+		size_t draftsSize = outDrafts.size();
 		m_DraftsRtree.query(
+			boost::geometry::index::intersects(box.Data),
+			boost::make_function_output_iterator
+			(
+			[&](const auto& entry)
+		{
+			if(SatisfiesQueryParams(std::get<1>(entry).get(), params))
+			{
+				auto draftPtr = std::get<1>(entry);
+				outDrafts.emplace(DraftZSortKey(draftPtr));
+			}
+		}
+		)
+		);
+		return outDrafts.size() - draftsSize;
+	}
+
+	std::shared_ptr<Drafts::Draft> Scene::QueryHighestDraft(const Vector2D& point, const QueryParams& params)
+	{
+		std::set<DraftZSortKey<std::shared_ptr<CityDraft::Drafts::Draft>>> draftsZOrders;
+		m_DraftsRtree.query
+		(
 			boost::geometry::index::contains(point.Data),
-			boost::make_function_output_iterator([&draftsZOrders, point](const auto& entry) {
-				std::shared_ptr<Drafts::Draft> draft = std::get<1>(entry);
-				// IsPointInside may be overriden with more precise hit-test
-				if (draft->IsPointInside(point))
+			boost::make_function_output_iterator
+			(
+				[&](const auto& entry)
 				{
-					draftsZOrders.insert(std::make_pair(draft->m_ZOrder, draft));
-				}
+					std::shared_ptr<Drafts::Draft> draft = std::get<1>(entry);
+					if(!SatisfiesQueryParams(draft.get(), params))
+					{
+						return;
+					}
+
+					if (draft->IsPointInside(point))
+					{
+						draftsZOrders.insert(DraftZSortKey(draft));
+					}
 				}
 			)
 		);
@@ -318,7 +353,7 @@ namespace CityDraft
 			return nullptr;
 		}
 
-		return draftsZOrders.rbegin()->second;
+		return draftsZOrders.rbegin()->Draft;
 	}
 
 	bool Scene::AddDraft(std::shared_ptr<Drafts::Draft> obj)
@@ -411,5 +446,21 @@ namespace CityDraft
 			archive << url;
 			archive << *draftEntry.second;
 		}
+	}
+
+	bool Scene::SatisfiesQueryParams(CityDraft::Drafts::Draft* draft, const QueryParams& params)
+	{
+		BOOST_ASSERT(draft);
+		if(params.Layers.size() != 0 && !params.Layers.contains(draft->GetLayer()))
+		{
+			return false;
+		}
+
+		if(!params.IncludeInvisible && !draft->GetLayer()->IsVisible())
+		{
+			return false;
+		}
+
+		return true;
 	}
 }

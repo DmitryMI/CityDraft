@@ -102,6 +102,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 	void ColorCurve::PaintCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB)
 	{
+		BOOST_ASSERT(canvas);
 		size_t segments = 100;
 
 		double width = 0;

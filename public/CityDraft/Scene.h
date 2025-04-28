@@ -13,6 +13,7 @@
 #include "Assets/AssetManager.h"
 #include <boost/geometry/index/rtree.hpp>
 #include "AxisAlignedBoundingBox2D.h"
+#include "CityDraft/DraftZSortKey.h"
 
 namespace CityDraft
 {
@@ -49,6 +50,19 @@ namespace CityDraft
 			Highest,
 			Lowest,
 			KeepExisting
+		};
+
+		struct QueryParams
+		{
+			/// <summary>
+			/// If non-empty set is specified, will consider Drafts only on these layers.
+			/// </summary>
+			std::set<CityDraft::Layer*> Layers{};
+
+			/// <summary>
+			/// If true, will also consider invisible Drafts.
+			/// </summary>
+			bool IncludeInvisible = false;
 		};
 
 		/// <summary>
@@ -174,22 +188,32 @@ namespace CityDraft
 		/// <returns>Number of found RTree Entries</returns>
 		size_t QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<RTreeValue>& outEntries);
 
-		size_t QueryDrafts(Layer* layer, std::vector<std::shared_ptr<Drafts::Draft>>& outDraft);
+		/// <summary>
+		/// Looks for Drafts globally.
+		/// </summary>
+		/// <param name="params">Query Parameters</param>
+		/// <param name="outDrafts">Collection to write found Drafts into.</param>
+		/// <returns>Number of found Drafts</returns>
+		size_t QueryDrafts(const QueryParams& params, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts);
 
 		/// <summary>
 		/// Looks for Drafts inside a Bounding Box
 		/// </summary>
 		/// <param name="box">Bounding Box in Scene Coordinates</param>
-		/// <param name="drafts">Collection to write found Drafts into.</param>
+		/// <param name="params">Query Parameters</param>
+		/// <param name="outDrafts">Collection to write found Drafts into.</param>
 		/// <returns>Number of found Drafts</returns>
-		size_t QueryDraftsOnAllLayers(const AxisAlignedBoundingBox2D& box, std::vector<std::shared_ptr<Drafts::Draft>>& drafts);
+		size_t QueryDrafts(const AxisAlignedBoundingBox2D& box, const QueryParams& params, std::vector<std::shared_ptr<Drafts::Draft>>& outDrafts);
+
+		size_t QueryDrafts(const AxisAlignedBoundingBox2D& box, const QueryParams& params, std::set<CityDraft::DraftZSortKey<std::shared_ptr<Drafts::Draft>>>& outDrafts);
 
 		/// <summary>
 		/// Looks for Draft with highest Z-Order that cointains the Point
 		/// </summary>
-		/// <param name="point">Point for hit-test</param>
-		/// <returns>Found Draft or nullptr if point does not hit any draft.</returns>
-		std::shared_ptr<Drafts::Draft> QueryHighestDraftAllLayers(const Vector2D& point);
+		/// <param name="point">Point to hit-test</param>
+		/// <param name="params">Query Parameters</param>
+		/// <returns>Top-level draft satisfying to query parameters or nullptr if no such draft was found.</returns>
+		std::shared_ptr<Drafts::Draft> QueryHighestDraft(const Vector2D& point, const QueryParams& params);
 
 		/// <summary>
 		/// Creates a new Scene with default layers and some additional default setup.
@@ -238,5 +262,7 @@ namespace CityDraft
 		void InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj);
 		bool RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj);
 		std::shared_ptr<Drafts::Draft> RemoveObjectFromRtree(Drafts::Draft* obj);
+
+		bool SatisfiesQueryParams(CityDraft::Drafts::Draft* draft, const QueryParams& params);
 	};
 }
