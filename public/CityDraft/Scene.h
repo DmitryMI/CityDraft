@@ -40,7 +40,9 @@ namespace CityDraft
 		using LayerRemovedSignal = boost::signals2::signal<LayerRemovedFunc>;
 
 		using DraftAddedFunc = void(std::shared_ptr<Drafts::Draft>);
+		using DraftAddedSignal = boost::signals2::signal<DraftAddedFunc>;
 		using DraftRemovedFunc = void(Drafts::Draft*);
+		using DraftRemovedSignal = boost::signals2::signal<DraftRemovedFunc>;
 
 		enum class InsertOrder
 		{
@@ -85,6 +87,16 @@ namespace CityDraft
 		/// </summary>
 		/// <param name="objPtr">Draft to remove</param>
 		void RemoveDraft(Drafts::Draft* objPtr);
+
+		inline boost::signals2::connection ConnectToDraftAdded(const DraftAddedSignal::slot_type& slot)
+		{
+			return m_DraftAdded.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToDraftRemoved(const DraftRemovedSignal::slot_type& slot)
+		{
+			return m_DraftRemoved.connect(slot);
+		}
 
 		std::shared_ptr<Layer> AddLayer(std::string_view name, InsertOrder order);
 
@@ -218,8 +230,8 @@ namespace CityDraft
 		LayerFlagChangedSignal m_LayerFlagChanged;
 		LayerRemovedSignal m_LayerRemoved;
 
-		boost::signals2::signal<DraftAddedFunc> m_DraftAdded;
-		boost::signals2::signal<DraftRemovedFunc> m_DraftRemoved;
+		DraftAddedSignal m_DraftAdded;
+		DraftRemovedSignal m_DraftRemoved;
 
 		bool AddDraft(std::shared_ptr<Drafts::Draft> obj);
 		bool AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);

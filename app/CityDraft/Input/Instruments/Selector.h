@@ -39,5 +39,10 @@ namespace CityDraft::Input::Instruments
 
 		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("Selector"); };
 		void FinishSelection(QMouseEvent* event);
+		
+	private:
+		boost::signals2::connection m_DraftRemovedConnection;
+
+		void OnDraftRemoved(CityDraft::Drafts::Draft* draft);
 	};
 }

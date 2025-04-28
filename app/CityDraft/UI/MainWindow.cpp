@@ -83,6 +83,8 @@ namespace CityDraft::UI
 		m_LayerAddedConnection.disconnect();
 		m_LayerRemovedConnection.disconnect();
 		m_LayerZChangedConnection.disconnect();
+		m_DraftAddedConnection.disconnect();
+		m_DraftRemovedConnection.disconnect();
 	}
 
 	void MainWindow::InitializeUiForScene(std::shared_ptr<CityDraft::Scene> scene)
@@ -99,6 +101,8 @@ namespace CityDraft::UI
 		m_LayerRemovedConnection = m_Scene->ConnectToLayerRemoved(std::bind(&MainWindow::OnSceneLayerRemoved, this, std::placeholders::_1));
 		m_LayerZChangedConnection = m_Scene->ConnectToLayerZChanged(std::bind(&MainWindow::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&MainWindow::OnSceneLayerFlagChanged, this, std::placeholders::_1));
+		m_DraftAddedConnection = m_Scene->ConnectToDraftAdded(std::bind(&MainWindow::OnSceneDraftAdded, this, std::placeholders::_1));
+		m_DraftRemovedConnection = m_Scene->ConnectToDraftRemoved(std::bind(&MainWindow::OnSceneDraftRemoved, this, std::placeholders::_1));
 	}
 
 	void MainWindow::CreateUndoRedoStack(QMenu* menu)
@@ -392,6 +396,17 @@ namespace CityDraft::UI
 	{
 		BOOST_ASSERT(m_RenderingWidget);
 		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft)
+	{
+		
+	}
+
+	void MainWindow::OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft)
+	{
+		size_t num = std::erase_if(m_SelectedDrafts, [draft](const auto& ptr) {return ptr.get() == draft; });
+		m_Logger->info("{} drafts removed from selection due to being removed from scene", num);
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const

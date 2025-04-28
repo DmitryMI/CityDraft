@@ -61,6 +61,8 @@ namespace CityDraft::UI
 		boost::signals2::connection m_LayerRemovedConnection;
 		boost::signals2::connection m_LayerZChangedConnection;
 		boost::signals2::connection m_LayerFlagChangedConnection;
+		boost::signals2::connection m_DraftAddedConnection;
+		boost::signals2::connection m_DraftRemovedConnection;
 
 
 		// Config
@@ -152,6 +154,8 @@ namespace CityDraft::UI
 		void OnSceneLayerRemoved(CityDraft::Layer* layer);
 		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
 		void OnSceneLayerFlagChanged(CityDraft::Layer* layer);
+		void OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft);
+		void OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft);
 
 	private slots:
 		void OnGraphicsInitialized(UI::Rendering::SkiaWidget* widget);
