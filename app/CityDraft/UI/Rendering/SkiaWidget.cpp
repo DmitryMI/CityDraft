@@ -362,13 +362,13 @@ namespace CityDraft::UI::Rendering
 
 		for (const auto& draft : orderedVisibleDrafts)
 		{
-			auto renderProxy = draft.second->GetRenderProxy();
+			auto renderProxy = draft.Draft->GetRenderProxy();
 			auto painter = std::dynamic_pointer_cast<SkiaPainters::Painter>(renderProxy);
 			if(!painter)
 			{
-				painter = CreatePainter(draft.second,draft.second->GetTransform());
-				painter->SetOwner(draft.second);
-				draft.second->SetRenderProxy(painter);
+				painter = CreatePainter(draft.Draft, draft.Draft->GetTransform());
+				painter->SetOwner(draft.Draft);
+				draft.Draft->SetRenderProxy(painter);
 			}
 			PaintOrQueue(painter);
 		}

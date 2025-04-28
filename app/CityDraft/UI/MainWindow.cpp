@@ -407,6 +407,14 @@ namespace CityDraft::UI
 	{
 		size_t num = std::erase_if(m_SelectedDrafts, [draft](const auto& ptr) {return ptr.get() == draft; });
 		m_Logger->info("{} drafts removed from selection due to being removed from scene", num);
+		if (m_SelectedDrafts.size() == 0)
+		{
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+			if (editor->IsActive())
+			{
+				DeactivateInstrument(editor);
+			}
+		}
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
