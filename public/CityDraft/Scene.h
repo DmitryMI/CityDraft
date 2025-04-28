@@ -88,14 +88,16 @@ namespace CityDraft
 
 		std::shared_ptr<Layer> AddLayer(std::string_view name, InsertOrder order);
 
+		bool InsertLayer(std::shared_ptr<Layer> layer);
+
 		/// <summary>
-		/// Returns collection of Layers
+		/// Returns collection of Layers ordered by decreasing Z-order.
 		/// </summary>
 		/// <returns>Layers</returns>
 		inline std::list<std::shared_ptr<Layer>> GetLayers() const
 		{
 			std::list<std::shared_ptr<Layer>> result;
-			std::transform(m_Layers.begin(), m_Layers.end(), std::back_inserter(result), [](auto& pair){return pair.second;});
+			std::transform(m_Layers.rbegin(), m_Layers.rend(), std::back_inserter(result), [](auto& pair){return pair.second;});
 			return result;
 		}
 
@@ -220,7 +222,7 @@ namespace CityDraft
 		boost::signals2::signal<DraftRemovedFunc> m_DraftRemoved;
 
 		bool AddDraft(std::shared_ptr<Drafts::Draft> obj);
-		void AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);
+		bool AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order);
 		void InsertObjectToRtree(std::shared_ptr<Drafts::Draft> obj);
 		bool RemoveObjectFromRtree(std::shared_ptr<Drafts::Draft> obj);
 		std::shared_ptr<Drafts::Draft> RemoveObjectFromRtree(Drafts::Draft* obj);

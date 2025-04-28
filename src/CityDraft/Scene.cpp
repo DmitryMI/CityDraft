@@ -60,7 +60,7 @@ namespace CityDraft
 		m_Logger->debug("{} removed from scene", obj->GetName());
 	}
 
-	void Scene::AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order)
+	bool Scene::AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order)
 	{
 		if(m_Layers.size() == 0)
 		{
@@ -74,9 +74,13 @@ namespace CityDraft
 		{
 			layer->m_ZOrder = m_Layers.begin()->first - 1;
 		}
-		BOOST_ASSERT(!m_Layers.contains(layer->m_ZOrder));
+		if(m_Layers.contains(layer->m_ZOrder))
+		{
+			return false;
+		}
 		m_Layers[layer->m_ZOrder] = layer;
 		m_LayerAdded(layer.get());
+		return true;
 	}
 
 	std::shared_ptr<Layer> Scene::AddLayer(std::string_view name, InsertOrder order)
@@ -84,6 +88,11 @@ namespace CityDraft
 		std::shared_ptr<Layer> layer = Layer::Make(std::string(name));
 		AddLayer(layer, order);
 		return layer;
+	}
+
+	bool Scene::InsertLayer(std::shared_ptr<Layer> layer)
+	{
+		return AddLayer(layer, InsertOrder::KeepExisting);
 	}
 
 	void Scene::SwapLayersZ(Layer* layerA, Layer* layerB)

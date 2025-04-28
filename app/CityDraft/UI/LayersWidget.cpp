@@ -3,7 +3,7 @@
 #include <QListWidgetItem>
 #include "LayerItem.h"
 
-CityDraft::UI::LayersWidget::LayersWidget(Scene* scene, QWidget* parent) :
+CityDraft::UI::LayersWidget::LayersWidget(Scene* scene, QWidget* parent):
 	QWidget(parent), m_layout(new QVBoxLayout(this)),
 	m_layerList(new QListWidget(this)),
 	m_addLayerButton(new QPushButton("Add Layer", this)),
@@ -26,6 +26,7 @@ CityDraft::UI::LayersWidget::LayersWidget(Scene* scene, QWidget* parent) :
 	{
 		OnSceneLayerAdded(layer.get());
 	}
+	// Sorting not required, since Scene::GetLayers() ensures Z-decreasing order.
 }
 
 void CityDraft::UI::LayersWidget::addLayer(const QString& layerName)
@@ -40,6 +41,28 @@ CityDraft::UI::LayersWidget::~LayersWidget()
 	m_LayerZChangedConnection.disconnect();
 }
 
+void CityDraft::UI::LayersWidget::SortLayerItems()
+{
+	QList<LayerItem*> layerItemWidgets;
+	for(int i = 0; i < m_layerList->count(); ++i)
+	{
+		QWidget* widget = m_layerList->itemWidget(m_layerList->item(i));
+		LayerItem* itemWidget = dynamic_cast<LayerItem*>(widget);
+		layerItemWidgets.append(itemWidget);
+	}
+
+	std::sort(layerItemWidgets.begin(), layerItemWidgets.end(), [this](LayerItem* a, LayerItem* b)
+	{
+		return a->GetLayer()->GetZOrder() > b->GetLayer()->GetZOrder();
+	});
+
+	for(int i = 0; i < m_layerList->count(); ++i)
+	{
+		auto item = m_layerList->item(i);
+		m_layerList->setItemWidget(item, layerItemWidgets[i]);
+	}
+}
+
 void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
 {
 	QListWidgetItem* listItem = new QListWidgetItem();
@@ -48,9 +71,11 @@ void CityDraft::UI::LayersWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
 	m_layerList->addItem(listItem);
 	m_layerList->setItemWidget(listItem, layerItem);
 	m_layerList->setStyleSheet("QListWidget::item { height: 50px; }");
+
+	SortLayerItems();
 }
 
-void CityDraft::UI::LayersWidget::OnSceneLayerRemoved(CityDraft::Layer * layer)
+void CityDraft::UI::LayersWidget::OnSceneLayerRemoved(CityDraft::Layer* layer)
 {
 	for(size_t i = 0; i < m_layerList->count(); i++)
 	{
@@ -68,8 +93,9 @@ void CityDraft::UI::LayersWidget::OnSceneLayerRemoved(CityDraft::Layer * layer)
 	BOOST_ASSERT(false);
 }
 
-void CityDraft::UI::LayersWidget::OnSceneLayerZChanged(CityDraft::Layer * layer, int64_t oldZ, int64_t newZ)
+void CityDraft::UI::LayersWidget::OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ)
 {
+	SortLayerItems();
 }
 
 void CityDraft::UI::LayersWidget::onAddLayer()
