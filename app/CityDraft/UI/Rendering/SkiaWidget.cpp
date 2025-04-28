@@ -42,6 +42,29 @@
 // Must be included the latest, or else does not compile
 #include <GL/gl.h>
 
+struct ZSortKey
+{
+	int64_t LayerZ;
+	int64_t DraftZ;
+	CityDraft::Drafts::Draft* Draft;
+
+	ZSortKey(CityDraft::Drafts::Draft* draft)
+	{
+		LayerZ = draft->GetLayer()->GetZOrder();
+		DraftZ = draft->GetZOrder();
+		Draft = draft;
+	}
+
+	bool operator<(const ZSortKey& other) const
+	{
+		if (LayerZ != other.LayerZ)
+			return LayerZ < other.LayerZ;
+		if (DraftZ != other.DraftZ)
+			return DraftZ < other.DraftZ;
+		return Draft < other.Draft;
+	}
+};
+
 namespace CityDraft::UI::Rendering
 {
 	SkiaWidget::SkiaWidget(QWidget* parent) :
@@ -298,10 +321,13 @@ namespace CityDraft::UI::Rendering
 			vieportBox.GetMax().GetY()
 			);
 
-		std::set<std::pair<int, CityDraft::Drafts::Draft*>> orderedVisibleDrafts;
+		std::set<ZSortKey> orderedVisibleDrafts;
 		for (const auto& draftPtr : m_ViewportDraftsBuffer)
 		{
-			orderedVisibleDrafts.emplace(draftPtr->GetZOrder(), draftPtr.get());
+			if (draftPtr->GetLayer()->IsVisible())
+			{
+				orderedVisibleDrafts.emplace(draftPtr.get());
+			}
 		}
 
 		SkCanvas* canvas = m_SkSurface->getCanvas();
@@ -309,7 +335,7 @@ namespace CityDraft::UI::Rendering
 
 		for (const auto& draft : orderedVisibleDrafts)
 		{
-			Paint(draft.second->GetAsset(), draft.second->GetTransform());
+			Paint(draft.Draft->GetAsset(), draft.Draft->GetTransform());
 		}
 	}
 

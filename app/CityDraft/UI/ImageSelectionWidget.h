@@ -4,15 +4,10 @@
 
 #pragma once
 
-#include <QPushButton>
-#include <QScrollArea>
-#include <QSignalMapper>
-#include <QVBoxLayout>
 #include <complex.h>
 #include <qgridlayout.h>
 #include <qtimer.h>
 #include <qpushbutton.h>
-#include "CityDraft/Assets/AssetManager.h"
 #include "CityDraft/Assets/Image.h"
 #include "CityDraft/Assets/ImageVariantGroup.h"
 
@@ -23,7 +18,6 @@ namespace CityDraft::Assets
 
 namespace CityDraft::UI
 {
-
 	class ImageSelectionWidget final : public QWidget
 	{
 		Q_OBJECT
@@ -51,7 +45,5 @@ namespace CityDraft::UI
 
 	private slots:
 		void OnResizeFinished();
-
 	};
-
 }

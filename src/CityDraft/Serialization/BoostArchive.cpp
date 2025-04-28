@@ -11,6 +11,12 @@ namespace CityDraft::Serialization
 	{
 	}
 
+	IInputArchive& BoostInputArchive::operator>>(bool& value)
+	{
+		m_InArchive >> value;
+		return *this;
+	}
+
 	IInputArchive& BoostInputArchive::operator>>(int32_t& value)
 	{
 		m_InArchive >> value;
@@ -77,12 +83,18 @@ namespace CityDraft::Serialization
 	{
 	}
 
-	IOutputArchive& BoostOutputArchive::operator<<(int32_t value)
+	IOutputArchive& BoostOutputArchive::operator<<(bool value)
 	{
 		m_OutArchive << value;
 		return *this;
 	}
 
+	IOutputArchive& BoostOutputArchive::operator<<(int32_t value)
+	{
+		m_OutArchive << value;
+		return *this;
+	}
+	
 	IOutputArchive& BoostOutputArchive::operator<<(int64_t value)
 	{
 		m_OutArchive << value;

@@ -15,10 +15,13 @@ namespace CityDraft::Input::Instruments
 		Instrument(dependencies)
 	{
 		GetLogger()->debug("Created");
+
+		m_DraftRemovedConnection = dependencies.Scene->ConnectToDraftRemoved(std::bind(&Selector::OnDraftRemoved, this, std::placeholders::_1));
 	}
 
 	Selector::~Selector()
 	{
+		m_DraftRemovedConnection.disconnect();
 		GetLogger()->debug("Destroyed");
 	}
 
@@ -176,5 +179,13 @@ namespace CityDraft::Input::Instruments
 			m_SelectionManager->ClearSelectedDrafts();
 		}
 		m_SelectionManager->AddDraftsToSelection(drafts);
+	}
+
+	void Selector::OnDraftRemoved(CityDraft::Drafts::Draft* draft)
+	{
+		if(m_DraftUnderCursor == draft)
+		{
+			m_DraftUnderCursor = nullptr;
+		}
 	}
 }

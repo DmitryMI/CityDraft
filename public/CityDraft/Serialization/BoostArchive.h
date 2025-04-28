@@ -16,6 +16,7 @@ namespace CityDraft::Serialization
 	public:
 		BoostInputArchive(const std::filesystem::path& path);
 
+		IInputArchive& operator>>(bool& value) override;
 		IInputArchive& operator>>(int32_t& value) override;
 		IInputArchive& operator>>(int64_t& value) override;
 		IInputArchive& operator>>(size_t& value) override;
@@ -36,6 +37,7 @@ namespace CityDraft::Serialization
 	public:
 		BoostOutputArchive(const std::filesystem::path& path);
 
+		IOutputArchive& operator<<(bool value) override;
 		IOutputArchive& operator<<(int32_t value) override;
 		IOutputArchive& operator<<(int64_t value) override;
 		IOutputArchive& operator<<(size_t value) override;

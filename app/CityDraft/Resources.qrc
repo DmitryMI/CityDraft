@@ -1,4 +1,6 @@
-﻿<RCC>
-    <qresource prefix="/new/prefix1">
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/visible.png</file>
+        <file>Resources/invisible.png</file>
     </qresource>
 </RCC>

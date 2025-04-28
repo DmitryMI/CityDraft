@@ -61,6 +61,11 @@ namespace CityDraft::Drafts
 			m_Name = name;
 		}
 
+		inline Layer* GetLayer() const
+		{
+			return m_Layer;
+		}
+
 		inline const Vector2D& GetTranslation() const
 		{
 			return m_Transform.Translation;
