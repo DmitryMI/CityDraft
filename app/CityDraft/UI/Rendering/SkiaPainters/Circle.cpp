@@ -1,5 +1,6 @@
 #include "Circle.h"
 #include "CityDraft/UI/Colors/Utils.h"
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -12,8 +13,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		
 	}
 
-	void Circle::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	void Circle::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
+		auto* canvas = renderer->GetPrimaryCanvas();
 		SkColor skColor = CityDraft::UI::Colors::Utils::ToSkColor(m_Color);
 
 		auto matrix = canvas->getLocalToDeviceAs3x3();

@@ -1,5 +1,6 @@
 #include "Rect.h"
 #include "CityDraft/UI/Colors/Utils.h"
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -49,8 +50,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	}
 
-	void Rect::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	void Rect::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
+		SkCanvas* canvas = renderer->GetPrimaryCanvas();
 		double rectWidth = m_Max.GetX() - m_Min.GetX();
 		double rectHeight = m_Max.GetY() - m_Min.GetY();
 		SkRect rect = SkRect::MakeXYWH(m_Min.GetX(), m_Min.GetY(), rectWidth, rectHeight);

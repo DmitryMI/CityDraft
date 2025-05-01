@@ -2,6 +2,7 @@
 
 #include "Image.h"
 #include "CityDraft/Assets/SkiaImage.h"
+#include "CityDraft/UI/Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -11,12 +12,14 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	}
 
-	void Image::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	void Image::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
 		if(m_Owner)
 		{
 			m_Transform = m_Owner->GetTransform();
 		}
+
+		SkCanvas* canvas = renderer->GetPrimaryCanvas();
 
 		canvas->save();
 		canvas->translate(m_Transform.Translation.GetX(), m_Transform.Translation.GetY());

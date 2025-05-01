@@ -54,6 +54,9 @@ namespace CityDraft::UI::Rendering
 
 		void SetScene(std::shared_ptr<CityDraft::Scene> scene);
 
+		SkCanvas* GetPrimaryCanvas() const;
+		SkCanvas* GetMaskCanvas() const;
+
 		// IRenderer
 		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;

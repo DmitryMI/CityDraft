@@ -11,8 +11,6 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	public:
 		inline Asset(const CityDraft::Transform2D& transform) : m_Transform(transform) {};
 
-		virtual void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) = 0;
-
 	protected: 
 		CityDraft::Transform2D m_Transform;
 

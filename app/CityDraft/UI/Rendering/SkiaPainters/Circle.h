@@ -11,7 +11,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	public:
 		Circle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness);
-		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) override;
+		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) override;
 
 	private:
 		Vector2D m_Center;

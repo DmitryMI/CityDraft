@@ -9,7 +9,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	public:
 		Image(CityDraft::Assets::SkiaImage* image, const CityDraft::Transform2D& transform);
-		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) override;
+		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) override;
 
 	private:
 		CityDraft::Assets::SkiaImage* m_Asset;
