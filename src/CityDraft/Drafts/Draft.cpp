@@ -9,6 +9,7 @@ namespace CityDraft::Drafts
 		BOOST_ASSERT(asset);
 
 		m_AssetLoadedConnection = asset->ConnectToAssetLoadedEvent(std::bind(&Draft::OnAssetLoaded, this, std::placeholders::_1, std::placeholders::_2));
+		CreateProperties(m_Properties);
 	}
 
 	Draft::~Draft()
@@ -73,5 +74,12 @@ namespace CityDraft::Drafts
 	int64_t Draft::GetZOrder() const
 	{
 		return m_ZOrder;
+	}
+
+	void Draft::CreateProperties(Properties::Set& properties)
+	{
+		properties.insert(MakePropertyView(std::string_view("Name"), &Draft::GetName, &Draft::SetName));
+		properties.insert(MakePropertyView(std::string_view("Transform"), &Draft::GetTransform, &Draft::SetTransform));
+		properties.insert(MakePropertyView(std::string_view("Z-Order"), &Draft::GetZOrder));
 	}
 }

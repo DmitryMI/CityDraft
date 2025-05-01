@@ -1,16 +1,20 @@
 #pragma once
 
-#include "CityDraft/Transform2D.h"
-#include "CityDraft/Vector2D.h"
+#include <boost/signals2.hpp>
+#include <cstdint>
+#include <memory>
+#include <string>
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Layer.h"
-#include <string>
-#include <memory>
-#include <boost/signals2.hpp>
 #include "CityDraft/Serialization/IArchive.h"
 #include "CityDraft/Serialization/ISerializable.h"
-#include <cstdint>
+#include "CityDraft/Transform2D.h"
+#include "CityDraft/Vector2D.h"
 #include "IRenderProxy.h"
+#include "Properties/Property.h"
+#include "Properties/View.h"
+#include <type_traits>
+#include "CityDraft/Utils/DeduceReturnType.h"
 
 namespace CityDraft
 {
@@ -108,6 +112,11 @@ namespace CityDraft::Drafts
 			m_RenderProxy = renderProxy;
 		}
 
+		inline const Properties::Set& GetProperties() const
+		{
+			return m_Properties;
+		}
+
 		// ISerializable
 		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
@@ -115,16 +124,46 @@ namespace CityDraft::Drafts
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
 
+		virtual void CreateProperties(Properties::Set& properties);
+
+		template<typename Func>
+		auto Bind(Func func)
+		{
+			return std::bind(func, this);
+		}
+
+		template<typename TGetFunc, typename TSetFunc, typename TValidateFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter, TValidateFunc validator)
+		{
+			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, setter, validator);
+		}
+
+		template<typename TGetFunc, typename TSetFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter)
+		{
+			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, setter, nullptr);
+		}
+
+		template<typename TGetFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter)
+		{
+			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, nullptr, nullptr);
+		}
+
 	private:
 		Layer* m_Layer = nullptr;
 		Scene* m_Scene = nullptr;
 		CityDraft::Assets::Asset* m_Asset;
+		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
+		Properties::Set m_Properties;
 		
+		// Persistent fields
 		std::string m_Name{};
 		Transform2D m_Transform{};
 		int64_t m_ZOrder = 0;
-
-		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
 
 		friend class CityDraft::Scene;
 	};
