@@ -2,28 +2,30 @@
 // Created by mariiakorolevaa on 23.04.2025.
 //
 
-#include "LayerItem.h"
+#include "ItemWidget.h"
 #include <qcoreevent.h>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QInputDialog>
 #include <QMouseEvent>
 #include <QFile>
-#include <QDir>
+#include "CityDraft/UI/Layers/RemoveCommand.h"
 
 namespace CityDraft::UI::Layers
 {
 
-	LayerItem::LayerItem(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent):
+	ItemWidget::ItemWidget(CityDraft::Scene* scene, std::shared_ptr<CityDraft::Layer> layer, QUndoStack* undoStack, QWidget* parent):
 		QWidget(parent),
 		m_Scene(scene),
-		m_Layer(layer)
+		m_Layer(layer),
+		m_UndoStack(undoStack)
 	{
-		BOOST_ASSERT(scene);
-		BOOST_ASSERT(layer);
+		BOOST_ASSERT(m_Scene);
+		BOOST_ASSERT(m_Layer);
+		BOOST_ASSERT(m_UndoStack);
 
-		m_LayerRenamedConnection = m_Scene->ConnectToLayerNameChanged(std::bind(&LayerItem::OnLayerRenamed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&LayerItem::OnLayerFlagChanged, this, std::placeholders::_1));
+		m_LayerRenamedConnection = m_Scene->ConnectToLayerNameChanged(std::bind(&ItemWidget::OnLayerRenamed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&ItemWidget::OnLayerFlagChanged, this, std::placeholders::_1));
 
 		m_label = new QLabel(QString::fromStdString(layer->GetName()), this);
 		m_label->installEventFilter(this);
@@ -36,10 +38,11 @@ namespace CityDraft::UI::Layers
 		m_removeButton = new QPushButton("Delete", this);
 		m_removeButton->setFixedSize(50, 24);
 
-		connect(m_eyeButton, &QPushButton::clicked, this, &LayerItem::onToggleVisibility);
+		connect(m_eyeButton, &QPushButton::clicked, this, &ItemWidget::onToggleVisibility);
 		connect(m_removeButton, &QPushButton::clicked, this, [this]()
 		{
-			m_Scene->RemoveLayer(m_Layer);
+			RemoveCommand* command = new RemoveCommand(m_Scene, m_Layer);
+			m_UndoStack->push(command);
 		});
 
 		auto layout = new QHBoxLayout(this);
@@ -51,22 +54,22 @@ namespace CityDraft::UI::Layers
 		setLayout(layout);
 	}
 
-	LayerItem::~LayerItem()
+	ItemWidget::~ItemWidget()
 	{
 		m_LayerRenamedConnection.disconnect();
 		m_LayerFlagChangedConnection.disconnect();
 	}
 
-	void LayerItem::onToggleVisibility()
+	void ItemWidget::onToggleVisibility()
 	{
 		bool visibleOld = m_Layer->IsVisible();
 		bool visibleNew = !visibleOld;
 		m_Layer->SetVisible(visibleNew);
 	}
 
-	void LayerItem::OnLayerRenamed(CityDraft::Layer* layer, const std::string& nameOld, const std::string& nameNew)
+	void ItemWidget::OnLayerRenamed(CityDraft::Layer* layer, const std::string& nameOld, const std::string& nameNew)
 	{
-		if(layer != m_Layer)
+		if(layer != m_Layer.get())
 		{
 			return;
 		}
@@ -74,16 +77,16 @@ namespace CityDraft::UI::Layers
 		m_label->setText(QString::fromStdString(nameNew));
 	}
 
-	void LayerItem::OnLayerFlagChanged(CityDraft::Layer* layer)
+	void ItemWidget::OnLayerFlagChanged(CityDraft::Layer* layer)
 	{
-		if(layer != m_Layer)
+		if(layer != m_Layer.get())
 		{
 			return;
 		}
 		updateIcon();
 	}
 
-	void LayerItem::updateIcon() const
+	void ItemWidget::updateIcon() const
 	{
 		BOOST_ASSERT(QFile(":/Resources/visible.png").exists());
 		BOOST_ASSERT(QFile(":/Resources/invisible.png").exists());
@@ -91,12 +94,12 @@ namespace CityDraft::UI::Layers
 		m_eyeButton->setIcon(icon);
 	}
 
-	void LayerItem::setVisibleState(bool visible)
+	void ItemWidget::setVisibleState(bool visible)
 	{
 		m_Layer->SetVisible(visible);
 	}
 
-	bool LayerItem::eventFilter(QObject* obj, QEvent* event)
+	bool ItemWidget::eventFilter(QObject* obj, QEvent* event)
 	{
 		QString oldName = QString::fromStdString(m_Layer->GetName());
 		if(obj == m_label && event->type() == QEvent::MouseButtonDblClick)

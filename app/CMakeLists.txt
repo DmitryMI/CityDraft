@@ -41,8 +41,8 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/Circle.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/ColorCurve.cpp"
 	"CityDraft/UI/VariantImageButton.cpp"
-	"CityDraft/UI/Layers/LayerItem.cpp"
-	"CityDraft/UI/Layers/LayersWidget.cpp"
+	"CityDraft/UI/Layers/ItemWidget.cpp"
+	"CityDraft/UI/Layers/ListWidget.cpp"
 	"CityDraft/Resources.qrc"
 )
 

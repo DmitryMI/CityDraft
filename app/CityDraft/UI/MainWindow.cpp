@@ -224,7 +224,7 @@ namespace CityDraft::UI
 	{
 		if(!m_LayersWidget)
 		{
-			m_LayersWidget = new Layers::LayersWidget(m_Scene.get(), this);
+			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
 			QSplitter* splitter = m_Ui.rootSplitter;
 			const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
 			QWidget* parent = layersPlaceholder->parentWidget();
@@ -237,7 +237,7 @@ namespace CityDraft::UI
 		{
 			int layersWidgetIndex = m_Ui.rootSplitter->indexOf(m_LayersWidget);
 			delete m_LayersWidget;
-			m_LayersWidget = new Layers::LayersWidget(m_Scene.get(), this);
+			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
 			m_Ui.rootSplitter->insertWidget(layersWidgetIndex, m_LayersWidget);
 		}		
 	}

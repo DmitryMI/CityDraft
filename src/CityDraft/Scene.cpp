@@ -72,10 +72,11 @@ namespace CityDraft
 		{
 			layer->m_ZOrder = m_Layers.rbegin()->first + 1;
 		}
-		else
+		else if(order == InsertOrder::Lowest)
 		{
 			layer->m_ZOrder = m_Layers.begin()->first - 1;
 		}
+
 		if(m_Layers.contains(layer->m_ZOrder))
 		{
 			return false;
@@ -117,7 +118,8 @@ namespace CityDraft
 
 	void Scene::RemoveLayer(Layer* layer)
 	{
-		for(const auto draft : layer->m_Drafts)
+		auto draftsMap = layer->m_Drafts;
+		for(const auto draft : draftsMap)
 		{
 			RemoveDraft(draft.second);
 		}
