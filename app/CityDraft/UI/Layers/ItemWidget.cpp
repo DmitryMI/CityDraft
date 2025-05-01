@@ -14,13 +14,15 @@
 namespace CityDraft::UI::Layers
 {
 
-	ItemWidget::ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent):
+	ItemWidget::ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QUndoStack* undoStack, QWidget* parent):
 		QWidget(parent),
 		m_Scene(scene),
-		m_Layer(layer)
+		m_Layer(layer),
+		m_UndoStack(undoStack)
 	{
-		BOOST_ASSERT(scene);
-		BOOST_ASSERT(layer);
+		BOOST_ASSERT(m_Scene);
+		BOOST_ASSERT(m_Layer);
+		BOOST_ASSERT(m_UndoStack);
 
 		m_LayerRenamedConnection = m_Scene->ConnectToLayerNameChanged(std::bind(&ItemWidget::OnLayerRenamed, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&ItemWidget::OnLayerFlagChanged, this, std::placeholders::_1));

@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <memory>
 #include <QPushButton>
+#include <QUndoStack>
 #include "CityDraft/Scene.h"
 #include "CityDraft/Layer.h"
 #include <boost/signals2/connection.hpp>
@@ -19,7 +20,7 @@ namespace CityDraft::UI::Layers
 		Q_OBJECT
 
 	public:
-		ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent = nullptr);
+		ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QUndoStack* undoStack, QWidget* parent = nullptr);
 		~ItemWidget();
 
 		void setVisibleState(bool visible);
@@ -39,6 +40,7 @@ namespace CityDraft::UI::Layers
 		QPushButton* m_removeButton;
 		CityDraft::Scene* m_Scene;
 		CityDraft::Layer* m_Layer;
+		QUndoStack* m_UndoStack;
 
 		boost::signals2::connection m_LayerRenamedConnection;
 		boost::signals2::connection m_LayerFlagChangedConnection;

@@ -1,39 +1,52 @@
 #pragma once
 
 #include <QUndoCommand>
+#include <memory>
+#include "CityDraft/Scene.h"
+#include "CityDraft/Layer.h"
 
 class AddCommand: public QUndoCommand
 {
 public:
-	TransformChangeCommand(
-		const std::vector<TransformChange>& changes,
-		CityDraft::UI::Rendering::IRenderer* renderer,
+	inline AddCommand(
+		CityDraft::Scene* scene,
+		const std::string& layerName,
+		CityDraft::Scene::InsertOrder insertOrder,
 		QUndoCommand* parent = nullptr
 	):
-		m_Changes(changes),
-		m_Renderer(renderer),
-		QUndoCommand("Transform Change", parent)
+		m_Scene(scene),
+		m_LayerName(layerName),
+		m_InsertOrder(insertOrder),
+		QUndoCommand("Add Layer", parent)
 	{}
 
-	void undo() override
+	inline void undo() override
 	{
-		for(const auto& change : m_Changes)
-		{
-			change.Draft->SetTransform(change.OldTransform);
-		}
-		m_Renderer->Repaint();
+		BOOST_ASSERT(m_AddedLayer);
+		m_Scene->RemoveLayer(m_AddedLayer.get());
 	}
 
-	void redo() override
+	inline void redo() override
 	{
-		for(const auto& change : m_Changes)
+		if(m_AddedLayer)
 		{
-			change.Draft->SetTransform(change.NewTransform);
+			// Not AddLayer(), because InsertLayer() preserves existing Z-order.
+			bool ok = m_Scene->InsertLayer(m_AddedLayer);
+			BOOST_ASSERT(ok);
+			BOOST_ASSERT(m_AddedLayer->GetZOrder() == m_AssertZOrder);
 		}
-		m_Renderer->Repaint();
+		else
+		{
+			m_AddedLayer = m_Scene->AddLayer(m_LayerName, m_InsertOrder);
+			BOOST_ASSERT(m_AddedLayer);
+			m_AssertZOrder = m_AddedLayer->GetZOrder();
+		}
 	}
 
 private:
-	std::vector<TransformChange> m_Changes;
-	CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
+	CityDraft::Scene* m_Scene = nullptr;
+	std::string m_LayerName;
+	CityDraft::Scene::InsertOrder m_InsertOrder;
+	std::shared_ptr<CityDraft::Layer> m_AddedLayer = nullptr;
+	int64_t m_AssertZOrder = 0;
 };

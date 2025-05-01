@@ -2,17 +2,21 @@
 #include <QPushButton>
 #include <QListWidgetItem>
 #include "ItemWidget.h"
+#include "AddCommand.h"
 
 namespace CityDraft::UI::Layers
 {
 
-	ListWidget::ListWidget(Scene* scene, QWidget* parent):
-		QWidget(parent), m_layout(new QVBoxLayout(this)),
+	ListWidget::ListWidget(Scene* scene, QUndoStack* undoStack, QWidget* parent):
+		QWidget(parent), 
+		m_layout(new QVBoxLayout(this)),
 		m_layerList(new QListWidget(this)),
 		m_addLayerButton(new QPushButton("Add Layer", this)),
-		m_scene(scene)
+		m_scene(scene),
+		m_UndoStack(undoStack)
 	{
-		BOOST_ASSERT(scene);
+		BOOST_ASSERT(m_scene);
+		BOOST_ASSERT(m_UndoStack);
 
 		m_layout->addWidget(new QLabel("Layers", this));
 		m_layout->addWidget(m_layerList);
@@ -26,11 +30,6 @@ namespace CityDraft::UI::Layers
 		m_LayerZChangedConnection = scene->ConnectToLayerZChanged(std::bind(&ListWidget::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
 		LoadLayersFromScene();
-	}
-
-	void ListWidget::addLayer(const QString& layerName)
-	{
-		m_scene->AddLayer(layerName.toStdString(), CityDraft::Scene::InsertOrder::Highest);
 	}
 
 	ListWidget::~ListWidget()
@@ -52,7 +51,7 @@ namespace CityDraft::UI::Layers
 	void ListWidget::AddLayerToUi(CityDraft::Layer* layer)
 	{
 		QListWidgetItem* listItem = new QListWidgetItem();
-		ItemWidget* layerItem = new ItemWidget(m_scene, layer, this);
+		ItemWidget* layerItem = new ItemWidget(m_scene, layer, m_UndoStack, this);
 
 		m_layerList->addItem(listItem);
 		m_layerList->setItemWidget(listItem, layerItem);
@@ -76,7 +75,8 @@ namespace CityDraft::UI::Layers
 
 	void ListWidget::onAddLayer()
 	{
-		addLayer("New Layer");
+		AddCommand* command = new AddCommand(m_scene, "New Layer", CityDraft::Scene::InsertOrder::Highest);
+		m_UndoStack->push(command);
 	}
 
 }

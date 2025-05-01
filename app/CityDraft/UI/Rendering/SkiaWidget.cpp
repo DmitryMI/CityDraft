@@ -363,6 +363,7 @@ namespace CityDraft::UI::Rendering
 		}
 		else if(auto* colorCurve = dynamic_cast<CityDraft::Drafts::SkiaColorCurve*>(draft))
 		{
+			m_WidgetLogger->warn("Creating SkiaPainters::ColorCurve with Mask Canvas ptr: {}", reinterpret_cast<uint64_t>(m_CurveMaskCanvas));
 			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve, m_CurveMaskCanvas);
 		}
 

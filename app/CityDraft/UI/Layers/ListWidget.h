@@ -6,6 +6,7 @@
 #include <boost/signals2.hpp>
 #include <cstdint>
 #include "CityDraft/Scene.h"
+#include <QUndoStack>
 
 namespace CityDraft::UI::Layers
 {
@@ -14,9 +15,7 @@ namespace CityDraft::UI::Layers
 		Q_OBJECT
 
 	public:
-		explicit ListWidget(CityDraft::Scene* scene, QWidget* parent = nullptr);
-		void addLayer(const QString& layerName);
-
+		explicit ListWidget(CityDraft::Scene* scene, QUndoStack* undoStack, QWidget* parent = nullptr);
 		~ListWidget();
 
 	private:
@@ -24,6 +23,7 @@ namespace CityDraft::UI::Layers
 		QListWidget* m_layerList;
 		QPushButton* m_addLayerButton;
 		CityDraft::Scene* m_scene;
+		QUndoStack* m_UndoStack;
 
 		boost::signals2::connection m_LayerAddedConnection;
 		boost::signals2::connection m_LayerRemovedConnection;
