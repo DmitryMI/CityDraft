@@ -14,13 +14,13 @@
 namespace CityDraft::UI::Layers
 {
 
-	class LayerItem : public QWidget
+	class ItemWidget : public QWidget
 	{
 		Q_OBJECT
 
 	public:
-		LayerItem(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent = nullptr);
-		~LayerItem();
+		ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QWidget* parent = nullptr);
+		~ItemWidget();
 
 		void setVisibleState(bool visible);
 		bool eventFilter(QObject* obj, QEvent* event) override;

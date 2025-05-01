@@ -66,6 +66,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 	void ColorCurve::PaintFill(SkCanvas* canvas)
 	{
+		BOOST_ASSERT(m_MaskCanvas);
 		SkPaint paint;
 		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_FillColor));
 		PaintCurve(canvas, paint, m_FillWidth, nullptr);
@@ -77,6 +78,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 	void ColorCurve::PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
+		BOOST_ASSERT(m_MaskCanvas);
 		sk_sp<SkImage> maskImage = m_MaskCanvas->getSurface()->makeImageSnapshot();
 
 		Vector2D rendererCenter = renderer->GetViewportCenter();

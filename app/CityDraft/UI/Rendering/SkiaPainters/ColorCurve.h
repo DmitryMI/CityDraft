@@ -36,7 +36,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::IWidthProvider* m_OutlineWidth = nullptr;
 		LinearColorF m_FillColor{};
 		LinearColorF m_OutlineColor{};
-		SkCanvas* m_MaskCanvas;
+		SkCanvas* m_MaskCanvas = nullptr;
 
 		void PaintFill(SkCanvas* canvas);
 		void PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas);

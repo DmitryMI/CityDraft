@@ -9,15 +9,15 @@
 
 namespace CityDraft::UI::Layers
 {
-	class LayersWidget : public QWidget
+	class ListWidget : public QWidget
 	{
 		Q_OBJECT
 
 	public:
-		explicit LayersWidget(CityDraft::Scene* scene, QWidget* parent = nullptr);
+		explicit ListWidget(CityDraft::Scene* scene, QWidget* parent = nullptr);
 		void addLayer(const QString& layerName);
 
-		~LayersWidget();
+		~ListWidget();
 
 	private:
 		QVBoxLayout* m_layout;
