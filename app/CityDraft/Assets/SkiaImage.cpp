@@ -3,12 +3,12 @@
 #include "CityDraft/Drafts/SkiaImage.h"
 #include <QOpenGLExtraFunctions>
 #include "include/gpu/ganesh/GrDirectContext.h"
-#include <GL/gl.h>
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include <include/core/SkImage.h>
 #include <include/gpu/ganesh/SkImageGanesh.h>
 #include <include/gpu/ganesh/gl/GrGLBackendSurface.h>
 #include <include/gpu/ganesh/GrBackendSurface.h>
+#include <GL/gl.h>
 
 namespace CityDraft::Assets
 {

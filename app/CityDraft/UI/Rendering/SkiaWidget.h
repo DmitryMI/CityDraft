@@ -1,12 +1,14 @@
 #pragma once
 
-#include <GL/gl.h>
+
 #include <include/core/SkCanvas.h>
 #include <include/core/SkRefCnt.h>
 #include <memory>
-#include <qcolor.h>
 #include <qevent.h>
-#include <qopenglext.h>
+#include <include/core/SkSurface.h>
+#include <include/gpu/ganesh/GrBackendSurface.h>
+#include <include/gpu/ganesh/GrDirectContext.h>
+#include <include/gpu/ganesh/gl/GrGLInterface.h>
 #include <qopenglextrafunctions.h>
 #include <qopenglwidget.h>
 #include <qpoint.h>
@@ -24,10 +26,10 @@
 #include "CityDraft/Vector2D.h"
 #include "IRenderer.h"
 #include "SkiaPainters/Painter.h"
-#include "include/core/SkSurface.h"
-#include "include/gpu/ganesh/GrBackendSurface.h"
-#include "include/gpu/ganesh/GrDirectContext.h"
-#include "include/gpu/ganesh/gl/GrGLInterface.h"
+
+// Must be included last and in this order
+#include <GL/gl.h>
+#include <qopenglext.h>
 
 namespace CityDraft::UI::Rendering
 {
@@ -55,18 +57,17 @@ namespace CityDraft::UI::Rendering
 		// IRenderer
 		std::shared_ptr<CityDraft::Scene> GetScene() const override;
 		void Paint(CityDraft::Assets::Asset* asset, const Transform2D& transform) override;
-		void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const QColor& color, double thickness) override;
-		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness) override;
-		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& outlineColor, double outlineThickness, const QColor& fillColor) override;
-		void PaintRect(const Vector2D& min, const Vector2D& max, const QColor& fillColor) override;
-		void PaintCircle(const Vector2D& pos, double radius, const QColor& color, double thickness) override;
+		void PaintRectViewportSpace(const QPointF& pixelMin, const QPointF& pixelMax, const LinearColorF& color, double thickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness, const LinearColorF& fillColor) override;
+		void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor) override;
+		void PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness) override;
 		const Vector2D GetViewportCenter() const override;
 		double GetViewportZoom() const override;
 		void SetViewportTransform(const Vector2D& center, double zoom) override;
 		void Repaint() override;
 		Vector2D Project(const QPointF& pixelCoord) const override;
 		QPointF Deproject(const Vector2D& pixelCoord) const override;
-
 
 	signals:
 		void GraphicsInitialized(SkiaWidget* source);
@@ -84,6 +85,10 @@ namespace CityDraft::UI::Rendering
 		void resizeGL(int w, int h) override;
 		void paintGL() override;
 
+		// Skia
+		GrBackendRenderTarget CreateRenderTarget(int w, int h);
+		sk_sp<SkSurface> CreateSurface(const GrBackendRenderTarget& target);
+
 		// Input
 		void mousePressEvent(QMouseEvent* event) override;
 		void mouseReleaseEvent(QMouseEvent* event) override;
@@ -92,9 +97,12 @@ namespace CityDraft::UI::Rendering
 		void keyPressEvent(QKeyEvent* event) override;
 
 		// Drawing
+		void CanvasStart(SkCanvas* canvas, const SkColor& clearColor);
+		void CanvasEnd(SkCanvas* canvas);
 		void PaintScene();
-		void Paint(CityDraft::Assets::SkiaImage* image, const Transform2D& transform);
 		void PaintOrQueue(std::shared_ptr<SkiaPainters::Painter> painter);
+		std::shared_ptr<SkiaPainters::Painter> CreatePainter(CityDraft::Drafts::Draft* draft, const Transform2D& transform);
+
 
 		// Utility
 		Vector2D GetViewportProjectedSize() const;
@@ -103,9 +111,14 @@ namespace CityDraft::UI::Rendering
 		// Skia
 		sk_sp<const GrGLInterface> m_GrInterface = nullptr;
 		sk_sp<GrDirectContext> m_GrContext = nullptr;
+		GrBackendRenderTarget m_BackendRenderTarget;
 		sk_sp<SkSurface> m_SkSurface = nullptr;
 		SkCanvas* m_Canvas = nullptr;
-		GrBackendRenderTarget m_BackendRenderTarget;
+		
+		GrBackendRenderTarget m_CurveMaskRenderTarget;
+		sk_sp<SkSurface> m_CurveMaskSurface = nullptr;
+		SkCanvas* m_CurveMaskCanvas = nullptr;
+
 		QOpenGLExtraFunctions m_GlFuncs;
 		std::queue<std::shared_ptr<SkiaPainters::Painter>> m_QueuedPainters;
 
@@ -120,7 +133,6 @@ namespace CityDraft::UI::Rendering
 		// Viewport variables
 		double m_ViewportZoom = 1.0;
 		Vector2D m_ViewportCenter{ 0,0 };
-		std::vector<std::shared_ptr<Drafts::Draft>> m_ViewportDraftsBuffer;
 
 		// State
 		bool m_IsGlPainting = false;

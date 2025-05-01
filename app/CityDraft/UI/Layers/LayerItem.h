@@ -6,12 +6,12 @@
 
 #include <QLabel>
 #include <memory>
-#include "ImageSelectionWidget.h"
+#include <QPushButton>
 #include "CityDraft/Scene.h"
 #include "CityDraft/Layer.h"
 #include <boost/signals2/connection.hpp>
 
-namespace CityDraft::UI
+namespace CityDraft::UI::Layers
 {
 
 	class LayerItem : public QWidget

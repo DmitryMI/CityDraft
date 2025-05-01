@@ -66,8 +66,17 @@ namespace CityDraft::Serialization
 	IInputArchive& BoostInputArchive::operator>>(CityDraft::Transform2D& value)
 	{
 		*this >> value.Translation;
-		*this >> value.Rotation;
+		*this >> value.Rotation.Value;
 		*this >> value.Scale;
+		return *this;
+	}
+
+	IInputArchive& BoostInputArchive::operator>>(CityDraft::LinearColorF& value)
+	{
+		*this >> value.R();
+		*this >> value.G();
+		*this >> value.B();
+		*this >> value.A();
 		return *this;
 	}
 
@@ -136,8 +145,17 @@ namespace CityDraft::Serialization
 	IOutputArchive& BoostOutputArchive::operator<<(const CityDraft::Transform2D& value)
 	{
 		*this << value.Translation;
-		*this << value.Rotation;
+		*this << value.Rotation.Value;
 		*this << value.Scale;
+		return *this;
+	}
+
+	IOutputArchive& BoostOutputArchive::operator<<(const CityDraft::LinearColorF& value)
+	{
+		*this << value.R();
+		*this << value.G();
+		*this << value.B();
+		*this << value.A();
 		return *this;
 	}
 

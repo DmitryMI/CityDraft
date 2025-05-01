@@ -224,7 +224,7 @@ namespace CityDraft::UI
 	{
 		if(!m_LayersWidget)
 		{
-			m_LayersWidget = new LayersWidget(m_Scene.get(), this);
+			m_LayersWidget = new Layers::LayersWidget(m_Scene.get(), this);
 			QSplitter* splitter = m_Ui.rootSplitter;
 			const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
 			QWidget* parent = layersPlaceholder->parentWidget();
@@ -237,7 +237,7 @@ namespace CityDraft::UI
 		{
 			int layersWidgetIndex = m_Ui.rootSplitter->indexOf(m_LayersWidget);
 			delete m_LayersWidget;
-			m_LayersWidget = new LayersWidget(m_Scene.get(), this);
+			m_LayersWidget = new Layers::LayersWidget(m_Scene.get(), this);
 			m_Ui.rootSplitter->insertWidget(layersWidgetIndex, m_LayersWidget);
 		}		
 	}
@@ -407,6 +407,14 @@ namespace CityDraft::UI
 	{
 		size_t num = std::erase_if(m_SelectedDrafts, [draft](const auto& ptr) {return ptr.get() == draft; });
 		m_Logger->info("{} drafts removed from selection due to being removed from scene", num);
+		if (m_SelectedDrafts.size() == 0)
+		{
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+			if (editor->IsActive())
+			{
+				DeactivateInstrument(editor);
+			}
+		}
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const

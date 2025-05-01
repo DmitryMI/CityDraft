@@ -12,7 +12,6 @@
 #include <qundostack.h>
 #include <qwidget.h>
 #include <set>
-#include <set>
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <vector>
@@ -25,7 +24,7 @@
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include "CityDraft/UI/ImageSelectionWidget.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
-#include "LayersWidget.h"
+#include "CityDraft/UI/Layers/LayersWidget.h"
 #include "ui_MainWindow.h"
 
 namespace CityDraft::UI
@@ -50,7 +49,7 @@ namespace CityDraft::UI
 		Ui::MainWindow m_Ui;
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
-		UI::LayersWidget* m_LayersWidget = nullptr;
+		UI::Layers::LayersWidget* m_LayersWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 

@@ -1,6 +1,7 @@
 set(
 	CityDraft.Sources
 	"CityDraft/Scene.cpp"
+	"CityDraft/Layer.cpp"
 	"CityDraft/Drafts/Image.cpp"
 	"CityDraft/Drafts/Draft.cpp"
 	"CityDraft/Assets/Asset.cpp"
@@ -8,8 +9,13 @@ set(
 	"CityDraft/Assets/AssetManager.cpp"
 	"CityDraft/Utils/ImageLoader.cpp"
 	"CityDraft/Serialization/BoostArchive.cpp"
-	
- "CityDraft/Utils/ImageUtils.cpp")
+	"CityDraft/Utils/ImageUtils.cpp" 
+	"CityDraft/Curves/LineSegment.cpp"
+	"CityDraft/Drafts/Curve.cpp" 
+	"CityDraft/Assets/Curve.cpp" 
+	"CityDraft/Assets/ColorCurve.cpp"
+	"CityDraft/Curves/Factory.cpp"
+)
 
 add_library(CityDraft ${CityDraft.Sources})
 target_include_directories(CityDraft PUBLIC "../public")

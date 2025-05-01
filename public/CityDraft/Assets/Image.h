@@ -3,7 +3,6 @@
 #include "Asset.h"
 #include <filesystem>
 #include <cstdint>
-#include <mutex>
 #include "CityDraft/Assets/FileSystemError.h"
 #include "CityDraft/Utils/ImageLoader.h"
 #include "CityDraft/Vector2D.h"

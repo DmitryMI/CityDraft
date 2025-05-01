@@ -2,6 +2,7 @@
 
 #include <boost/geometry.hpp>
 #include <boost/math/ccmath/abs.hpp>
+#include "CityDraft/Angles.h"
 
 namespace CityDraft
 {
@@ -145,27 +146,43 @@ namespace CityDraft
 			return a.GetX() * b.GetY() - a.GetY() * b.GetX();
 		}
 
-		static inline double GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
+		static inline Radians GetAngleBetweenPoints(const Vector2D& a, const Vector2D& b)
 		{
 			double dot = Dot(a, b);
 			double cross = Cross(a, b);
 			double angle = std::atan2(cross, dot);
-			return angle;
+			return Radians(angle);
 		}
 
-		Vector2D GetRotated(double angleRadians) const
+		Vector2D GetRotated(const Radians& angleRadians) const
 		{
 			Vector2D copy{ GetX(), GetY() };
 			copy.Rotate(angleRadians);
 			return copy;
 		}
 
-		Vector2D& Rotate(double angleRadians)
+		Vector2D& Rotate(const Radians& angleRadians)
 		{
-			double cosA = std::cos(angleRadians);
-			double sinA = std::sin(angleRadians);
+			double cosA = std::cos(angleRadians.Value);
+			double sinA = std::sin(angleRadians.Value);
 			double x = GetX() * cosA - GetY() * sinA;
 			double y = GetX() * sinA + GetY() * cosA;
+			SetX(x);
+			SetY(y);
+			return *this;
+		}
+
+		constexpr static Vector2D Lerp(const Vector2D& a, const Vector2D& b, double t)
+		{
+			double x = (1 - t) * a.GetX() + t * b.GetX();
+			double y = (1 - t) * a.GetY() + t * b.GetY();
+			return {x, y};
+		}
+
+		Vector2D& ComponentMultiply(const Vector2D& other)
+		{
+			double x = GetX() * other.GetX();
+			double y = GetY() * other.GetY();
 			SetX(x);
 			SetY(y);
 			return *this;

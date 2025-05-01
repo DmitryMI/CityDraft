@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <string_view>
 #include "CityDraft/Serialization/ISerializable.h"
 #include "CityDraft/Serialization/IArchive.h"
 
@@ -25,19 +26,30 @@ namespace CityDraft
 			return m_IsVisible;
 		}
 
+		void SetVisible(bool visible);
+
 		inline bool IsLocked() const
 		{
 			return m_IsLocked;
 		}
+
+		void SetLocked(bool locked);
 
 		inline const std::string& GetName() const
 		{
 			return m_Name;
 		}
 
+		void SetName(std::string_view name);
+
 		inline int64_t GetZOrder() const
 		{
 			return m_ZOrder;
+		}
+
+		inline CityDraft::Scene* GetScene() const
+		{
+			return m_Scene;
 		}
 
 	private:
@@ -45,6 +57,7 @@ namespace CityDraft
 		bool m_IsVisible = true;
 		bool m_IsLocked = false;
 		int64_t m_ZOrder = 0;
+		CityDraft::Scene* m_Scene = nullptr;
 
 		std::map<int64_t, CityDraft::Drafts::Draft*> m_Drafts;
 

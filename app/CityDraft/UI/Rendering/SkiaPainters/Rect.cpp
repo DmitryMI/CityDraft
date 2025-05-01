@@ -1,13 +1,14 @@
 #include "Rect.h"
+#include "CityDraft/UI/Colors/Utils.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
 	Rect::Rect(
 		const Vector2D& min,
 		const Vector2D& max,
-		const QColor& outlineColor,
+		const LinearColorF& outlineColor,
 		double outlineThickness,
-		const QColor& fillColor
+		const LinearColorF& fillColor
 	):
 		m_Min(min),
 		m_Max(max),
@@ -23,24 +24,24 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	Rect::Rect(
 		const Vector2D& min,
 		const Vector2D& max,
-		const QColor& outlineColor,
+		const LinearColorF& outlineColor,
 		double outlineThickness
 	):
 		m_Min(min),
 		m_Max(max),
 		m_OutlineColor(outlineColor),
 		m_OutlineThickness(outlineThickness),
-		m_FillColor(QColor(0, 0, 0, 0)),
+		m_FillColor(LinearColorF(0, 0, 0, 0)),
 		m_Outline(true),
 		m_Fill(false)
 	{
 
 	}
 
-	Rect::Rect(const Vector2D& min, const Vector2D& max, const QColor& fillColor):
+	Rect::Rect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor):
 		m_Min(min),
 		m_Max(max),
-		m_OutlineColor(QColor(0, 0, 0, 0)),
+		m_OutlineColor(),
 		m_OutlineThickness(0),
 		m_FillColor(fillColor),
 		m_Outline(false),
@@ -48,7 +49,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	}
 
-	void Rect::Paint(SkCanvas* canvas)
+	void Rect::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
 	{
 		double rectWidth = m_Max.GetX() - m_Min.GetX();
 		double rectHeight = m_Max.GetY() - m_Min.GetY();
@@ -56,7 +57,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 		if (m_Fill)
 		{
-			SkColor skFillColor = SkColorSetARGB(m_FillColor.alpha(), m_FillColor.red(), m_FillColor.green(), m_FillColor.blue());
+			SkColor skFillColor = CityDraft::UI::Colors::Utils::ToSkColor(m_FillColor);
 			SkPaint paint;
 			paint.setColor(skFillColor);
 			paint.setAntiAlias(true);
@@ -66,7 +67,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 		if (m_Outline)
 		{
-			SkColor skOutlineColor = SkColorSetARGB(m_OutlineColor.alpha(), m_OutlineColor.red(), m_OutlineColor.green(), m_OutlineColor.blue());
+			SkColor skOutlineColor = CityDraft::UI::Colors::Utils::ToSkColor(m_OutlineColor);
 			SkPaint paint;
 			paint.setColor(skOutlineColor);
 			paint.setAntiAlias(true);

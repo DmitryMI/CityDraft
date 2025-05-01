@@ -1,4 +1,6 @@
 #include "Utils.h"
+#include "Utils.h"
+#include "Utils.h"
 
 std::string CityDraft::Input::Utils::ToString(const Qt::MouseButton& button)
 {
@@ -131,3 +133,4 @@ std::string CityDraft::Input::Utils::ToString(Qt::Key key)
 	default:                    return "UnknownKey";
 	}
 }
+

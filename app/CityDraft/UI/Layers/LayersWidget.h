@@ -7,7 +7,7 @@
 #include <cstdint>
 #include "CityDraft/Scene.h"
 
-namespace CityDraft::UI
+namespace CityDraft::UI::Layers
 {
 	class LayersWidget : public QWidget
 	{

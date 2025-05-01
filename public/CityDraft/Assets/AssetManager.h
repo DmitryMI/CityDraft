@@ -11,6 +11,8 @@
 #include <vector>
 #include <string_view>
 #include "FileSystemError.h"
+#include "CityDraft/Assets/Curve.h"
+#include "CityDraft/Assets/ColorCurve.h"
 
 namespace CityDraft::Assets
 {
@@ -18,6 +20,7 @@ namespace CityDraft::Assets
 	{
 	public:
 		constexpr static std::string_view ImagesDir = "images";
+		constexpr static std::string_view ColorCurveUrl = "app://assets/curves/color";
 
 		AssetManager(const std::filesystem::path& assetsRoot, std::shared_ptr<spdlog::logger> logger);
 
@@ -28,13 +31,17 @@ namespace CityDraft::Assets
 
 		const std::list<std::shared_ptr<ImageVariantGroup>>& GetVariantImages() const;
 		const std::list<std::shared_ptr<Image>>& GetInvariantImages() const;
+		const std::list<std::shared_ptr<Curve>>& GetCurves() const;
+		std::shared_ptr<ColorCurve> GetColorCurve() const;
+
 		boost::url AssetPathToUrl(const std::filesystem::path& path);
 		std::filesystem::path ToAssetPath(const boost::url& url);
 
 		virtual std::shared_ptr<Image> CreateImage(const std::filesystem::path& imageFilePath) = 0;
+		virtual std::shared_ptr<Curve> CreateCurve() = 0;
+		virtual std::shared_ptr<ColorCurve> CreateColorCurve() = 0;
 
 		static FileSystemError ReadFileBytes(const std::filesystem::path& filePath, std::vector<uint8_t>& outBytes);
-		
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
@@ -42,6 +49,8 @@ namespace CityDraft::Assets
 
 		std::list<std::shared_ptr<ImageVariantGroup>> m_VariantImages;
 		std::list<std::shared_ptr<Image>> m_InvariantImages;
+		std::list<std::shared_ptr<Curve>> m_Curves;
+		std::shared_ptr<ColorCurve> m_ColorCurve;
 
 		size_t LoadImageInfos(const std::filesystem::path& imagesDir);
 		size_t LoadVariantImageGroupInfo(const std::filesystem::path& variantDir);

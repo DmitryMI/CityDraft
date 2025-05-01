@@ -182,7 +182,7 @@ namespace CityDraft::Input::Instruments
 		bbox.GetCircumcircle(center, radius);
 		m_Renderer->PaintRect(bbox.GetMin(), bbox.GetMax(), m_ColorsProvider->GetDraftScaleBoxColor(), 2.0 / m_Renderer->GetViewportZoom());
 
-		QColor circleColor;
+		LinearColorF circleColor;
 		if (m_Tool == Tool::Rotate)
 		{
 			circleColor = m_ColorsProvider->GetDraftRotationCircleHighlightedColor();
@@ -315,7 +315,7 @@ namespace CityDraft::Input::Instruments
 		return bbox;
 	}
 
-	double ImageDraftEditor::GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center)
+	Radians ImageDraftEditor::GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center)
 	{
 		Vector2D first = m_Renderer->Project(point1);
 		Vector2D second = m_Renderer->Project(point2);
@@ -323,7 +323,7 @@ namespace CityDraft::Input::Instruments
 		Vector2D v1 = first - center;
 		Vector2D v2 = second - center;
 
-		double angle = Vector2D::GetAngleBetweenPoints(v1, v2);
+		Radians angle = Vector2D::GetAngleBetweenPoints(v1, v2);
 		return angle;
 	}
 
@@ -343,8 +343,8 @@ namespace CityDraft::Input::Instruments
 
 	void ImageDraftEditor::Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
 	{
-		double angle = GetRotationDelta(m_PreviousPoint, event->position(), bbox.GetCenter());
-		GetLogger()->info("Angle: {}", angle * 180.0 / M_PI);
+		Radians angle = GetRotationDelta(m_PreviousPoint, event->position(), bbox.GetCenter());
+		GetLogger()->info("Angle: {}", Degrees(angle).Value);
 
 		for (const auto& draft : m_SelectionManager->GetSelectedDrafts())
 		{
