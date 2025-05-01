@@ -41,6 +41,17 @@ namespace CityDraft::UI
 		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
 		void ClearSelectedDrafts() override;
 		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
+		void RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
+
+		inline boost::signals2::connection ConnectToDraftSelected(DraftSelectedSignal::slot_type slot) override
+		{
+			return m_DraftSelected.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToDraftDeselected(DraftDeselectedSignal::slot_type slot) override
+		{
+			return m_DraftDeselected.connect(slot);
+		}
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
@@ -63,7 +74,6 @@ namespace CityDraft::UI
 		boost::signals2::connection m_DraftAddedConnection;
 		boost::signals2::connection m_DraftRemovedConnection;
 
-
 		// Config
 		QString m_AssetsRootDirectory;
 		QString m_ScenePath;
@@ -74,6 +84,8 @@ namespace CityDraft::UI
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_InactiveInstruments;
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
+		DraftSelectedSignal m_DraftSelected;
+		DraftDeselectedSignal m_DraftDeselected;
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;

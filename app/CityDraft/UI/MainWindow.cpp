@@ -259,7 +259,7 @@ namespace CityDraft::UI
 		}
 
 		QStringList toolsMessages;
-		for (const auto [descryptor, description] : toolDescriptions)
+		for (const auto& [descryptor, description] : toolDescriptions)
 		{
 			QStringList keysList;
 
@@ -398,23 +398,9 @@ namespace CityDraft::UI
 		BOOST_ASSERT(m_RenderingWidget);
 		m_RenderingWidget->Repaint();
 
-		auto selectedDrafts = m_SelectedDrafts;
-		for(const auto& draft : selectedDrafts)
-		{
-			if(draft->GetLayer() == layer && (!layer->IsVisible() || !layer->IsLocked()))
-			{
-				m_SelectedDrafts.erase(draft);
-			}
-		}
-
-		if(m_SelectedDrafts.size() == 0)
-		{
-			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
-			if(editor->IsActive())
-			{
-				DeactivateInstrument(editor);
-			}
-		}
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> selectedDrafts;
+		std::transform(m_SelectedDrafts.begin(), m_SelectedDrafts.end(), std::back_inserter(selectedDrafts), [](const auto& item){return item;});
+		RemoveDraftsFromSelection(selectedDrafts);
 	}
 
 	void MainWindow::OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft)
@@ -443,7 +429,14 @@ namespace CityDraft::UI
 
 	void MainWindow::ClearSelectedDrafts()
 	{
-		m_SelectedDrafts.clear();
+		auto drafts = m_SelectedDrafts;
+		for(const auto& draft : drafts)
+		{
+			m_SelectedDrafts.erase(draft);
+			m_DraftDeselected(draft);
+		}
+		BOOST_ASSERT(m_SelectedDrafts.size() == 0);
+
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
 		if (editor->IsActive())
 		{
@@ -460,13 +453,41 @@ namespace CityDraft::UI
 
 		for (const auto& draft : drafts)
 		{
-			m_SelectedDrafts.insert(draft);
+			auto iterFlag = m_SelectedDrafts.insert(draft);
+			if(iterFlag.second)
+			{
+				m_DraftSelected(draft);
+			}
 		}
 
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
 		if (!editor->IsActive())
 		{
 			ActivateInstrument(editor);
+		}
+	}
+
+	void MainWindow::RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
+	{
+		for(const auto& draft : drafts)
+		{
+			auto iter = m_SelectedDrafts.find(draft);
+			if(iter == m_SelectedDrafts.end())
+			{
+				m_Logger->warn("Trying to remove draft {} from selection, but it was not selected.", draft->GetName());
+				continue;
+			}
+			m_SelectedDrafts.erase(iter);
+			m_DraftDeselected(draft);
+		}
+
+		if(m_SelectedDrafts.size() == 0)
+		{
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+			if(editor->IsActive())
+			{
+				DeactivateInstrument(editor);
+			}
 		}
 	}
 
