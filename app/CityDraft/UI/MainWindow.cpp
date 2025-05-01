@@ -61,6 +61,7 @@ namespace CityDraft::UI
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
 
+		/*
 		QTimer::singleShot(0, this, [this] {
 			m_Ui.rootSplitter->setSizes({
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.20),
@@ -68,6 +69,7 @@ namespace CityDraft::UI
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.10)
 				});
 			});
+		*/
 
 		m_Logger->info("MainWindow created");
 	}
@@ -127,13 +129,12 @@ namespace CityDraft::UI
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseWheelEvent, this, &MainWindow::OnRenderingWidgetMouseWheelEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::KeyboardEvent, this, &MainWindow::OnRenderingWidgetKeyboardEvent);
 
-		QBoxLayout* boxLayout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
-		int index = boxLayout->indexOf(m_Ui.renderingWidgetPlaceholder);
-		boxLayout->removeWidget(m_Ui.renderingWidgetPlaceholder);
+		QSplitter* splitter = dynamic_cast<QSplitter*>(m_Ui.renderingWidgetPlaceholder->parentWidget());
+		int index = splitter->indexOf(m_Ui.renderingWidgetPlaceholder);
+		splitter->insertWidget(index, m_RenderingWidget);
 		delete m_Ui.renderingWidgetPlaceholder;
 		m_Ui.renderingWidgetPlaceholder = nullptr;
 
-		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
@@ -209,37 +210,37 @@ namespace CityDraft::UI
 		BOOST_ASSERT(m_AssetManager);
 		m_ImageSelectionWidget = new CityDraft::UI::ImageSelectionWidget(m_AssetManager.get(), this);
 
-		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+		auto* splitter = dynamic_cast<QSplitter*>(m_Ui.imageSelectionPlaceholder->parentWidget());
+		BOOST_ASSERT(splitter);
+		int index = splitter->indexOf(m_Ui.imageSelectionPlaceholder);
 
-		auto* boxLayout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-		BOOST_ASSERT(boxLayout);
+		delete m_Ui.imageSelectionPlaceholder;
+		m_Ui.imageSelectionPlaceholder = nullptr;
 
-		boxLayout->removeWidget(imagePlaceholder);
-		delete imagePlaceholder;
-
-		boxLayout->addWidget(m_ImageSelectionWidget);
+		splitter->insertWidget(index, m_ImageSelectionWidget);
 	}
 
 	void MainWindow::CreateLayersWidget()
 	{
-		if(!m_LayersWidget)
+		QSplitter* parent;
+		int index;
+		if(m_LayersWidget)
 		{
-			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
-			QSplitter* splitter = m_Ui.rootSplitter;
-			const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
-			QWidget* parent = layersPlaceholder->parentWidget();
-
-			const int index = splitter->indexOf(parent);
-			splitter->insertWidget(index, m_LayersWidget);
-			parent->deleteLater();
+			parent = dynamic_cast<QSplitter*>(m_LayersWidget->parentWidget());
+			index = parent->indexOf(m_LayersWidget);
+			delete m_LayersWidget;
+			m_LayersWidget = nullptr;
 		}
 		else
 		{
-			int layersWidgetIndex = m_Ui.rootSplitter->indexOf(m_LayersWidget);
-			delete m_LayersWidget;
-			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
-			m_Ui.rootSplitter->insertWidget(layersWidgetIndex, m_LayersWidget);
-		}		
+			parent = dynamic_cast<QSplitter*>(m_Ui.layersWidgetPlaceholder->parentWidget());
+			index = parent->indexOf(m_Ui.layersWidgetPlaceholder);
+			delete m_Ui.layersWidgetPlaceholder;
+			m_Ui.layersWidgetPlaceholder = nullptr;
+		}
+
+		m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
+		parent->insertWidget(index, m_LayersWidget);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
