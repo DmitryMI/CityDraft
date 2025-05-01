@@ -163,7 +163,6 @@ namespace CityDraft::UI
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnRenderingWidgetMouseWheelEvent(QWheelEvent* event);
 		void OnRenderingWidgetKeyboardEvent(QKeyEvent* event);
-		void OnLayerModified(CityDraft::Layer* layer);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();

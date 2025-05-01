@@ -397,6 +397,24 @@ namespace CityDraft::UI
 	{
 		BOOST_ASSERT(m_RenderingWidget);
 		m_RenderingWidget->Repaint();
+
+		auto selectedDrafts = m_SelectedDrafts;
+		for(const auto& draft : selectedDrafts)
+		{
+			if(draft->GetLayer() == layer && (!layer->IsVisible() || !layer->IsLocked()))
+			{
+				m_SelectedDrafts.erase(draft);
+			}
+		}
+
+		if(m_SelectedDrafts.size() == 0)
+		{
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+			if(editor->IsActive())
+			{
+				DeactivateInstrument(editor);
+			}
+		}
 	}
 
 	void MainWindow::OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft)
@@ -484,12 +502,6 @@ namespace CityDraft::UI
 	void MainWindow::OnRenderingWidgetKeyboardEvent(QKeyEvent* event)
 	{
 		ProcessInstrumentsKeyboardEvent(event);
-	}
-
-	void MainWindow::OnLayerModified(CityDraft::Layer* layer)
-	{
-		BOOST_ASSERT(m_RenderingWidget);
-		m_RenderingWidget->Repaint();
 	}
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
