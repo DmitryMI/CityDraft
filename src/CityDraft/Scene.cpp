@@ -63,6 +63,7 @@ namespace CityDraft
 
 	bool Scene::AddLayer(const std::shared_ptr<Layer>& layer, InsertOrder order)
 	{
+		BOOST_ASSERT(!layer->m_Scene);
 		if(m_Layers.size() == 0)
 		{
 			layer->m_ZOrder = 0;
@@ -80,6 +81,7 @@ namespace CityDraft
 			return false;
 		}
 		m_Layers[layer->m_ZOrder] = layer;
+		layer->m_Scene = this;
 		m_LayerAdded(layer.get());
 		return true;
 	}
@@ -122,6 +124,7 @@ namespace CityDraft
 
 		std::shared_ptr<Layer> layerPtr = m_Layers[layer->GetZOrder()]; // To prevent deallocation during m_LayerRemoved execution
 		m_Layers.erase(layer->GetZOrder());
+		layer->m_Scene = nullptr;
 		m_LayerRemoved(layerPtr.get());
 	}
 

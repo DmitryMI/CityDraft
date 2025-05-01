@@ -1,6 +1,7 @@
 set(
 	CityDraft.Sources
 	"CityDraft/Scene.cpp"
+	"CityDraft/Layer.cpp"
 	"CityDraft/Drafts/Image.cpp"
 	"CityDraft/Drafts/Draft.cpp"
 	"CityDraft/Assets/Asset.cpp"
