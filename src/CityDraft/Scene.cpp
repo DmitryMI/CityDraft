@@ -118,7 +118,8 @@ namespace CityDraft
 
 	void Scene::RemoveLayer(Layer* layer)
 	{
-		for(const auto draft : layer->m_Drafts)
+		auto draftsMap = layer->m_Drafts;
+		for(const auto draft : draftsMap)
 		{
 			RemoveDraft(draft.second);
 		}

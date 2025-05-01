@@ -9,12 +9,12 @@
 #include <QInputDialog>
 #include <QMouseEvent>
 #include <QFile>
-#include <QDir>
+#include "CityDraft/UI/Layers/RemoveCommand.h"
 
 namespace CityDraft::UI::Layers
 {
 
-	ItemWidget::ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QUndoStack* undoStack, QWidget* parent):
+	ItemWidget::ItemWidget(CityDraft::Scene* scene, std::shared_ptr<CityDraft::Layer> layer, QUndoStack* undoStack, QWidget* parent):
 		QWidget(parent),
 		m_Scene(scene),
 		m_Layer(layer),
@@ -41,7 +41,8 @@ namespace CityDraft::UI::Layers
 		connect(m_eyeButton, &QPushButton::clicked, this, &ItemWidget::onToggleVisibility);
 		connect(m_removeButton, &QPushButton::clicked, this, [this]()
 		{
-			m_Scene->RemoveLayer(m_Layer);
+			RemoveCommand* command = new RemoveCommand(m_Scene, m_Layer);
+			m_UndoStack->push(command);
 		});
 
 		auto layout = new QHBoxLayout(this);
@@ -68,7 +69,7 @@ namespace CityDraft::UI::Layers
 
 	void ItemWidget::OnLayerRenamed(CityDraft::Layer* layer, const std::string& nameOld, const std::string& nameNew)
 	{
-		if(layer != m_Layer)
+		if(layer != m_Layer.get())
 		{
 			return;
 		}
@@ -78,7 +79,7 @@ namespace CityDraft::UI::Layers
 
 	void ItemWidget::OnLayerFlagChanged(CityDraft::Layer* layer)
 	{
-		if(layer != m_Layer)
+		if(layer != m_Layer.get())
 		{
 			return;
 		}

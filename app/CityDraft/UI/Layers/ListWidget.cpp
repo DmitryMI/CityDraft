@@ -44,11 +44,11 @@ namespace CityDraft::UI::Layers
 		m_layerList->clear();
 		for(const auto& layer : m_scene->GetLayers())
 		{
-			AddLayerToUi(layer.get());
+			AddLayerToUi(layer);
 		}
 	}
 
-	void ListWidget::AddLayerToUi(CityDraft::Layer* layer)
+	void ListWidget::AddLayerToUi(std::shared_ptr<CityDraft::Layer> layer)
 	{
 		QListWidgetItem* listItem = new QListWidgetItem();
 		ItemWidget* layerItem = new ItemWidget(m_scene, layer, m_UndoStack, this);

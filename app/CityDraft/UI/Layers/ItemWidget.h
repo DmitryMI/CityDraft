@@ -20,13 +20,13 @@ namespace CityDraft::UI::Layers
 		Q_OBJECT
 
 	public:
-		ItemWidget(CityDraft::Scene* scene, CityDraft::Layer* layer, QUndoStack* undoStack, QWidget* parent = nullptr);
+		ItemWidget(CityDraft::Scene* scene, std::shared_ptr<CityDraft::Layer> layer, QUndoStack* undoStack, QWidget* parent = nullptr);
 		~ItemWidget();
 
 		void setVisibleState(bool visible);
 		bool eventFilter(QObject* obj, QEvent* event) override;
 
-		inline CityDraft::Layer* GetLayer() const
+		inline std::shared_ptr<CityDraft::Layer> GetLayer() const
 		{
 			return m_Layer;
 		}
@@ -39,7 +39,7 @@ namespace CityDraft::UI::Layers
 		QPushButton* m_eyeButton;
 		QPushButton* m_removeButton;
 		CityDraft::Scene* m_Scene;
-		CityDraft::Layer* m_Layer;
+		std::shared_ptr<CityDraft::Layer> m_Layer;
 		QUndoStack* m_UndoStack;
 
 		boost::signals2::connection m_LayerRenamedConnection;
