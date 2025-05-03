@@ -10,10 +10,10 @@ namespace CityDraft::UI::Properties
 		Q_OBJECT
 
 	public:
-		EditorWidget(const CityDraft::Drafts::Properties::Vector& properties, QWidget* parent = nullptr);
+		EditorWidget(QWidget* parent = nullptr);
 		~EditorWidget() = default;
+		virtual std::string_view GetPropertyName() const = 0;
 
 	protected:
-		CityDraft::Drafts::Properties::Vector m_Properties;
 	};
 }

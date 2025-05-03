@@ -31,7 +31,7 @@ namespace CityDraft::Drafts
 	/// <summary>
 	/// Represents and Asset, instantiated on the Scene. Can be moved, rotated, scaled and exists in multiple copies.
 	/// </summary>
-	class Draft : public CityDraft::Serialization::ISerializable
+	class Draft: public CityDraft::Serialization::ISerializable
 	{
 	public:
 		/// <summary>
@@ -64,6 +64,7 @@ namespace CityDraft::Drafts
 		inline void SetName(const std::string& name)
 		{
 			m_Name = name;
+			m_NameProperty->m_ValueChanged();
 		}
 
 		inline Layer* GetLayer() const
@@ -112,9 +113,11 @@ namespace CityDraft::Drafts
 			m_RenderProxy = renderProxy;
 		}
 
-		inline const Properties::Set& GetProperties() const
+		inline Properties::Set GetProperties() const
 		{
-			return m_Properties;
+			Properties::Set properties;
+			CollectProperties(properties);
+			return properties;
 		}
 
 		// ISerializable
@@ -124,7 +127,12 @@ namespace CityDraft::Drafts
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
 
-		virtual void CreateProperties(Properties::Set& properties);
+		// Properties
+		std::shared_ptr<Properties::View<std::string>> m_NameProperty;
+		std::shared_ptr<Properties::View<Transform2D>> m_TransformProperty;
+		std::shared_ptr<Properties::View<int64_t>> m_ZOrderProperty;
+
+		virtual void CollectProperties(Properties::Set& properties) const;
 
 		template<typename Func>
 		auto Bind(Func func)
@@ -135,21 +143,21 @@ namespace CityDraft::Drafts
 		template<typename TGetFunc, typename TSetFunc, typename TValidateFunc>
 		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter, TValidateFunc validator)
 		{
-			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
 			return std::make_shared<Properties::View<T>>(name, this, getter, setter, validator);
 		}
 
 		template<typename TGetFunc, typename TSetFunc>
 		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter)
 		{
-			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
 			return std::make_shared<Properties::View<T>>(name, this, getter, setter, nullptr);
 		}
 
 		template<typename TGetFunc>
 		auto MakePropertyView(std::string_view name, TGetFunc getter)
 		{
-			using T = CityDraft::Utils::deduce_return_t<TGetFunc>;
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
 			return std::make_shared<Properties::View<T>>(name, this, getter, nullptr, nullptr);
 		}
 
@@ -158,12 +166,17 @@ namespace CityDraft::Drafts
 		Scene* m_Scene = nullptr;
 		CityDraft::Assets::Asset* m_Asset;
 		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
-		Properties::Set m_Properties;
-		
+
 		// Persistent fields
 		std::string m_Name{};
 		Transform2D m_Transform{};
 		int64_t m_ZOrder = 0;
+
+		inline void SetZOrder(int64_t zOrder)
+		{
+			m_ZOrder = zOrder;
+			m_ZOrderProperty->m_ValueChanged();
+		}
 
 		friend class CityDraft::Scene;
 	};

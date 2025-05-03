@@ -59,4 +59,27 @@ namespace CityDraft::Drafts::Properties
 			}
 		}
 	}
+
+	TEST(PropertiesTest, PolymorphismTest)
+	{
+		CityDraft::Assets::AssetMock asset;
+
+		CityDraft::Drafts::DraftMock draft1(&asset);
+
+		auto viewA = std::make_shared<View<int>>("ViewA", &draft1, nullptr, nullptr, nullptr);
+		auto typedPropertyA = dynamic_pointer_cast<TypedProperty<int>>(viewA);
+		ASSERT_TRUE(typedPropertyA);
+		auto propertyA = dynamic_pointer_cast<Property>(typedPropertyA);
+		ASSERT_TRUE(propertyA);
+		viewA = dynamic_pointer_cast<View<int>>(propertyA);
+		ASSERT_TRUE(viewA);
+
+		auto viewB = std::make_shared<View<std::string>>("ViewB", &draft1, nullptr, nullptr, nullptr);
+		auto typedPropertyB = dynamic_pointer_cast<TypedProperty<std::string>>(viewB);
+		ASSERT_TRUE(typedPropertyB);
+		auto propertyB = dynamic_pointer_cast<Property>(typedPropertyB);
+		ASSERT_TRUE(propertyB);
+		viewB = dynamic_pointer_cast<View<std::string>>(propertyB);
+		ASSERT_TRUE(viewB);
+	}
 }

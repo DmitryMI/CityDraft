@@ -92,13 +92,12 @@ namespace CityDraft::UI
 
 	void MainWindow::InitializeUiForScene(std::shared_ptr<CityDraft::Scene> scene)
 	{
-		ClearSelectedDrafts();
-
 		m_Scene = scene;
 		m_UndoStack->clear();
 		m_RenderingWidget->SetScene(scene);
 		m_RenderingWidget->Repaint();
 		CreateInstruments();
+		ClearSelectedDrafts();
 		CreateLayersWidget();
 		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
 

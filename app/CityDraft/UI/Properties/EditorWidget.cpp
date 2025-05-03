@@ -2,9 +2,8 @@
 
 namespace CityDraft::UI::Properties
 {
-	EditorWidget::EditorWidget(const CityDraft::Drafts::Properties::Vector& properties, QWidget* parent):
-		QWidget(parent), 
-		m_Properties(properties)
+	EditorWidget::EditorWidget(QWidget* parent):
+		QWidget(parent)
 	{}
 
 }

@@ -10,6 +10,7 @@
 #include <vector>
 #include <boost/assert.hpp>
 #include <algorithm>
+#include <boost/signals2.hpp>
 
 namespace CityDraft::Drafts
 {
@@ -21,14 +22,7 @@ namespace CityDraft::Drafts::Properties
 	class Property
 	{
 	public:
-		template<typename T>
-		using GetterFunc = std::function<const T& (CityDraft::Drafts::Draft*)>;
-
-		template<typename T>
-		using SetterFunc = std::function<void(CityDraft::Drafts::Draft*, const T&)>;
-
-		template<typename T>
-		using ValidatorFunc = std::function<bool(CityDraft::Drafts::Draft*, const T&)>;
+		using ValueChangedSignal = boost::signals2::signal<void()>;
 
 		inline Property(std::string_view name, CityDraft::Drafts::Draft* owner):
 			m_Name(name),
@@ -74,9 +68,17 @@ namespace CityDraft::Drafts::Properties
 			return false;
 		}
 
+		inline boost::signals2::connection ConnectToValueChanged(ValueChangedSignal::slot_type slot)
+		{
+			return m_ValueChanged.connect(slot);
+		}
+
 	protected:
 		std::string m_Name;
 		CityDraft::Drafts::Draft* m_Owner;
+		ValueChangedSignal m_ValueChanged;
+
+		friend class CityDraft::Drafts::Draft;
 	};
 
 	struct PropertyNameComparator
@@ -89,7 +91,9 @@ namespace CityDraft::Drafts::Properties
 	};
 
 	using Set = std::set<std::shared_ptr<Property>, PropertyNameComparator>;
-	using Vector = std::vector<std::shared_ptr<Property>>;
+	template<typename T>
+	using TVector = std::vector<std::shared_ptr<T>>;
+	using Vector = TVector<Property>;
 	using Map = std::map<std::string_view, Vector>;
 
 	Map FindCommonProperties(const std::vector<Set>& sets);

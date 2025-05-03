@@ -40,4 +40,7 @@ namespace CityDraft::Utils
 	template<typename T>
 	using deduce_return_t = typename deduce_return<T>::type;
 
+	template<typename T>
+	using deduce_return_simple_t = std::remove_cvref_t<typename deduce_return<T>::type>;
+
 }

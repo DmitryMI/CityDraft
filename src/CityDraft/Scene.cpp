@@ -24,15 +24,15 @@ namespace CityDraft
 		}
 		else if (layer->m_Drafts.size() == 0)
 		{
-			obj->m_ZOrder = 0;
+			obj->SetZOrder(0);
 		}
 		else if (order == InsertOrder::Highest)
 		{
-			obj->m_ZOrder = layer->m_Drafts.rbegin()->first + 1;
+			obj->SetZOrder(layer->m_Drafts.rbegin()->first + 1);
 		}
 		else
 		{
-			obj->m_ZOrder = layer->m_Drafts.begin()->first - 1;
+			obj->SetZOrder(layer->m_Drafts.begin()->first - 1);
 		}
 
 		return AddDraft(obj);

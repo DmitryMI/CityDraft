@@ -41,6 +41,7 @@ set(AppSources
 	"CityDraft/UI/Rendering/SkiaPainters/ColorCurve.cpp"
 	"CityDraft/UI/Properties/PropertiesWidget.cpp"
 	"CityDraft/UI/Properties/EditorWidget.cpp"
+	"CityDraft/UI/Properties/StringEditorWidget.cpp"
 	"CityDraft/UI/VariantImageButton.cpp"
 	"CityDraft/UI/Layers/ItemWidget.cpp"
 	"CityDraft/UI/Layers/ListWidget.cpp"

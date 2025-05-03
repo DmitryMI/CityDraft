@@ -1,4 +1,6 @@
 #include "PropertiesWidget.h"
+#include "StringEditorWidget.h"
+#include <QVBoxLayout>
 
 namespace CityDraft::UI::Properties
 {
@@ -8,6 +10,8 @@ namespace CityDraft::UI::Properties
 		m_SelectionManager(selectionManager),
 		m_UndoStack(undoStack)
 	{
+		m_Ui.setupUi(this);
+
 		m_DraftSelectedConnection = selectionManager->ConnectToDraftsSelected(std::bind(&PropertiesWidget::OnDraftsSelected, this, std::placeholders::_1));
 		m_DraftDeselectedConnection = selectionManager->ConnectToDraftsDeselected(std::bind(&PropertiesWidget::OnDraftsDeselected, this, std::placeholders::_1));
 	
@@ -21,21 +25,39 @@ namespace CityDraft::UI::Properties
 	{
 		m_DraftSelectedConnection.disconnect();
 		m_DraftDeselectedConnection.disconnect();
+		ClearEditors();
+	}
+
+	void PropertiesWidget::AddEditor(EditorWidget* editor)
+	{
+		BOOST_ASSERT(!m_Editors.contains(editor->GetPropertyName()));
+
+		QWidget* container = m_Ui.ScrollArea->widget();
+		BOOST_ASSERT(container);
+		QVBoxLayout* containerLayout = dynamic_cast<QVBoxLayout*>(container->layout());
+		BOOST_ASSERT(containerLayout);
+		containerLayout->addWidget(editor);
+		m_Editors[editor->GetPropertyName()] = editor;
 	}
 
 	void PropertiesWidget::RemoveEditor(EditorWidget* editor)
 	{
+		QWidget* container = m_Ui.ScrollArea->widget();
+		BOOST_ASSERT(container);
+		QVBoxLayout* containerLayout = dynamic_cast<QVBoxLayout*>(container->layout());
+		BOOST_ASSERT(containerLayout);
+		containerLayout->removeWidget(editor);
+		m_Editors.erase(editor->GetPropertyName());
+		delete editor;
 	}
 
 	void PropertiesWidget::ClearEditors()
 	{
-		for (const auto& [name, editor] : m_EditorWidgets)
+		const auto editors = m_Editors;
+		for(const auto& [name, editor] : editors)
 		{
 			RemoveEditor(editor);
-			delete editor;
 		}
-
-		m_EditorWidgets.clear();
 	}
 
 	void PropertiesWidget::UpdateEditors()
@@ -47,15 +69,46 @@ namespace CityDraft::UI::Properties
 		std::transform(selectedDrafts.begin(), selectedDrafts.end(), std::back_inserter(draftPropertySets), [](auto& draft) {return draft->GetProperties(); });
 		
 		auto commonProps = CityDraft::Drafts::Properties::FindCommonProperties(draftPropertySets);
-		// TODO
+		if(commonProps.size() == 0)
+		{
+			return;
+		}
+
+		for(const auto& group : commonProps)
+		{
+			EditorWidget* editor = CreateEditorWidget(group.first, group.second);
+			if(!editor)
+			{
+				continue;
+			}
+			AddEditor(editor);
+		}
 	}
 
 	void PropertiesWidget::OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
 	{
+		ClearEditors();
+		UpdateEditors();
 	}
 
 	void PropertiesWidget::OnDraftsDeselected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
 	{
+		ClearEditors();
+		UpdateEditors();
 	}
+
+	EditorWidget* PropertiesWidget::CreateEditorWidget(std::string_view propertyName, const CityDraft::Drafts::Properties::Vector& properties)
+	{
+		BOOST_ASSERT(properties.size() > 0);
+
+		if (auto stringProp = dynamic_pointer_cast<CityDraft::Drafts::Properties::TypedProperty<std::string>>(properties[0]))
+		{
+			auto group = ConvertToPropertyGroup<std::string>(properties);
+			return new StringEditorWidget(group, this);
+		}
+		return nullptr;
+	}
+
+	
 
 }

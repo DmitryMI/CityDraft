@@ -1,16 +1,26 @@
 #pragma once
 
-#include "Property.h"
+#include "TypedProperty.h"
+#include <string_view>
 #include <cstdint>
 
 namespace CityDraft::Drafts::Properties
 {
 	template<typename T>
-	class View : public Property
+	class View : public TypedProperty<T>
 	{
 	public:
+		template<typename T>
+		using GetterFunc = std::function<const T& (CityDraft::Drafts::Draft*)>;
+
+		template<typename T>
+		using SetterFunc = std::function<void(CityDraft::Drafts::Draft*, const T&)>;
+
+		template<typename T>
+		using ValidatorFunc = std::function<bool(CityDraft::Drafts::Draft*, const T&)>;
+
 		inline View(std::string_view name, CityDraft::Drafts::Draft* owner, GetterFunc<T> getter, SetterFunc<T> setter, ValidatorFunc<T> validator):
-			Property(name, owner),
+			TypedProperty<T>(name, owner),
 			m_Getter(getter),
 			m_Setter(setter),
 			m_Validator(validator)
@@ -18,43 +28,40 @@ namespace CityDraft::Drafts::Properties
 
 		}
 
-		inline const T& Get() const
+		inline const T& Get() const override
 		{
 			BOOST_ASSERT(m_Getter);
-			return m_Getter(m_Owner);
+			return m_Getter(Property::m_Owner);
 		}
 
-		inline bool Set(const T& value)
+		inline bool Set(const T& value) override
 		{
 			BOOST_ASSERT(m_Setter);
 
-			if(m_Validator && !m_Validator(m_Owner, value))
+			if(m_Validator && !m_Validator(Property::m_Owner, value))
 			{
 				return false;
 			}
 
-			m_Setter(m_Owner, value);
+			m_Setter(Property::m_Owner, value);
 			return true;
 		}
 
-		inline std::any GetAny() const override
+		inline bool IsReadable() const override
 		{
-			return Get();
+			return m_Getter != nullptr;
 		}
 
-		inline bool SetAny(std::any value) override
+		inline virtual bool IsWritable() const override
 		{
-			if(value.type() == typeid(T))
-			{
-				return Set(std::any_cast<T>(value));
-			}
-			
-			return false;
+			return m_Setter != nullptr;
 		}
 
 	protected:
 		GetterFunc<T> m_Getter;
 		SetterFunc<T> m_Setter;
 		ValidatorFunc<T> m_Validator;
+
+		friend class CityDraft::Drafts::Draft;
 	};
 }

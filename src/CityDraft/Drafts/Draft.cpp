@@ -9,7 +9,10 @@ namespace CityDraft::Drafts
 		BOOST_ASSERT(asset);
 
 		m_AssetLoadedConnection = asset->ConnectToAssetLoadedEvent(std::bind(&Draft::OnAssetLoaded, this, std::placeholders::_1, std::placeholders::_2));
-		CreateProperties(m_Properties);
+
+		m_NameProperty = MakePropertyView(std::string_view("Name"), &Draft::GetName, &Draft::SetName);
+		m_TransformProperty = MakePropertyView(std::string_view("Transform"), &Draft::GetTransform, &Draft::SetTransform);
+		m_ZOrderProperty = MakePropertyView(std::string_view("Z-Order"), &Draft::GetZOrder);
 	}
 
 	Draft::~Draft()
@@ -35,6 +38,7 @@ namespace CityDraft::Drafts
 			m_Scene->UpdateDraftModel(this);
 			return;
 		}
+		m_TransformProperty->m_ValueChanged();
 	}
 
 	void Draft::SetTransform(const Transform2D& transform)
@@ -45,6 +49,7 @@ namespace CityDraft::Drafts
 			m_Scene->UpdateDraftModel(this);
 			return;
 		}
+		m_TransformProperty->m_ValueChanged();
 	}
 
 	void Draft::Serialize(CityDraft::Serialization::IOutputArchive& archive) const
@@ -69,6 +74,10 @@ namespace CityDraft::Drafts
 		archive >> layerZ;
 		m_Layer = m_Scene->GetLayer(layerZ).get();
 		BOOST_ASSERT(m_Layer);
+
+		m_NameProperty->m_ValueChanged();
+		m_TransformProperty->m_ValueChanged();
+		m_ZOrderProperty->m_ValueChanged();
 	}
 
 	int64_t Draft::GetZOrder() const
@@ -76,10 +85,10 @@ namespace CityDraft::Drafts
 		return m_ZOrder;
 	}
 
-	void Draft::CreateProperties(Properties::Set& properties)
+	void Draft::CollectProperties(Properties::Set& properties) const
 	{
-		properties.insert(MakePropertyView(std::string_view("Name"), &Draft::GetName, &Draft::SetName));
-		properties.insert(MakePropertyView(std::string_view("Transform"), &Draft::GetTransform, &Draft::SetTransform));
-		properties.insert(MakePropertyView(std::string_view("Z-Order"), &Draft::GetZOrder));
+		properties.insert(m_NameProperty);
+		properties.insert(m_TransformProperty);
+		properties.insert(m_ZOrderProperty);
 	}
 }
