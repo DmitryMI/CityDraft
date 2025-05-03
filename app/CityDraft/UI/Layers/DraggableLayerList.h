@@ -15,6 +15,8 @@ namespace CityDraft::UI::Layers
 
     public:
         explicit DraggableLayerList(Scene* scene, QWidget* parent = nullptr);
+
+    protected:
         void dropEvent(QDropEvent* event) override;
 
     private:
