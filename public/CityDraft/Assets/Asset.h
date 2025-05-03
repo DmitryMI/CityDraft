@@ -88,9 +88,9 @@ namespace CityDraft::Assets
 
 	protected:
 		boost::url m_AssetUrl;
-		std::shared_ptr<spdlog::logger> m_Logger;
+		std::shared_ptr<spdlog::logger> m_Logger = nullptr;
 		std::mutex m_ResourceMutex;
-		AssetManager* m_AssetManager;
+		AssetManager* m_AssetManager = nullptr;
 		AssetStatus m_Status{ AssetStatus::Initialized };
 
 		AssetLoadedEventSignal m_AssetLoadedEvent;
