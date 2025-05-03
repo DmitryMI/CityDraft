@@ -25,6 +25,7 @@
 #include "CityDraft/UI/ImageSelectionWidget.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
 #include "CityDraft/UI/Layers/ListWidget.h"
+#include "CityDraft/UI/Properties/PropertiesWidget.h"
 #include "ui_MainWindow.h"
 
 namespace CityDraft::UI
@@ -43,14 +44,14 @@ namespace CityDraft::UI
 		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
 		void RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
 
-		inline boost::signals2::connection ConnectToDraftSelected(DraftSelectedSignal::slot_type slot) override
+		inline boost::signals2::connection ConnectToDraftsSelected(DraftsSelectedSignal::slot_type slot) override
 		{
-			return m_DraftSelected.connect(slot);
+			return m_DraftsSelected.connect(slot);
 		}
 
-		inline boost::signals2::connection ConnectToDraftDeselected(DraftDeselectedSignal::slot_type slot) override
+		inline boost::signals2::connection ConnectToDraftsDeselected(DraftsDeselectedSignal::slot_type slot) override
 		{
-			return m_DraftDeselected.connect(slot);
+			return m_DraftsDeselected.connect(slot);
 		}
 
 	private:
@@ -61,6 +62,7 @@ namespace CityDraft::UI
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		UI::Layers::ListWidget* m_LayersWidget = nullptr;
+		UI::Properties::PropertiesWidget* m_PropertiesWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
 
@@ -84,8 +86,8 @@ namespace CityDraft::UI
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_InactiveInstruments;
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
-		DraftSelectedSignal m_DraftSelected;
-		DraftDeselectedSignal m_DraftDeselected;
+		DraftsSelectedSignal m_DraftsSelected;
+		DraftsDeselectedSignal m_DraftsDeselected;
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;
@@ -99,6 +101,7 @@ namespace CityDraft::UI
 		void CreateInstruments();
 		void CreateImageSelectionWidget();
 		void CreateLayersWidget();
+		void CreatePropertiesWidget();
 
 		// Instruments
 		void UpdateActiveInstrumentsLabel();

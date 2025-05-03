@@ -6,6 +6,10 @@
 #include <functional>
 #include <set>
 #include <memory>
+#include <map>
+#include <vector>
+#include <boost/assert.hpp>
+#include <algorithm>
 
 namespace CityDraft::Drafts
 {
@@ -18,7 +22,7 @@ namespace CityDraft::Drafts::Properties
 	{
 	public:
 		template<typename T>
-		using GetterFunc = std::function<const T&(CityDraft::Drafts::Draft*)>;
+		using GetterFunc = std::function<const T& (CityDraft::Drafts::Draft*)>;
 
 		template<typename T>
 		using SetterFunc = std::function<void(CityDraft::Drafts::Draft*, const T&)>;
@@ -26,7 +30,7 @@ namespace CityDraft::Drafts::Properties
 		template<typename T>
 		using ValidatorFunc = std::function<bool(CityDraft::Drafts::Draft*, const T&)>;
 
-		inline Property(std::string_view name, CityDraft::Drafts::Draft* owner) :
+		inline Property(std::string_view name, CityDraft::Drafts::Draft* owner):
 			m_Name(name),
 			m_Owner(owner)
 		{
@@ -85,4 +89,8 @@ namespace CityDraft::Drafts::Properties
 	};
 
 	using Set = std::set<std::shared_ptr<Property>, PropertyNameComparator>;
+	using Vector = std::vector<std::shared_ptr<Property>>;
+	using Map = std::map<std::string_view, Vector>;
+
+	Map FindCommonProperties(const std::vector<Set>& sets);
 }

@@ -56,6 +56,7 @@ namespace CityDraft::UI
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
+		CreatePropertiesWidget();
 		CreateStatusBar();
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
@@ -91,6 +92,8 @@ namespace CityDraft::UI
 
 	void MainWindow::InitializeUiForScene(std::shared_ptr<CityDraft::Scene> scene)
 	{
+		ClearSelectedDrafts();
+
 		m_Scene = scene;
 		m_UndoStack->clear();
 		m_RenderingWidget->SetScene(scene);
@@ -241,6 +244,29 @@ namespace CityDraft::UI
 
 		m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
 		parent->insertWidget(index, m_LayersWidget);
+	}
+
+	void MainWindow::CreatePropertiesWidget()
+	{
+		QSplitter* parent;
+		int index;
+		if(m_PropertiesWidget)
+		{
+			parent = dynamic_cast<QSplitter*>(m_PropertiesWidget->parentWidget());
+			index = parent->indexOf(m_PropertiesWidget);
+			delete m_PropertiesWidget;
+			m_PropertiesWidget = nullptr;
+		}
+		else
+		{
+			parent = dynamic_cast<QSplitter*>(m_Ui.propertiesPlaceholder->parentWidget());
+			index = parent->indexOf(m_Ui.propertiesPlaceholder);
+			delete m_Ui.propertiesPlaceholder;
+			m_Ui.propertiesPlaceholder = nullptr;
+		}
+
+		m_PropertiesWidget = new Properties::PropertiesWidget(this, m_UndoStack, this);
+		parent->insertWidget(index, m_PropertiesWidget);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -429,12 +455,16 @@ namespace CityDraft::UI
 
 	void MainWindow::ClearSelectedDrafts()
 	{
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallyDeselected;
 		auto drafts = m_SelectedDrafts;
 		for(const auto& draft : drafts)
 		{
 			m_SelectedDrafts.erase(draft);
-			m_DraftDeselected(draft);
+			actuallyDeselected.push_back(draft);
 		}
+
+		m_DraftsDeselected(actuallyDeselected);
+
 		BOOST_ASSERT(m_SelectedDrafts.size() == 0);
 
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
@@ -451,14 +481,18 @@ namespace CityDraft::UI
 			return;
 		}
 
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallySelected;
+
 		for (const auto& draft : drafts)
 		{
 			auto iterFlag = m_SelectedDrafts.insert(draft);
 			if(iterFlag.second)
 			{
-				m_DraftSelected(draft);
+				actuallySelected.push_back(draft);
 			}
 		}
+
+		m_DraftsSelected(actuallySelected);
 
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
 		if (!editor->IsActive())
@@ -469,6 +503,8 @@ namespace CityDraft::UI
 
 	void MainWindow::RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
 	{
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallyDeselected;
+
 		for(const auto& draft : drafts)
 		{
 			auto iter = m_SelectedDrafts.find(draft);
@@ -478,8 +514,10 @@ namespace CityDraft::UI
 				continue;
 			}
 			m_SelectedDrafts.erase(iter);
-			m_DraftDeselected(draft);
+			actuallyDeselected.push_back(draft);
 		}
+
+		m_DraftsDeselected(actuallyDeselected);
 
 		if(m_SelectedDrafts.size() == 0)
 		{

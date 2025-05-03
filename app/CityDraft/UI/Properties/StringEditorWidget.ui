@@ -1,8 +1,8 @@
 <UI version="4.0" >
- <class>PropertiesWidgetClass</class>
- <widget class="QWidget" name="PropertiesWidgetClass" >
+ <class>StringEditorWidgetClass</class>
+ <widget class="QWidget" name="StringEditorWidgetClass" >
   <property name="objectName" >
-   <string notr="true">PropertiesWidgetClass</string>
+   <string notr="true">StringEditorWidgetClass</string>
   </property>
   <property name="geometry" >
    <rect>
@@ -13,7 +13,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>PropertiesWidget</string>
+   <string>StringEditorWidget</string>
   </property>$centralwidget$
  </widget>
  <layoutDefault spacing="6" margin="11" />

@@ -8,10 +8,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CityDraft.Test.Sources 
 	"CityDraft/Assets/AssetManagerTest.cpp"
-	"CityDraft/LogManager.cpp"
-	"CityDraft/LogManager.h"
+	
+	
 	"CityDraft/AnglesTest.cpp" 
 	"CityDraft/LinearColorTest.cpp"
+	"CityDraft/Drafts/Properties/PropertiesTest.cpp"
 )
 
 enable_testing()

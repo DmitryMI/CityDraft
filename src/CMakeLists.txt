@@ -15,7 +15,7 @@ set(
 	"CityDraft/Assets/Curve.cpp" 
 	"CityDraft/Assets/ColorCurve.cpp"
 	"CityDraft/Curves/Factory.cpp"
-)
+ "CityDraft/Logging/LogManager.cpp"  "CityDraft/Drafts/Properties/Property.cpp")
 
 add_library(CityDraft ${CityDraft.Sources})
 target_include_directories(CityDraft PUBLIC "../public")

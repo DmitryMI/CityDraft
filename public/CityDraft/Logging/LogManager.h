@@ -11,9 +11,6 @@ namespace CityDraft::Logging
 	public:
 		static void InitLogging(const std::string& logLevel);
 		static std::shared_ptr<spdlog::logger> CreateLogger(const std::string& name);
-
-	private:
-		static bool m_LoggingInitialized;
 	};
 
 }
