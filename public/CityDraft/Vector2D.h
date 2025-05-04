@@ -111,6 +111,13 @@ namespace CityDraft
 			return Vector2D{ x, y };
 		}
 
+		constexpr Vector2D operator-() const
+		{
+			double x = GetX();
+			double y = GetY();
+			return Vector2D{-x, -y};
+		}
+
 		constexpr bool IsNearlyZero(double tolerance = 1E-9)
 		{
 			return boost::math::ccmath::abs(GetX()) < tolerance && boost::math::ccmath::abs(GetY()) < tolerance;
@@ -186,6 +193,20 @@ namespace CityDraft
 			SetX(x);
 			SetY(y);
 			return *this;
+		}
+
+		Vector2D GetNormalized() const
+		{
+			return (*this) / GetSize();
+		}
+
+		Vector2D& Normalize()
+		{
+			double size = GetSize();
+			double x = GetX() / size;
+			double y = GetY() / size;
+			SetX(x);
+			SetY(y);
 		}
 	};
 }

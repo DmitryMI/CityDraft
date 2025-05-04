@@ -14,9 +14,9 @@ namespace CityDraft::Curves
 	public:
 		struct Anchor
 		{
-			CityDraft::Vector2D Position;
-			CityDraft::Vector2D OutgoingHandle; // Relative to Position
-			CityDraft::Vector2D IncomingHandle; // Relative to Position
+			CityDraft::Vector2D Position{0,0};
+			CityDraft::Vector2D OutgoingHandle{0, 0}; // Relative to Position
+			CityDraft::Vector2D IncomingHandle{0, 0}; // Relative to Position
 		};
 
 		CompositeBezierCurve() = default;
@@ -32,18 +32,36 @@ namespace CityDraft::Curves
 			return m_Anchors;
 		}
 
-		inline void ChangeAnchor(const Anchor& anchor, size_t index)
+		void GetNearestAnchorIndices(double t, std::vector<size_t>& outAnchorIndices) const;
+
+		inline void ChangeAnchor(size_t index, const Anchor& anchor)
 		{
 			BOOST_ASSERT(index < m_Anchors.size());
 			m_Anchors[index] = anchor;
 			RebuildArcLengthTable();
 		}
 
-		inline void AddAnchor(const Anchor& anchor)
+		inline void AddAnchor(const Anchor& anchor, bool toEnd = true)
 		{
-			m_Anchors.push_back(anchor);
+			if(toEnd)
+			{
+				m_Anchors.push_back(anchor);
+			}
+			else
+			{
+				m_Anchors.insert(m_Anchors.begin(), anchor);
+			}
 			RebuildArcLengthTable();
 		}
+
+		inline void InsertAnchor(size_t index, const Anchor& anchor)
+		{
+			BOOST_ASSERT(index < m_Anchors.size());
+			m_Anchors.insert(m_Anchors.begin() + index, anchor);
+			RebuildArcLengthTable();
+		}
+
+		size_t InsertAnchor(double t);
 
 		inline void ClearAnchors()
 		{

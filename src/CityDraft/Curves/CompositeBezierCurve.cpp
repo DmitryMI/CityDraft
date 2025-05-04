@@ -2,6 +2,66 @@
 
 namespace CityDraft::Curves
 {
+	void CompositeBezierCurve::GetNearestAnchorIndices(double t, std::vector<size_t>& outAnchorIndices) const
+	{
+		if(m_Anchors.size() < 2)
+		{
+			return;
+		}
+
+		double totalSegments = m_Anchors.size() - 1;
+		double scaledT = std::clamp(t, 0.0, 1.0) * totalSegments;
+
+		size_t segmentIndex = std::min(static_cast<size_t>(scaledT), m_Anchors.size() - 2);
+		outAnchorIndices.push_back(segmentIndex);
+		outAnchorIndices.push_back(segmentIndex + 1);
+	}
+
+	size_t CompositeBezierCurve::InsertAnchor(double t)
+	{
+		double totalSegments = m_Anchors.size() - 1;
+		double scaledT = std::clamp(t, 0.0, 1.0) * totalSegments;
+
+		size_t indexA = std::min(static_cast<size_t>(scaledT), m_Anchors.size() - 2);
+		double localT = scaledT - indexA;
+		size_t indexB = indexA + 1;
+
+		auto& anchorA = m_Anchors[indexA];
+		auto& anchorB = m_Anchors[indexB];
+		Vector2D p0 = anchorA.Position;
+		Vector2D p1 = p0 + anchorA.OutgoingHandle;
+		Vector2D p2 = anchorB.Position + anchorB.IncomingHandle;
+		Vector2D p3 = anchorB.Position;
+
+		Vector2D q0 = Vector2D::Lerp(p0, p1, localT);
+		Vector2D q1 = Vector2D::Lerp(p1, p2, localT);
+		Vector2D q2 = Vector2D::Lerp(p2, p3, localT);
+
+		Vector2D r0 = Vector2D::Lerp(q0, q1, localT);
+		Vector2D r1 = Vector2D::Lerp(q1, q2, localT);
+
+		Vector2D s = Vector2D::Lerp(r0, r1, localT);
+
+		Vector2D tangent = (r1 - r0).GetNormalized();
+
+		// Step 4: Approximate handle length
+		// Option A: Average distance of R0 and R1 from S
+		double len1 = (r0 - s).GetSize();
+		double len2 = (r1 - s).GetSize();
+		double avgLen = 0.5f * (len1 + len2);
+
+		// Step 5: Construct new anchor with symmetric handles
+		Anchor newAnchor;
+		newAnchor.Position = s;
+		newAnchor.IncomingHandle = -tangent * avgLen;
+		newAnchor.OutgoingHandle = tangent * avgLen;
+
+		m_Anchors.insert(m_Anchors.begin() + indexB, newAnchor);
+
+		RebuildArcLengthTable();
+		return indexB;
+	}
+
 	CityDraft::Vector2D CompositeBezierCurve::GetPoint(double t) const
 	{
 		if(m_Anchors.size() < 2) return {};

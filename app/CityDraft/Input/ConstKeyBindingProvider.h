@@ -4,12 +4,32 @@
 
 namespace CityDraft::Input
 {
-	class ConstKeyBindingProvider : public IKeyBindingProvider
+	class ConstKeyBindingProvider: public IKeyBindingProvider
 	{
 	public:
-		inline Qt::MouseButton GetMouseSelectionButton() override { return Qt::MouseButton::LeftButton; };
-		inline Qt::MouseButton GetMouseViewportPanningButton() override { return Qt::MouseButton::MiddleButton; };
-		inline Qt::KeyboardModifier GetSelectionAdditiveModifier() override { return Qt::ShiftModifier; };
-		inline Qt::KeyboardModifier GetScaleFromCenterModifier() override { return Qt::ShiftModifier; };
+		inline Qt::MouseButton GetMouseSelectionButton() override
+		{
+			return Qt::MouseButton::LeftButton;
+		};
+
+		inline Qt::MouseButton GetMouseViewportPanningButton() override
+		{
+			return Qt::MouseButton::MiddleButton;
+		};
+
+		inline Qt::KeyboardModifier GetSelectionAdditiveModifier() override
+		{
+			return Qt::ShiftModifier;
+		};
+
+		inline Qt::KeyboardModifier GetScaleFromCenterModifier() override
+		{
+			return Qt::ShiftModifier;
+		};
+
+		inline Qt::MouseButton GetMouseBezierAddAnchorButton() override
+		{
+			return Qt::MouseButton::RightButton;
+		};
 	};
 }

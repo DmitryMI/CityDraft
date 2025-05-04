@@ -86,5 +86,6 @@ namespace CityDraft::Input::Instruments
 
 		void Drag(QMouseEvent* event);
 		void DragHandles(const Vector2D& delta, Vector2D& handle, Vector2D& oppositeHandle);
+		void InsertAnchor(QMouseEvent* event);
 	};
 }
