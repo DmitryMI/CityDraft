@@ -24,15 +24,15 @@ namespace CityDraft
 		}
 		else if (layer->m_Drafts.size() == 0)
 		{
-			obj->m_ZOrder = 0;
+			obj->SetZOrder(0);
 		}
 		else if (order == InsertOrder::Highest)
 		{
-			obj->m_ZOrder = layer->m_Drafts.rbegin()->first + 1;
+			obj->SetZOrder(layer->m_Drafts.rbegin()->first + 1);
 		}
 		else
 		{
-			obj->m_ZOrder = layer->m_Drafts.begin()->first - 1;
+			obj->SetZOrder(layer->m_Drafts.begin()->first - 1);
 		}
 
 		return AddDraft(obj);
@@ -267,6 +267,24 @@ namespace CityDraft
 		auto objPtr = RemoveObjectFromRtree(obj);
 		BOOST_ASSERT(objPtr != nullptr);
 		InsertObjectToRtree(objPtr);
+		m_DraftUpdated(objPtr);
+	}
+
+	void Scene::UpdateDraftAppearance(Drafts::Draft* obj)
+	{
+		BOOST_ASSERT(obj->m_Scene == this);
+		std::vector<Scene::RTreeValue> entries;
+		QueryRtreeEntries(obj->GetAxisAlignedBoundingBox(), entries);
+		for(const auto& entry : entries)
+		{
+			if(entry.second.get() == obj)
+			{
+				m_DraftUpdated(entry.second);
+				return;
+			}
+		}
+
+		BOOST_ASSERT(false);
 	}
 
 	size_t Scene::QueryRtreeEntries(const AxisAlignedBoundingBox2D& box, std::vector<Scene::RTreeValue>& entries)

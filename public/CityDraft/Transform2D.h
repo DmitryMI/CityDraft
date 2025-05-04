@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/geometry.hpp>
+#include <boost/math/ccmath/abs.hpp>
 #include "Vector2D.h"
 #include "Angles.h"
 
@@ -38,6 +39,22 @@ namespace CityDraft
 				Scale.GetX() * scaleFactors.GetX(),
 				Scale.GetY() * scaleFactors.GetY()
 			);
+		}
+
+		constexpr bool operator==(const Transform2D& b)
+		{
+			return
+				(b.Translation - Translation).IsNearlyZero() &&
+				boost::math::ccmath::abs(b.Rotation.Value - Rotation.Value) < 1E-9 &&
+				(b.Scale - Scale).IsNearlyZero();
+		}
+
+		constexpr bool operator!=(const Transform2D& b)
+		{
+			return
+				!(b.Translation - Translation).IsNearlyZero() ||
+				boost::math::ccmath::abs(b.Rotation.Value - Rotation.Value) >= 1E-9 ||
+				!(b.Scale - Scale).IsNearlyZero();
 		}
 	};
 }

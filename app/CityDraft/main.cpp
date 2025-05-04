@@ -2,7 +2,7 @@
 #include <QWidget>
 #include <QCommandLineParser>
 #include "UI/MainWindow.h"
-#include "Logging/LogManager.h"
+#include "CityDraft/Logging/LogManager.h"
 #include "spdlog/spdlog.h"
 #include <QStandardPaths>
 
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 	parser.process(app);
 
 	QString levelStr = parser.value(logLevelOption).toLower();
-	Logging::LogManager::InitLogging(levelStr);
+	Logging::LogManager::InitLogging(levelStr.toStdString());
 
 	QString assetsRoot = parser.value(assetsRootOption);
 	QString sceneRoot = parser.value(sceneOption);

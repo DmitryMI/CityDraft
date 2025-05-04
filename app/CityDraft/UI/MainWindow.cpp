@@ -56,11 +56,13 @@ namespace CityDraft::UI
 		m_ColorsProvider = CityDraft::UI::Colors::Factory::CreateColorsProviderProvider();
 
 		CreateRenderingWidget();
+		CreatePropertiesWidget();
 		CreateStatusBar();
 		connect(m_Ui.actionSaveAs, &QAction::triggered, this, &MainWindow::OnSaveSceneAsClicked);
 		connect(m_Ui.actionOpen, &QAction::triggered, this, &MainWindow::OnOpenSceneClicked);
 		connect(m_Ui.actionNewScene, &QAction::triggered, this, &MainWindow::OnNewSceneClicked);
 
+		/*
 		QTimer::singleShot(0, this, [this] {
 			m_Ui.rootSplitter->setSizes({
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.20),
@@ -68,6 +70,10 @@ namespace CityDraft::UI
 				static_cast<int>(m_Ui.rootSplitter->size().width() * 0.10)
 				});
 			});
+		*/
+
+		m_RepaintTimer = new QTimer(this);
+		connect(m_RepaintTimer, &QTimer::timeout, this, &MainWindow::OnRepaintTimerExpired);
 
 		m_Logger->info("MainWindow created");
 	}
@@ -94,6 +100,7 @@ namespace CityDraft::UI
 		m_RenderingWidget->SetScene(scene);
 		m_RenderingWidget->Repaint();
 		CreateInstruments();
+		ClearSelectedDrafts();
 		CreateLayersWidget();
 		setWindowTitle(QString::fromStdString(m_Scene->GetName()));
 
@@ -102,6 +109,7 @@ namespace CityDraft::UI
 		m_LayerZChangedConnection = m_Scene->ConnectToLayerZChanged(std::bind(&MainWindow::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&MainWindow::OnSceneLayerFlagChanged, this, std::placeholders::_1));
 		m_DraftAddedConnection = m_Scene->ConnectToDraftAdded(std::bind(&MainWindow::OnSceneDraftAdded, this, std::placeholders::_1));
+		m_DraftUpdatedConnection = m_Scene->ConnectToDraftUpdated(std::bind(&MainWindow::OnSceneDraftUpdated, this, std::placeholders::_1));
 		m_DraftRemovedConnection = m_Scene->ConnectToDraftRemoved(std::bind(&MainWindow::OnSceneDraftRemoved, this, std::placeholders::_1));
 	}
 
@@ -127,13 +135,12 @@ namespace CityDraft::UI
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::MouseWheelEvent, this, &MainWindow::OnRenderingWidgetMouseWheelEvent);
 		connect(m_RenderingWidget, &UI::Rendering::SkiaWidget::KeyboardEvent, this, &MainWindow::OnRenderingWidgetKeyboardEvent);
 
-		QBoxLayout* boxLayout = dynamic_cast<QBoxLayout*>(m_Ui.renderingWidgetPlaceholder->parentWidget()->layout());
-		int index = boxLayout->indexOf(m_Ui.renderingWidgetPlaceholder);
-		boxLayout->removeWidget(m_Ui.renderingWidgetPlaceholder);
+		QSplitter* splitter = dynamic_cast<QSplitter*>(m_Ui.renderingWidgetPlaceholder->parentWidget());
+		int index = splitter->indexOf(m_Ui.renderingWidgetPlaceholder);
+		splitter->insertWidget(index, m_RenderingWidget);
 		delete m_Ui.renderingWidgetPlaceholder;
 		m_Ui.renderingWidgetPlaceholder = nullptr;
 
-		boxLayout->insertWidget(index, m_RenderingWidget);
 	}
 
 	void MainWindow::CreateAssetManager(const QString& assetsRoot)
@@ -209,37 +216,60 @@ namespace CityDraft::UI
 		BOOST_ASSERT(m_AssetManager);
 		m_ImageSelectionWidget = new CityDraft::UI::ImageSelectionWidget(m_AssetManager.get(), this);
 
-		QWidget* imagePlaceholder = m_Ui.imageSelectionPlaceholder;
+		auto* splitter = dynamic_cast<QSplitter*>(m_Ui.imageSelectionPlaceholder->parentWidget());
+		BOOST_ASSERT(splitter);
+		int index = splitter->indexOf(m_Ui.imageSelectionPlaceholder);
 
-		auto* boxLayout = dynamic_cast<QBoxLayout*>(imagePlaceholder->parentWidget()->layout());
-		BOOST_ASSERT(boxLayout);
+		delete m_Ui.imageSelectionPlaceholder;
+		m_Ui.imageSelectionPlaceholder = nullptr;
 
-		boxLayout->removeWidget(imagePlaceholder);
-		delete imagePlaceholder;
-
-		boxLayout->addWidget(m_ImageSelectionWidget);
+		splitter->insertWidget(index, m_ImageSelectionWidget);
 	}
 
 	void MainWindow::CreateLayersWidget()
 	{
-		if(!m_LayersWidget)
+		QSplitter* parent;
+		int index;
+		if(m_LayersWidget)
 		{
-			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
-			QSplitter* splitter = m_Ui.rootSplitter;
-			const QWidget* layersPlaceholder = m_Ui.layersWidgetPlaceholder;
-			QWidget* parent = layersPlaceholder->parentWidget();
-
-			const int index = splitter->indexOf(parent);
-			splitter->insertWidget(index, m_LayersWidget);
-			parent->deleteLater();
+			parent = dynamic_cast<QSplitter*>(m_LayersWidget->parentWidget());
+			index = parent->indexOf(m_LayersWidget);
+			delete m_LayersWidget;
+			m_LayersWidget = nullptr;
 		}
 		else
 		{
-			int layersWidgetIndex = m_Ui.rootSplitter->indexOf(m_LayersWidget);
-			delete m_LayersWidget;
-			m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
-			m_Ui.rootSplitter->insertWidget(layersWidgetIndex, m_LayersWidget);
-		}		
+			parent = dynamic_cast<QSplitter*>(m_Ui.layersWidgetPlaceholder->parentWidget());
+			index = parent->indexOf(m_Ui.layersWidgetPlaceholder);
+			delete m_Ui.layersWidgetPlaceholder;
+			m_Ui.layersWidgetPlaceholder = nullptr;
+		}
+
+		m_LayersWidget = new Layers::ListWidget(m_Scene.get(), m_UndoStack, this);
+		parent->insertWidget(index, m_LayersWidget);
+	}
+
+	void MainWindow::CreatePropertiesWidget()
+	{
+		QSplitter* parent;
+		int index;
+		if(m_PropertiesWidget)
+		{
+			parent = dynamic_cast<QSplitter*>(m_PropertiesWidget->parentWidget());
+			index = parent->indexOf(m_PropertiesWidget);
+			delete m_PropertiesWidget;
+			m_PropertiesWidget = nullptr;
+		}
+		else
+		{
+			parent = dynamic_cast<QSplitter*>(m_Ui.propertiesPlaceholder->parentWidget());
+			index = parent->indexOf(m_Ui.propertiesPlaceholder);
+			delete m_Ui.propertiesPlaceholder;
+			m_Ui.propertiesPlaceholder = nullptr;
+		}
+
+		m_PropertiesWidget = new Properties::PropertiesWidget(this, m_UndoStack, this);
+		parent->insertWidget(index, m_PropertiesWidget);
 	}
 
 	void MainWindow::UpdateActiveInstrumentsLabel()
@@ -258,7 +288,7 @@ namespace CityDraft::UI
 		}
 
 		QStringList toolsMessages;
-		for (const auto [descryptor, description] : toolDescriptions)
+		for (const auto& [descryptor, description] : toolDescriptions)
 		{
 			QStringList keysList;
 
@@ -396,11 +426,20 @@ namespace CityDraft::UI
 	{
 		BOOST_ASSERT(m_RenderingWidget);
 		m_RenderingWidget->Repaint();
+
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> selectedDrafts;
+		std::transform(m_SelectedDrafts.begin(), m_SelectedDrafts.end(), std::back_inserter(selectedDrafts), [](const auto& item){return item;});
+		RemoveDraftsFromSelection(selectedDrafts);
 	}
 
 	void MainWindow::OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft)
 	{
-		
+		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneDraftUpdated(std::shared_ptr<Drafts::Draft> draft)
+	{
+		m_RepaintTimer->start(10);
 	}
 
 	void MainWindow::OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft)
@@ -415,6 +454,7 @@ namespace CityDraft::UI
 				DeactivateInstrument(editor);
 			}
 		}
+		m_RenderingWidget->Repaint();
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
@@ -424,7 +464,18 @@ namespace CityDraft::UI
 
 	void MainWindow::ClearSelectedDrafts()
 	{
-		m_SelectedDrafts.clear();
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallyDeselected;
+		auto drafts = m_SelectedDrafts;
+		for(const auto& draft : drafts)
+		{
+			m_SelectedDrafts.erase(draft);
+			actuallyDeselected.push_back(draft);
+		}
+
+		m_DraftsDeselected(actuallyDeselected);
+
+		BOOST_ASSERT(m_SelectedDrafts.size() == 0);
+
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
 		if (editor->IsActive())
 		{
@@ -439,15 +490,51 @@ namespace CityDraft::UI
 			return;
 		}
 
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallySelected;
+
 		for (const auto& draft : drafts)
 		{
-			m_SelectedDrafts.insert(draft);
+			auto iterFlag = m_SelectedDrafts.insert(draft);
+			if(iterFlag.second)
+			{
+				actuallySelected.push_back(draft);
+			}
 		}
+
+		m_DraftsSelected(actuallySelected);
 
 		auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
 		if (!editor->IsActive())
 		{
 			ActivateInstrument(editor);
+		}
+	}
+
+	void MainWindow::RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
+	{
+		std::vector<std::shared_ptr<CityDraft::Drafts::Draft>> actuallyDeselected;
+
+		for(const auto& draft : drafts)
+		{
+			auto iter = m_SelectedDrafts.find(draft);
+			if(iter == m_SelectedDrafts.end())
+			{
+				m_Logger->warn("Trying to remove draft {} from selection, but it was not selected.", draft->GetName());
+				continue;
+			}
+			m_SelectedDrafts.erase(iter);
+			actuallyDeselected.push_back(draft);
+		}
+
+		m_DraftsDeselected(actuallyDeselected);
+
+		if(m_SelectedDrafts.size() == 0)
+		{
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::ImageDraftEditor>();
+			if(editor->IsActive())
+			{
+				DeactivateInstrument(editor);
+			}
 		}
 	}
 
@@ -483,12 +570,6 @@ namespace CityDraft::UI
 	void MainWindow::OnRenderingWidgetKeyboardEvent(QKeyEvent* event)
 	{
 		ProcessInstrumentsKeyboardEvent(event);
-	}
-
-	void MainWindow::OnLayerModified(CityDraft::Layer* layer)
-	{
-		BOOST_ASSERT(m_RenderingWidget);
-		m_RenderingWidget->Repaint();
 	}
 
 	void MainWindow::OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status)
@@ -540,6 +621,15 @@ namespace CityDraft::UI
 		
 		m_ScenePath = "";
 		InitializeUiForScene(m_Scene);
+	}
+
+	void MainWindow::OnRepaintTimerExpired()
+	{
+		m_RepaintTimer->stop();
+		if(m_RenderingWidget)
+		{
+			m_RenderingWidget->Repaint();
+		}
 	}
 
 	void MainWindow::OnSaveSceneAsClicked()

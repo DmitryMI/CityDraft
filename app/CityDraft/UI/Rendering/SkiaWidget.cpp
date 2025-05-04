@@ -76,6 +76,16 @@ namespace CityDraft::UI::Rendering
 		m_Scene = scene;
 	}
 
+	SkCanvas* SkiaWidget::GetPrimaryCanvas() const
+	{
+		return m_Canvas;
+	}
+
+	SkCanvas* SkiaWidget::GetMaskCanvas() const
+	{
+		return m_CurveMaskCanvas;
+	}
+
 	Vector2D SkiaWidget::Project(const QPointF& pixelCoord) const
 	{
 		QPointF widgetSize = QPointF(size().width() / 2.0, size().height() / 2.0);
@@ -231,7 +241,7 @@ namespace CityDraft::UI::Rendering
 		{
 			auto painter = m_QueuedPainters.front();
 			m_QueuedPainters.pop();
-			painter->Paint(this, m_Canvas);
+			painter->Paint(this);
 		}
 
 		emit GraphicsPainting(this);
@@ -347,7 +357,7 @@ namespace CityDraft::UI::Rendering
 	{
 		if (m_IsGlPainting)
 		{
-			painter->Paint(this, m_Canvas);
+			painter->Paint(this);
 		}
 		else
 		{
@@ -363,8 +373,7 @@ namespace CityDraft::UI::Rendering
 		}
 		else if(auto* colorCurve = dynamic_cast<CityDraft::Drafts::SkiaColorCurve*>(draft))
 		{
-			m_WidgetLogger->warn("Creating SkiaPainters::ColorCurve with Mask Canvas ptr: {}", reinterpret_cast<uint64_t>(m_CurveMaskCanvas));
-			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve, m_CurveMaskCanvas);
+			return std::make_shared<SkiaPainters::ColorCurve>(colorCurve);
 		}
 
 		BOOST_ASSERT(false);

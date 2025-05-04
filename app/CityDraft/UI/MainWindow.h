@@ -15,6 +15,7 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <vector>
+#include <QTimer>
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/IKeyBindingProvider.h"
@@ -25,6 +26,7 @@
 #include "CityDraft/UI/ImageSelectionWidget.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
 #include "CityDraft/UI/Layers/ListWidget.h"
+#include "CityDraft/UI/Properties/PropertiesWidget.h"
 #include "ui_MainWindow.h"
 
 namespace CityDraft::UI
@@ -41,6 +43,17 @@ namespace CityDraft::UI
 		const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& GetSelectedDrafts() const override;
 		void ClearSelectedDrafts() override;
 		void AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
+		void RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>&) override;
+
+		inline boost::signals2::connection ConnectToDraftsSelected(DraftsSelectedSignal::slot_type slot) override
+		{
+			return m_DraftsSelected.connect(slot);
+		}
+
+		inline boost::signals2::connection ConnectToDraftsDeselected(DraftsDeselectedSignal::slot_type slot) override
+		{
+			return m_DraftsDeselected.connect(slot);
+		}
 
 	private:
 		std::shared_ptr<spdlog::logger> m_Logger;
@@ -50,8 +63,10 @@ namespace CityDraft::UI
 		UI::Rendering::SkiaWidget* m_RenderingWidget = nullptr;
 		UI::ImageSelectionWidget* m_ImageSelectionWidget = nullptr;
 		UI::Layers::ListWidget* m_LayersWidget = nullptr;
+		UI::Properties::PropertiesWidget* m_PropertiesWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
+		QTimer* m_RepaintTimer = nullptr;
 
 		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
@@ -61,8 +76,8 @@ namespace CityDraft::UI
 		boost::signals2::connection m_LayerZChangedConnection;
 		boost::signals2::connection m_LayerFlagChangedConnection;
 		boost::signals2::connection m_DraftAddedConnection;
+		boost::signals2::connection m_DraftUpdatedConnection;
 		boost::signals2::connection m_DraftRemovedConnection;
-
 
 		// Config
 		QString m_AssetsRootDirectory;
@@ -74,6 +89,8 @@ namespace CityDraft::UI
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_InactiveInstruments;
 		std::set<CityDraft::Input::Instruments::Instrument*, CityDraft::Input::Instruments::Comparator> m_ActiveInstruments;
 		std::set<std::shared_ptr<CityDraft::Drafts::Draft>> m_SelectedDrafts;
+		DraftsSelectedSignal m_DraftsSelected;
+		DraftsDeselectedSignal m_DraftsDeselected;
 
 		// Undo-Redo
 		QUndoStack* m_UndoStack;
@@ -87,6 +104,7 @@ namespace CityDraft::UI
 		void CreateInstruments();
 		void CreateImageSelectionWidget();
 		void CreateLayersWidget();
+		void CreatePropertiesWidget();
 
 		// Instruments
 		void UpdateActiveInstrumentsLabel();
@@ -154,6 +172,7 @@ namespace CityDraft::UI
 		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
 		void OnSceneLayerFlagChanged(CityDraft::Layer* layer);
 		void OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft);
+		void OnSceneDraftUpdated(std::shared_ptr<Drafts::Draft> draft);
 		void OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft);
 
 	private slots:
@@ -163,11 +182,11 @@ namespace CityDraft::UI
 		void OnRenderingWidgetMouseMoveEvent(QMouseEvent* event);
 		void OnRenderingWidgetMouseWheelEvent(QWheelEvent* event);
 		void OnRenderingWidgetKeyboardEvent(QKeyEvent* event);
-		void OnLayerModified(CityDraft::Layer* layer);
 		void OnInstrumentFinished(CityDraft::Input::Instruments::Instrument* instrument, CityDraft::Input::Instruments::FinishStatus status);
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();
 		void OnNewSceneClicked();
+		void OnRepaintTimerExpired();
 	};
 
 }

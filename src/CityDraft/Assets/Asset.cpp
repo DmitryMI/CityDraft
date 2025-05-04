@@ -28,6 +28,17 @@ namespace CityDraft::Assets
 
 	Asset::~Asset()
 	{
-		m_Logger->debug("Asset {} destroyed", m_AssetUrl.c_str());
+		if(!m_Logger)
+		{
+			return;
+		}
+		if(m_AssetUrl.c_str())
+		{
+			m_Logger->debug("Asset {} destroyed", m_AssetUrl.c_str());
+		}
+		else
+		{
+			m_Logger->debug("Asset <NULL URL> destroyed");
+		}
 	}
 }

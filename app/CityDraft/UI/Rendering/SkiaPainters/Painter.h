@@ -16,7 +16,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	{
 	public:
 
-		virtual void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) = 0;
+		virtual void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) = 0;
 
 		CityDraft::Drafts::Draft* GetOwner() const override
 		{

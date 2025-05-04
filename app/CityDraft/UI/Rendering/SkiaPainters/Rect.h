@@ -31,7 +31,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			const LinearColorF& fillColor
 		);
 
-		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) override;
+		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) override;
 
 	private:
 		Vector2D m_Min;

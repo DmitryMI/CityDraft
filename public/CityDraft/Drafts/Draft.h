@@ -1,16 +1,20 @@
 #pragma once
 
-#include "CityDraft/Transform2D.h"
-#include "CityDraft/Vector2D.h"
+#include <boost/signals2.hpp>
+#include <cstdint>
+#include <memory>
+#include <string>
 #include "CityDraft/AxisAlignedBoundingBox2D.h"
 #include "CityDraft/Layer.h"
-#include <string>
-#include <memory>
-#include <boost/signals2.hpp>
 #include "CityDraft/Serialization/IArchive.h"
 #include "CityDraft/Serialization/ISerializable.h"
-#include <cstdint>
+#include "CityDraft/Transform2D.h"
+#include "CityDraft/Vector2D.h"
 #include "IRenderProxy.h"
+#include "Properties/Property.h"
+#include "Properties/View.h"
+#include <type_traits>
+#include "CityDraft/Utils/DeduceReturnType.h"
 
 namespace CityDraft
 {
@@ -27,7 +31,7 @@ namespace CityDraft::Drafts
 	/// <summary>
 	/// Represents and Asset, instantiated on the Scene. Can be moved, rotated, scaled and exists in multiple copies.
 	/// </summary>
-	class Draft : public CityDraft::Serialization::ISerializable
+	class Draft: public CityDraft::Serialization::ISerializable
 	{
 	public:
 		/// <summary>
@@ -60,6 +64,7 @@ namespace CityDraft::Drafts
 		inline void SetName(const std::string& name)
 		{
 			m_Name = name;
+			m_NameProperty->m_ValueChanged();
 		}
 
 		inline Layer* GetLayer() const
@@ -108,6 +113,13 @@ namespace CityDraft::Drafts
 			m_RenderProxy = renderProxy;
 		}
 
+		inline Properties::Set GetProperties() const
+		{
+			Properties::Set properties;
+			CollectProperties(properties);
+			return properties;
+		}
+
 		// ISerializable
 		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
@@ -115,16 +127,56 @@ namespace CityDraft::Drafts
 	protected:
 		boost::signals2::connection m_AssetLoadedConnection;
 
+		// Properties
+		std::shared_ptr<Properties::View<std::string>> m_NameProperty;
+		std::shared_ptr<Properties::View<Transform2D>> m_TransformProperty;
+		std::shared_ptr<Properties::View<int64_t>> m_ZOrderProperty;
+
+		virtual void CollectProperties(Properties::Set& properties) const;
+
+		template<typename Func>
+		auto Bind(Func func)
+		{
+			return std::bind(func, this);
+		}
+
+		template<typename TGetFunc, typename TSetFunc, typename TValidateFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter, TValidateFunc validator)
+		{
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, setter, validator);
+		}
+
+		template<typename TGetFunc, typename TSetFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter, TSetFunc setter)
+		{
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, setter, nullptr);
+		}
+
+		template<typename TGetFunc>
+		auto MakePropertyView(std::string_view name, TGetFunc getter)
+		{
+			using T = CityDraft::Utils::deduce_return_simple_t<TGetFunc>;
+			return std::make_shared<Properties::View<T>>(name, this, getter, nullptr, nullptr);
+		}
+
 	private:
 		Layer* m_Layer = nullptr;
 		Scene* m_Scene = nullptr;
 		CityDraft::Assets::Asset* m_Asset;
-		
+		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
+
+		// Persistent fields
 		std::string m_Name{};
 		Transform2D m_Transform{};
 		int64_t m_ZOrder = 0;
 
-		std::shared_ptr<IRenderProxy> m_RenderProxy = nullptr;
+		inline void SetZOrder(int64_t zOrder)
+		{
+			m_ZOrder = zOrder;
+			m_ZOrderProperty->m_ValueChanged();
+		}
 
 		friend class CityDraft::Scene;
 	};

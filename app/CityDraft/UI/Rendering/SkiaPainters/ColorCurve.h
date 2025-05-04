@@ -19,16 +19,12 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			CityDraft::Curves::IWidthProvider* fillWidth,
 			CityDraft::Curves::IWidthProvider* outlineWidth,
 			const LinearColorF& fillColor,
-			const LinearColorF& outlineColor,
-			SkCanvas* maskCanvas
+			const LinearColorF& outlineColor
 		);
 
-		ColorCurve(
-			CityDraft::Drafts::SkiaColorCurve* draft,
-			SkCanvas* maskCanvas
-		);
+		ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft);
 
-		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas) override;
+		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) override;
 
 	private:
 		CityDraft::Curves::ICurve* m_Curve = nullptr;
@@ -36,10 +32,9 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::IWidthProvider* m_OutlineWidth = nullptr;
 		LinearColorF m_FillColor{};
 		LinearColorF m_OutlineColor{};
-		SkCanvas* m_MaskCanvas = nullptr;
 
-		void PaintFill(SkCanvas* canvas);
-		void PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas);
+		void PaintFill(CityDraft::UI::Rendering::SkiaWidget* renderer);
+		void PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer);
 		void PaintCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB);
 	
 		void DebugDumpImage(CityDraft::UI::Rendering::SkiaWidget* renderer, sk_sp<SkImage> image);

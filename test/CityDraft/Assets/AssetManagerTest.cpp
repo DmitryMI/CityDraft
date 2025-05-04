@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "CityDraft/Assets/AssetManager.h"
 #include "AssetManagerMock.h"
-#include "../LogManager.h"
+#include "CityDraft/Logging/LogManager.h"
 
 namespace CityDraft::Assets
 {

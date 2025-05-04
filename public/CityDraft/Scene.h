@@ -42,6 +42,8 @@ namespace CityDraft
 
 		using DraftAddedFunc = void(std::shared_ptr<Drafts::Draft>);
 		using DraftAddedSignal = boost::signals2::signal<DraftAddedFunc>;
+		using DraftUpdatedFunc = void(std::shared_ptr<Drafts::Draft>);
+		using DraftUpdatedSignal = boost::signals2::signal<DraftUpdatedFunc>;
 		using DraftRemovedFunc = void(Drafts::Draft*);
 		using DraftRemovedSignal = boost::signals2::signal<DraftRemovedFunc>;
 
@@ -112,6 +114,11 @@ namespace CityDraft
 			return m_DraftRemoved.connect(slot);
 		}
 
+		inline boost::signals2::connection ConnectToDraftUpdated(const DraftUpdatedSignal::slot_type& slot)
+		{
+			return m_DraftUpdated.connect(slot);
+		}
+
 		std::shared_ptr<Layer> AddLayer(std::string_view name, InsertOrder order);
 
 		bool InsertLayer(std::shared_ptr<Layer> layer);
@@ -178,7 +185,9 @@ namespace CityDraft
 		/// Called by Drafts when their Transform changes. No need to be called manually.
 		/// </summary>
 		/// <param name="obj">Draft</param>
-		virtual void UpdateDraftModel(Drafts::Draft* obj);
+		void UpdateDraftModel(Drafts::Draft* obj);
+
+		void UpdateDraftAppearance(Drafts::Draft* obj);
 
 		/// <summary>
 		/// Looks for RTree Entries inside a Bounding Box.
@@ -255,6 +264,7 @@ namespace CityDraft
 		LayerRemovedSignal m_LayerRemoved;
 
 		DraftAddedSignal m_DraftAdded;
+		DraftUpdatedSignal m_DraftUpdated;
 		DraftRemovedSignal m_DraftRemoved;
 
 		bool AddDraft(std::shared_ptr<Drafts::Draft> obj);

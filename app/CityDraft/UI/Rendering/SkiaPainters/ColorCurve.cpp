@@ -17,29 +17,26 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		CityDraft::Curves::IWidthProvider* fillWidth,
 		CityDraft::Curves::IWidthProvider* outlineWidth,
 		const LinearColorF& fillColor,
-		const LinearColorF& outlineColor,
-		SkCanvas* maskCanvas
+		const LinearColorF& outlineColor
 	):
 		m_Curve(curve),
 		m_FillWidth(fillWidth),
 		m_OutlineWidth(outlineWidth),
 		m_FillColor(fillColor),
 		m_OutlineColor(outlineColor),
-		m_MaskCanvas(maskCanvas),
 		Asset(Transform2D{})
 	{
 
 	}
 
-	ColorCurve::ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft, SkCanvas* maskCanvas):
-		m_MaskCanvas(maskCanvas),
+	ColorCurve::ColorCurve(CityDraft::Drafts::SkiaColorCurve* draft):
 		Asset(Transform2D{})
 	{
 		BOOST_ASSERT(draft);
 		SetOwner(draft);
 	}
 
-	void ColorCurve::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	void ColorCurve::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
 		if(GetOwner())
 		{
@@ -57,29 +54,33 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		BOOST_ASSERT(m_FillWidth);
 		BOOST_ASSERT(m_OutlineWidth);
 
+		SkCanvas* canvas = renderer->GetPrimaryCanvas();
+
 		auto matrix = canvas->getLocalToDeviceAs3x3();
 		double zoom = matrix.getScaleX();
 
-		PaintFill(canvas);
-		PaintOutline(renderer, canvas);
+		PaintFill(renderer);
+		PaintOutline(renderer);
 	}
 
-	void ColorCurve::PaintFill(SkCanvas* canvas)
+	void ColorCurve::PaintFill(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
-		BOOST_ASSERT(m_MaskCanvas);
 		SkPaint paint;
 		paint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_FillColor));
-		PaintCurve(canvas, paint, m_FillWidth, nullptr);
+		PaintCurve(renderer->GetPrimaryCanvas(), paint, m_FillWidth, nullptr);
 
 		constexpr auto skColor = CityDraft::UI::Colors::Utils::ToSkColor("#000000FF"_frgba);
 		paint.setColor(skColor);
-		PaintCurve(m_MaskCanvas, paint, m_FillWidth, nullptr);
+		PaintCurve(renderer->GetMaskCanvas(), paint, m_FillWidth, nullptr);
 	}
 
-	void ColorCurve::PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer, SkCanvas* canvas)
+	void ColorCurve::PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
-		BOOST_ASSERT(m_MaskCanvas);
-		sk_sp<SkImage> maskImage = m_MaskCanvas->getSurface()->makeImageSnapshot();
+		auto* canvas = renderer->GetPrimaryCanvas();
+		auto* maskCanvas = renderer->GetMaskCanvas();
+		BOOST_ASSERT(canvas);
+		BOOST_ASSERT(maskCanvas);
+		sk_sp<SkImage> maskImage = maskCanvas->getSurface()->makeImageSnapshot();
 
 		Vector2D rendererCenter = renderer->GetViewportCenter();
 		double rendererScale = renderer->GetViewportZoom();
@@ -88,7 +89,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 		SkPaint outlinePaint;
 		outlinePaint.setColor(CityDraft::UI::Colors::Utils::ToSkColor(m_OutlineColor));
-		PaintCurve(canvas, outlinePaint, m_FillWidth, m_OutlineWidth);
+		PaintCurve(renderer->GetPrimaryCanvas(), outlinePaint, m_FillWidth, m_OutlineWidth);
 
 		SkPaint maskedPaint;
 		maskedPaint.setBlendMode(SkBlendMode::kDstOut);
