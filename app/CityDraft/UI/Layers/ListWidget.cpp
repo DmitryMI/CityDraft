@@ -10,7 +10,7 @@ namespace CityDraft::UI::Layers
 	ListWidget::ListWidget(Scene* scene, QUndoStack* undoStack, QWidget* parent):
 		QWidget(parent),
 		m_layout(new QVBoxLayout(this)),
-		m_draggableLayerList(new DraggableLayerList(scene, this)),
+		m_draggableLayerList(new DraggableLayerList(scene, undoStack, this)),
 		m_addLayerButton(new QPushButton("Add Layer", this)),
 		m_scene(scene),
 		m_UndoStack(undoStack)

@@ -146,6 +146,7 @@ namespace CityDraft
 
 		void SwapLayersZ(Layer* layerA, Layer* layerB);
 		void ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers);
+		void ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers, const std::list<int64_t>& zOrders);
 
 		/// <summary>
 		/// Removes a Layer from the Scene

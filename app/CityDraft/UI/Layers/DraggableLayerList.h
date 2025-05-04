@@ -6,6 +6,7 @@
 
 #include <QListWidget>
 #include "CityDraft/Scene.h"
+#include <QUndoStack.h>
 
 namespace CityDraft::UI::Layers
 {
@@ -14,12 +15,13 @@ namespace CityDraft::UI::Layers
         Q_OBJECT
 
     public:
-        explicit DraggableLayerList(Scene* scene, QWidget* parent = nullptr);
+        explicit DraggableLayerList(Scene* scene, QUndoStack* undoStack, QWidget* parent = nullptr);
 
     protected:
         void dropEvent(QDropEvent* event) override;
 
     private:
         Scene* m_scene;
+		QUndoStack* m_UndoStack;
     };
 }

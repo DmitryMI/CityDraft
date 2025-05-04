@@ -4,11 +4,12 @@
 
 #include "DraggableLayerList.h"
 #include "ItemWidget.h"
+#include "ReorderCommand.h"
 
 namespace CityDraft::UI::Layers
 {
-    DraggableLayerList::DraggableLayerList(Scene* scene, QWidget* parent)
-        : QListWidget(parent), m_scene(scene)
+    DraggableLayerList::DraggableLayerList(Scene* scene, QUndoStack* undoStack, QWidget* parent)
+        : QListWidget(parent), m_UndoStack(undoStack), m_scene(scene)
     {
         setDragEnabled(true);
         setAcceptDrops(true);
@@ -35,6 +36,7 @@ namespace CityDraft::UI::Layers
 			layers.push_front(widget->GetLayer());
 		}
 
-		m_scene->ReorderLayers(layers);
+		ReorderCommand* command = new ReorderCommand(m_scene, layers);
+		m_UndoStack->push(command);
     }
 }
