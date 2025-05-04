@@ -56,5 +56,15 @@ namespace CityDraft
 				boost::math::ccmath::abs(b.Rotation.Value - Rotation.Value) >= 1E-9 ||
 				!(b.Scale - Scale).IsNearlyZero();
 		}
+
+		Vector2D ApplyTo(const Vector2D& point) const
+		{
+			Vector2D pointClone = point;
+			pointClone.ComponentMultiply(Scale);
+
+			pointClone.Rotate(Rotation);
+
+			return pointClone += Translation;
+		}
 	};
 }

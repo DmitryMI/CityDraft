@@ -11,11 +11,14 @@ set(
 	"CityDraft/Serialization/BoostArchive.cpp"
 	"CityDraft/Utils/ImageUtils.cpp" 
 	"CityDraft/Curves/LineSegment.cpp"
+	"CityDraft/Curves/CompositeBezierCurve.cpp"
 	"CityDraft/Drafts/Curve.cpp" 
 	"CityDraft/Assets/Curve.cpp" 
 	"CityDraft/Assets/ColorCurve.cpp"
 	"CityDraft/Curves/Factory.cpp"
- "CityDraft/Logging/LogManager.cpp"  "CityDraft/Drafts/Properties/Property.cpp")
+	"CityDraft/Logging/LogManager.cpp"
+	"CityDraft/Drafts/Properties/Property.cpp"
+)
 
 add_library(CityDraft ${CityDraft.Sources})
 target_include_directories(CityDraft PUBLIC "../public")

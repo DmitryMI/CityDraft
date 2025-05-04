@@ -8,6 +8,7 @@
 #include <include/encode/SkPngEncoder.h>
 #include <QStandardPaths>
 #include <fstream>
+#include "CityDraft/Curves/CompositeBezierCurve.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
@@ -106,6 +107,12 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 	void ColorCurve::PaintCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB)
 	{
 		BOOST_ASSERT(canvas);
+		if(dynamic_cast<CityDraft::Curves::CompositeBezierCurve*>(m_Curve))
+		{
+			PaintCompositeBezierCurve(canvas, paint, widthA, widthB);
+			return;
+		}
+
 		size_t segments = 100;
 
 		double width = 0;
@@ -120,8 +127,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 
 		paint.setStrokeWidth(width);
 		paint.setStyle(SkPaint::kStroke_Style);
-
 		paint.setAntiAlias(true);
+
 		SkPath path;
 		Vector2D start = m_Curve->GetPoint(0);
 		path.moveTo(start.GetX(), start.GetY());
@@ -133,6 +140,60 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 			path.lineTo(point.GetX(), point.GetY());
 		}
 
+		canvas->drawPath(path, paint);
+	}
+
+	void ColorCurve::PaintCompositeBezierCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB)
+	{
+		auto* compositeBezierCurve = dynamic_cast<CityDraft::Curves::CompositeBezierCurve*>(m_Curve);
+		BOOST_ASSERT(compositeBezierCurve);
+
+		SkPath path;
+
+		const auto& anchors = compositeBezierCurve->GetAnchors();
+
+		if(anchors.size() >= 2)
+		{
+			const auto& firstAnchor = anchors[0];
+			path.moveTo(firstAnchor.Position.GetX(), firstAnchor.Position.GetY());
+
+			for(size_t i = 1; i < anchors.size(); ++i)
+			{
+				const auto& prev = anchors[i - 1];
+				const auto& curr = anchors[i];
+
+				SkPoint cp1 = {
+					static_cast<float>(prev.Position.GetX() + prev.OutgoingHandle.GetX()),
+					static_cast<float>(prev.Position.GetY() + prev.OutgoingHandle.GetY())
+				};
+
+				SkPoint cp2 = {
+					static_cast<float>(curr.Position.GetX() + curr.IncomingHandle.GetX()),
+					static_cast<float>(curr.Position.GetY() + curr.IncomingHandle.GetY())
+				};
+
+				SkPoint end = {
+					static_cast<float>(curr.Position.GetX()),
+					static_cast<float>(curr.Position.GetY())
+				};
+
+				path.cubicTo(cp1.x(), cp1.y(), cp2.x(), cp2.y(), end.x(), end.y());
+			}
+		}
+
+		double width = 0;
+		if(widthA)
+		{
+			width += widthA->GetWidth(0);
+		}
+		if(widthB)
+		{
+			width += widthB->GetWidth(0);
+		}
+
+		paint.setStrokeWidth(width);
+		paint.setStyle(SkPaint::kStroke_Style);
+		paint.setAntiAlias(true);
 		canvas->drawPath(path, paint);
 	}
 

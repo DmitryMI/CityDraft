@@ -15,7 +15,12 @@ namespace CityDraft
 
 		constexpr AxisAlignedBoundingBox2D(const Vector2D& min, const Vector2D& max) : Data{ min, max }
 		{
-			BOOST_ASSERT(min.GetX() <= max.GetX() && min.GetY() <= max.GetY());
+			
+		}
+
+		constexpr bool IsValid() const
+		{
+			return GetMin().GetX() <= GetMax().GetX() && GetMin().GetY() <= GetMax().GetY();
 		}
 
 		constexpr AxisAlignedBoundingBox2D(const UnderlyingType& box) : Data{ box }
@@ -130,6 +135,17 @@ namespace CityDraft
 		{
 			AxisAlignedBoundingBox2D copy = *this;
 			return copy.Transform(transform);
+		}
+
+		void ExpandToInclude(const Vector2D& p)
+		{
+			auto min = GetMin();
+			auto max = GetMax();
+			if(p.GetX() < min.GetX()) min.SetX(p.GetX());
+			if(p.GetY() < min.GetY()) min.SetY(p.GetY());
+			if(p.GetX() > max.GetX()) max.SetX(p.GetX());
+			if(p.GetY() > max.GetY()) max.SetY(p.GetY());
+			SetMinMax(min, max);
 		}
 	};
 }

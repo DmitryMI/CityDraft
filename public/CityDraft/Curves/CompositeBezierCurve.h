@@ -4,6 +4,8 @@
 #include <vector>
 #include <algorithm>
 #include <boost/assert.hpp>
+#include "CityDraft/Serialization/IArchive.h"
+#include "Factory.h"
 
 namespace CityDraft::Curves
 {
@@ -19,119 +21,46 @@ namespace CityDraft::Curves
 
 		CompositeBezierCurve() = default;
 
-		void AddAnchor(const Anchor& anchor)
+		inline CompositeBezierCurve(const std::vector<Anchor>& anchors):
+			m_Anchors(anchors)
+		{
+			
+		}
+
+		inline const std::vector<Anchor>& GetAnchors() const
+		{
+			return m_Anchors;
+		}
+
+		inline void AddAnchor(const Anchor& anchor)
 		{
 			m_Anchors.push_back(anchor);
 			RebuildArcLengthTable();
 		}
 
-		void ClearAnchors()
+		inline void ClearAnchors()
 		{
 			m_Anchors.clear();
 			m_ArcLengthTable.clear();
 		}
 
-		CityDraft::Vector2D GetPoint(double t) const override
-		{
-			if(m_Anchors.size() < 2) return {};
+		CityDraft::Vector2D GetPoint(double t) const override;
 
-			double totalSegments = m_Anchors.size() - 1;
-			double scaledT = std::clamp(t,0.0,1.0) * totalSegments;
+		CityDraft::Vector2D GetTangent(double t) const override;
 
-			size_t segmentIndex = std::min(static_cast<size_t>(scaledT),m_Anchors.size() - 2);
-			double localT = scaledT - segmentIndex;
+		double GetLength(double t) const override;
 
-			return EvaluateSegment(segmentIndex,localT);
-		}
+		double GetParameterAtLength(double s) const override;
 
-		CityDraft::Vector2D GetTangent(double t) const override
-		{
-			const double delta = 1e-5;
-			CityDraft::Vector2D a = GetPoint(std::max(0.0,t - delta));
-			CityDraft::Vector2D b = GetPoint(std::min(1.0,t + delta));
-			return (b - a);
-		}
+		double GetClosestParameter(const CityDraft::Vector2D& target) const override;
 
-		double GetLength() const override
-		{
-			if(m_ArcLengthTable.empty()) return 0.0;
-			return m_ArcLengthTable.back().length;
-		}
+		void Transform(const Transform2D& transform) override;
 
-		double GetLength(double t) const override
-		{
-			if(t <= 0.0) return 0.0;
-			if(t >= 1.0) return GetLength(); // full length for t = 1
+		AxisAlignedBoundingBox2D GetBoundingBox() const override;
 
-			// For any t in [0, 1), calculate the length up to that t
-			double totalLength = 0.0;
-			const int samples = 100;
-			Vector2D prev = Evaluate(0.0);
+		void Serialize(CityDraft::Serialization::IOutputArchive& archive) const override;
 
-			for(int i = 1; i <= samples; ++i)
-			{
-				double sampledT = static_cast<double>(i) / samples;
-				if(sampledT > t) break;  // Stop once we reach 't'
-				Vector2D current = GetPoint(sampledT);
-				totalLength += (current - prev).Length();
-				prev = current;
-			}
-
-			return totalLength;
-		}
-
-		double GetParameterAtLength(double s) const override
-		{
-			if(m_ArcLengthTable.empty()) return 0.0;
-			if(s <= 0.0) return 0.0;
-			if(s >= GetLength()) return 1.0;
-
-			auto it = std::lower_bound(
-				m_ArcLengthTable.begin(),m_ArcLengthTable.end(),s,
-				[](const ArcEntry& entry,double value) {
-				return entry.length < value;
-			});
-
-			if(it == m_ArcLengthTable.begin()) return it->t;
-
-			const ArcEntry& next = *it;
-			const ArcEntry& prev = *(it - 1);
-
-			double dt = next.t - prev.t;
-			double ds = next.length - prev.length;
-			double alpha = (s - prev.length) / ds;
-
-			return prev.t + alpha * dt;
-		}
-
-		const std::vector<Anchor>& GetAnchors() const
-		{
-			return m_Anchors;
-		}
-
-		double GetClosestParameter(const CityDraft::Vector2D& target) const
-		{
-			constexpr int samples = 100;
-			double bestT = 0.0;
-			double bestDistSquared = std::numeric_limits<double>::max();
-
-			for(int i = 0; i <= samples; ++i)
-			{
-				double t = static_cast<double>(i) / samples;
-				CityDraft::Vector2D pt = GetPoint(t);
-				double distSq = (pt - target).GetSizeSquared();
-
-				if(distSq < bestDistSquared)
-				{
-					bestDistSquared = distSq;
-					bestT = t;
-				}
-			}
-
-			// Optional: refine with local Newton-Raphson or binary search here
-
-			return bestT;
-		}
+		void Deserialize(CityDraft::Serialization::IInputArchive& archive) override;
 
 	private:
 		struct ArcEntry
@@ -143,42 +72,12 @@ namespace CityDraft::Curves
 		std::vector<Anchor> m_Anchors;
 		std::vector<ArcEntry> m_ArcLengthTable;
 
-		CityDraft::Vector2D EvaluateSegment(size_t i,double t) const
-		{
-			BOOST_ASSERT(i < m_Anchors.size() - 1);
+		CityDraft::Vector2D EvaluateSegment(size_t i, double t) const;
 
-			const Anchor& a0 = m_Anchors[i];
-			const Anchor& a1 = m_Anchors[i + 1];
+		void RebuildArcLengthTable();
 
-			CityDraft::Vector2D p0 = a0.Position;
-			CityDraft::Vector2D p1 = a0.Position + a0.OutgoingHandle;
-			CityDraft::Vector2D p2 = a1.Position + a1.IncomingHandle;
-			CityDraft::Vector2D p3 = a1.Position;
+		void FindBezierExtrema(double p0, double p1, double p2, double p3, std::vector<double>& ts) const;
 
-			double u = 1.0 - t;
-			return u * u * u * p0 +
-				3.0 * u * u * t * p1 +
-				3.0 * u * t * t * p2 +
-				t * t * t * p3;
-		}
-
-		void RebuildArcLengthTable()
-		{
-			m_ArcLengthTable.clear();
-			constexpr int samples = 100;
-
-			CityDraft::Vector2D prev = GetPoint(0.0);
-			double totalLength = 0.0;
-			m_ArcLengthTable.push_back({0.0,0.0});
-
-			for(int i = 1; i <= samples; ++i)
-			{
-				double t = static_cast<double>(i) / samples;
-				CityDraft::Vector2D pt = GetPoint(t);
-				totalLength += (pt - prev).Length();
-				m_ArcLengthTable.push_back({t,totalLength});
-				prev = pt;
-			}
-		}
+		REGISTER_TYPE(CompositeBezierCurve);
 	};
 }

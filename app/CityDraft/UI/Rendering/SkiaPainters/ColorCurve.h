@@ -36,7 +36,8 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		void PaintFill(CityDraft::UI::Rendering::SkiaWidget* renderer);
 		void PaintOutline(CityDraft::UI::Rendering::SkiaWidget* renderer);
 		void PaintCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB);
-	
+		void PaintCompositeBezierCurve(SkCanvas* canvas, SkPaint paint, CityDraft::Curves::IWidthProvider* widthA, CityDraft::Curves::IWidthProvider* widthB);
+
 		void DebugDumpImage(CityDraft::UI::Rendering::SkiaWidget* renderer, sk_sp<SkImage> image);
 	};
 }
