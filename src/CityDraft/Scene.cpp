@@ -112,8 +112,47 @@ namespace CityDraft
 		layerAPtr->m_ZOrder = zb;
 		layerBPtr->m_ZOrder = za;
 
-		m_LayerZChanged(layerA, za, zb);
-		m_LayerZChanged(layerB, zb, za);
+		m_LayersZChanged({layerA, layerB});
+	}
+
+	void Scene::ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers)
+	{
+		const auto mapCopy = m_Layers;
+		m_Layers.clear();
+		int64_t z = 0;
+		std::vector<Layer*> changedLayers;
+		for(const auto& layer : layers)
+		{
+			BOOST_ASSERT(mapCopy.contains(layer->GetZOrder()));
+			BOOST_ASSERT(mapCopy.at(layer->GetZOrder()) == layer);
+			m_Layers[z] = layer;
+			layer->m_ZOrder = z;
+			z++;
+			changedLayers.push_back(layer.get());
+		}
+		m_LayersZChanged(changedLayers);
+	}
+
+	void Scene::ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers, const std::list<int64_t>& zOrders)
+	{
+		const auto mapCopy = m_Layers;
+		m_Layers.clear();
+		auto zOrderIter = zOrders.begin();
+		std::vector<Layer*> changedLayers;
+		for(const auto& layer : layers)
+		{
+			BOOST_ASSERT(mapCopy.contains(layer->GetZOrder()));
+			BOOST_ASSERT(mapCopy.at(layer->GetZOrder()) == layer);
+			int64_t z = *zOrderIter;
+			BOOST_ASSERT(!m_Layers.contains(z));
+			m_Layers[z] = layer;
+			layer->m_ZOrder = z;
+			z++;
+			changedLayers.push_back(layer.get());
+
+			zOrderIter++;
+		}
+		m_LayersZChanged(changedLayers);
 	}
 
 	void Scene::RemoveLayer(Layer* layer)

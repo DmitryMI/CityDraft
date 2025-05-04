@@ -31,8 +31,8 @@ namespace CityDraft
 
 		using LayerAddedFunc = void(Layer*);
 		using LayerAddedSignal = boost::signals2::signal<LayerAddedFunc>;
-		using LayerZChangedFunc = void(Layer*, int64_t, int64_t);
-		using LayerZChangedSignal = boost::signals2::signal<LayerZChangedFunc>;
+		using LayersZChangedFunc = void(std::vector<Layer*>);
+		using LayersZChangedSignal = boost::signals2::signal<LayersZChangedFunc>;
 		using LayerNameChangedFunc = void(Layer*, const std::string&, const std::string&);
 		using LayerNameChangedSignal = boost::signals2::signal<LayerNameChangedFunc>;
 		using LayerFlagChangedFunc = void(Layer*);
@@ -145,6 +145,8 @@ namespace CityDraft
 		}
 
 		void SwapLayersZ(Layer* layerA, Layer* layerB);
+		void ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers);
+		void ReorderLayers(const std::list<std::shared_ptr<Layer>>& layers, const std::list<int64_t>& zOrders);
 
 		/// <summary>
 		/// Removes a Layer from the Scene
@@ -166,9 +168,9 @@ namespace CityDraft
 			return m_LayerRemoved.connect(slot);
 		}
 
-		inline boost::signals2::connection ConnectToLayerZChanged(const LayerZChangedSignal::slot_type& slot)
+		inline boost::signals2::connection ConnectToLayersZChanged(const LayersZChangedSignal::slot_type& slot)
 		{
-			return m_LayerZChanged.connect(slot);
+			return m_LayersZChanged.connect(slot);
 		}
 
 		inline boost::signals2::connection ConnectToLayerNameChanged(const LayerNameChangedSignal::slot_type& slot)
@@ -258,7 +260,7 @@ namespace CityDraft
 		boost::geometry::index::rtree<RTreeValue, boost::geometry::index::quadratic<16>> m_DraftsRtree;
 		
 		LayerAddedSignal m_LayerAdded;
-		LayerZChangedSignal m_LayerZChanged;
+		LayersZChangedSignal m_LayersZChanged;
 		LayerNameChangedSignal m_LayerNameChanged;
 		LayerFlagChangedSignal m_LayerFlagChanged;
 		LayerRemovedSignal m_LayerRemoved;

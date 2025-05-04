@@ -8,9 +8,9 @@ namespace CityDraft::UI::Layers
 {
 
 	ListWidget::ListWidget(Scene* scene, QUndoStack* undoStack, QWidget* parent):
-		QWidget(parent), 
+		QWidget(parent),
 		m_layout(new QVBoxLayout(this)),
-		m_layerList(new QListWidget(this)),
+		m_draggableLayerList(new DraggableLayerList(scene, undoStack, this)),
 		m_addLayerButton(new QPushButton("Add Layer", this)),
 		m_scene(scene),
 		m_UndoStack(undoStack)
@@ -18,8 +18,14 @@ namespace CityDraft::UI::Layers
 		BOOST_ASSERT(m_scene);
 		BOOST_ASSERT(m_UndoStack);
 
+		m_draggableLayerList->setDragEnabled(true);
+		m_draggableLayerList->setAcceptDrops(true);
+		m_draggableLayerList->setDropIndicatorShown(true);
+		m_draggableLayerList->setDefaultDropAction(Qt::MoveAction);
+		m_draggableLayerList->setDragDropMode(QAbstractItemView::InternalMove);
+
 		m_layout->addWidget(new QLabel("Layers", this));
-		m_layout->addWidget(m_layerList);
+		m_layout->addWidget(m_draggableLayerList);
 		m_layout->addWidget(m_addLayerButton);
 		m_layout->setAlignment(Qt::AlignRight);
 
@@ -27,7 +33,7 @@ namespace CityDraft::UI::Layers
 
 		m_LayerAddedConnection = scene->ConnectToLayerAdded(std::bind(&ListWidget::OnSceneLayerAdded, this, std::placeholders::_1));
 		m_LayerRemovedConnection = scene->ConnectToLayerRemoved(std::bind(&ListWidget::OnSceneLayerRemoved, this, std::placeholders::_1));
-		m_LayerZChangedConnection = scene->ConnectToLayerZChanged(std::bind(&ListWidget::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		m_LayersZChangedConnection = scene->ConnectToLayersZChanged(std::bind(&ListWidget::OnSceneLayersZChanged, this, std::placeholders::_1));
 
 		LoadLayersFromScene();
 	}
@@ -36,12 +42,12 @@ namespace CityDraft::UI::Layers
 	{
 		m_LayerAddedConnection.disconnect();
 		m_LayerRemovedConnection.disconnect();
-		m_LayerZChangedConnection.disconnect();
+		m_LayersZChangedConnection.disconnect();
 	}
 
 	void ListWidget::LoadLayersFromScene()
 	{
-		m_layerList->clear();
+		m_draggableLayerList->clear();
 		for(const auto& layer : m_scene->GetLayers())
 		{
 			AddLayerToUi(layer);
@@ -53,9 +59,9 @@ namespace CityDraft::UI::Layers
 		QListWidgetItem* listItem = new QListWidgetItem();
 		ItemWidget* layerItem = new ItemWidget(m_scene, layer, m_UndoStack, this);
 
-		m_layerList->addItem(listItem);
-		m_layerList->setItemWidget(listItem, layerItem);
-		m_layerList->setStyleSheet("QListWidget::item { height: 50px; }");
+		m_draggableLayerList->addItem(listItem);
+		m_draggableLayerList->setItemWidget(listItem, layerItem);
+		m_draggableLayerList->setStyleSheet("QListWidget::item { height: 50px; }");
 	}
 
 	void ListWidget::OnSceneLayerAdded(CityDraft::Layer* layer)
@@ -68,7 +74,7 @@ namespace CityDraft::UI::Layers
 		LoadLayersFromScene();
 	}
 
-	void ListWidget::OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ)
+	void ListWidget::OnSceneLayersZChanged(const std::vector<CityDraft::Layer*>& layers)
 	{
 		LoadLayersFromScene();
 	}

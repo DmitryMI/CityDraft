@@ -49,6 +49,7 @@ set(AppSources
 	"CityDraft/UI/Layers/ItemWidget.cpp"
 	"CityDraft/UI/Layers/ListWidget.cpp"
 	"CityDraft/Resources.qrc"
+	"CityDraft/UI/Layers/DraggableLayerList.cpp"
 )
 
 qt_add_resources(AppSources "CityDraft/Resources.qrc")
