@@ -66,6 +66,7 @@ namespace CityDraft::Input::Instruments
 
 		constexpr static double RotatorPixelDistance = 10;
 		constexpr static double ScalingRectsSize = 10;
+		constexpr static int Priority = 0;
 
 		DraftTransformer(const Dependencies& dependencies);
 		virtual ~DraftTransformer() override;
@@ -74,12 +75,26 @@ namespace CityDraft::Input::Instruments
 			return "Transform Draft";
 		}
 
+		int GetPriority() const override
+		{
+			return Priority;
+		}
+
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
 		EventChainAction OnRendererMouseMove(QMouseEvent* event) override;
 
 		void OnPaint() override;
 
 		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
+
+		inline SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const override
+		{
+			if(selectedDrafts.size() > 0)
+			{
+				return SelectionResponse::WantsToActivate;
+			}
+			return SelectionResponse::WantsToDeactivate;
+		}
 
 	protected:
 

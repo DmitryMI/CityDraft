@@ -34,6 +34,7 @@ set(AppSources
 	"CityDraft/Input/Instruments/Panner.cpp"
 	"CityDraft/Input/Instruments/Selector.cpp"
 	"CityDraft/Input/Instruments/DraftTransformer.cpp"
+	"CityDraft/Input/Instruments/CompositeBezierEditor.cpp"
 	"CityDraft/Input/Utils.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Image.cpp"
 	"CityDraft/UI/Rendering/SkiaPainters/Rect.cpp"

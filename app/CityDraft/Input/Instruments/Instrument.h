@@ -11,6 +11,8 @@
 #include <QUndoStack>
 #include "CityDraft/Logging/LogManager.h"
 #include <map>
+#include <set>
+#include "CityDraft/Drafts/Draft.h"
 
 namespace CityDraft::UI::Rendering
 {
@@ -39,6 +41,13 @@ namespace CityDraft::Input::Instruments
 	{
 		Next,
 		Stop
+	};
+
+	enum class SelectionResponse
+	{
+		KeepCurrentState,
+		WantsToActivate,
+		WantsToDeactivate
 	};
 
 	enum class FinishStatus
@@ -94,6 +103,11 @@ namespace CityDraft::Input::Instruments
 		bool IsActive() const;
 
 		virtual void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) = 0;
+
+		virtual SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const
+		{
+			return SelectionResponse::KeepCurrentState;
+		}
 
 	signals:
 		void Finished(Instrument* instrument, FinishStatus status = FinishStatus::Ok);

@@ -84,4 +84,5 @@ namespace CityDraft::Input::Instruments
 		return m_IsActive;
 	}
 
+
 }

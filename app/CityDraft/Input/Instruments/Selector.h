@@ -14,7 +14,7 @@ namespace CityDraft::Input::Instruments
 
 		Selector(const Dependencies& dependencies);
 		virtual ~Selector() override;
-		virtual int GetPriority() const { return Priority; }
+		int GetPriority() const override{ return Priority; }
 
 		inline QString GetName() const override
 		{

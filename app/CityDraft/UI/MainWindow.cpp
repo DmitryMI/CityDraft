@@ -313,6 +313,28 @@ namespace CityDraft::UI
 		m_ActiveInstrumentsLabel->setText(toolsMessages.join(", "));
 	}
 
+	void MainWindow::ProcessInstrumentsSelectionResponses()
+	{
+		const auto& selectedDrafts = GetSelectedDrafts();
+		auto activeInstruments = m_ActiveInstruments;
+		auto inactiveInstruments = m_InactiveInstruments;
+		for(const auto& instrument : activeInstruments)
+		{
+			if(instrument->GetSelectionResponse(selectedDrafts) == CityDraft::Input::Instruments::SelectionResponse::WantsToDeactivate)
+			{
+				DeactivateInstrument(instrument);
+			}
+		}
+
+		for(const auto& instrument : inactiveInstruments)
+		{
+			if(instrument->GetSelectionResponse(selectedDrafts) == CityDraft::Input::Instruments::SelectionResponse::WantsToActivate)
+			{
+				ActivateInstrument(instrument);
+			}
+		}
+	}
+
 	void MainWindow::ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed)
 	{
 		auto activeInstrumentsCopy = m_ActiveInstruments;
@@ -502,11 +524,7 @@ namespace CityDraft::UI
 
 		m_DraftsSelected(actuallySelected);
 
-		auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
-		if (!editor->IsActive())
-		{
-			ActivateInstrument(editor);
-		}
+		ProcessInstrumentsSelectionResponses();
 	}
 
 	void MainWindow::RemoveDraftsFromSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
@@ -527,14 +545,7 @@ namespace CityDraft::UI
 
 		m_DraftsDeselected(actuallyDeselected);
 
-		if(m_SelectedDrafts.size() == 0)
-		{
-			auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
-			if(editor->IsActive())
-			{
-				DeactivateInstrument(editor);
-			}
-		}
+		ProcessInstrumentsSelectionResponses();
 	}
 
 	void MainWindow::OnGraphicsPainting(UI::Rendering::SkiaWidget* widget)
