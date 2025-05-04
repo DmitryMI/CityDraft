@@ -73,7 +73,7 @@ namespace CityDraft::UI
 		std::shared_ptr<CityDraft::Scene> m_Scene;
 		boost::signals2::connection m_LayerAddedConnection;
 		boost::signals2::connection m_LayerRemovedConnection;
-		boost::signals2::connection m_LayerZChangedConnection;
+		boost::signals2::connection m_LayersZChangedConnection;
 		boost::signals2::connection m_LayerFlagChangedConnection;
 		boost::signals2::connection m_DraftAddedConnection;
 		boost::signals2::connection m_DraftUpdatedConnection;
@@ -169,7 +169,7 @@ namespace CityDraft::UI
 		// Scene signals
 		void OnSceneLayerAdded(CityDraft::Layer* layer);
 		void OnSceneLayerRemoved(CityDraft::Layer* layer);
-		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
+		void OnSceneLayersZChanged(const std::vector<CityDraft::Layer*>& layers);
 		void OnSceneLayerFlagChanged(CityDraft::Layer* layer);
 		void OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft);
 		void OnSceneDraftUpdated(std::shared_ptr<Drafts::Draft> draft);

@@ -22,26 +22,19 @@ namespace CityDraft::UI::Layers
         QListWidget::dropEvent(event);
         const int newRow = currentRow();
 
-        if (oldRow == newRow || oldRow < 0 || newRow < 0)
-            return;
+		if(oldRow == newRow || oldRow < 0 || newRow < 0)
+		{
+			return;
+		}
 
-        const int step = (newRow > oldRow) ? 1 : -1;
+		std::list<std::shared_ptr<CityDraft::Layer>> layers;
+		for(int i = 0; i < this->count(); ++i)
+		{
+			QListWidgetItem* item = this->item(i);
+			const auto* widget = qobject_cast<ItemWidget*>(itemWidget(item));
+			layers.push_front(widget->GetLayer());
+		}
 
-        for (int i = oldRow; i != newRow; i += step)
-        {
-            auto* itemA = item(i);
-            auto* itemB = item(i + step);
-
-            const auto* widgetA = qobject_cast<ItemWidget*>(itemWidget(itemA));
-            const auto* widgetB = qobject_cast<ItemWidget*>(itemWidget(itemB));
-
-            if (!widgetA || !widgetB)
-                continue;
-
-            Layer* layerA = widgetA->GetLayer().get();
-            Layer* layerB = widgetB->GetLayer().get();
-
-            m_scene->SwapLayersZ(layerA, layerB);
-        }
+		m_scene->ReorderLayers(layers);
     }
 }

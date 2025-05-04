@@ -21,7 +21,7 @@ namespace CityDraft::UI::Layers
 		void AddLayerToUi(std::shared_ptr<CityDraft::Layer> layer);
 		void OnSceneLayerAdded(CityDraft::Layer* layer);
 		void OnSceneLayerRemoved(CityDraft::Layer* layer);
-		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
+		void OnSceneLayersZChanged(const std::vector<CityDraft::Layer*>& layers);
 		void onAddLayer();
 
 		QVBoxLayout* m_layout;
@@ -32,6 +32,6 @@ namespace CityDraft::UI::Layers
 
 		boost::signals2::connection m_LayerAddedConnection;
 		boost::signals2::connection m_LayerRemovedConnection;
-		boost::signals2::connection m_LayerZChangedConnection;
+		boost::signals2::connection m_LayersZChangedConnection;
 	};
 }

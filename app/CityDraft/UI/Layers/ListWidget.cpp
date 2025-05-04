@@ -33,7 +33,7 @@ namespace CityDraft::UI::Layers
 
 		m_LayerAddedConnection = scene->ConnectToLayerAdded(std::bind(&ListWidget::OnSceneLayerAdded, this, std::placeholders::_1));
 		m_LayerRemovedConnection = scene->ConnectToLayerRemoved(std::bind(&ListWidget::OnSceneLayerRemoved, this, std::placeholders::_1));
-		m_LayerZChangedConnection = scene->ConnectToLayerZChanged(std::bind(&ListWidget::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+		m_LayersZChangedConnection = scene->ConnectToLayersZChanged(std::bind(&ListWidget::OnSceneLayersZChanged, this, std::placeholders::_1));
 
 		LoadLayersFromScene();
 	}
@@ -42,7 +42,7 @@ namespace CityDraft::UI::Layers
 	{
 		m_LayerAddedConnection.disconnect();
 		m_LayerRemovedConnection.disconnect();
-		m_LayerZChangedConnection.disconnect();
+		m_LayersZChangedConnection.disconnect();
 	}
 
 	void ListWidget::LoadLayersFromScene()
@@ -74,7 +74,7 @@ namespace CityDraft::UI::Layers
 		LoadLayersFromScene();
 	}
 
-	void ListWidget::OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ)
+	void ListWidget::OnSceneLayersZChanged(const std::vector<CityDraft::Layer*>& layers)
 	{
 		LoadLayersFromScene();
 	}
