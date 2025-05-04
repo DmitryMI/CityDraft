@@ -26,6 +26,7 @@
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/Factory.h"
 #include "CityDraft/Input/Instruments/DraftTransformer.h"
+#include "CityDraft/Input/Instruments/CompositeBezierEditor.h"
 #include "CityDraft/Input/Instruments/Instrument.h"
 #include "CityDraft/Input/Instruments/Panner.h"
 #include "CityDraft/Input/Instruments/Selector.h"
@@ -199,6 +200,8 @@ namespace CityDraft::UI
 			new CityDraft::Input::Instruments::Panner(dependencies));
 		m_InactiveInstruments.insert(
 			new CityDraft::Input::Instruments::DraftTransformer(dependencies));
+		m_InactiveInstruments.insert(
+			new CityDraft::Input::Instruments::CompositeBezierEditor(dependencies));
 
 		for (auto* instrument : m_InactiveInstruments)
 		{

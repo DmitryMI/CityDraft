@@ -32,6 +32,13 @@ namespace CityDraft::Curves
 			return m_Anchors;
 		}
 
+		inline void ChangeAnchor(const Anchor& anchor, size_t index)
+		{
+			BOOST_ASSERT(index < m_Anchors.size());
+			m_Anchors[index] = anchor;
+			RebuildArcLengthTable();
+		}
+
 		inline void AddAnchor(const Anchor& anchor)
 		{
 			m_Anchors.push_back(anchor);
