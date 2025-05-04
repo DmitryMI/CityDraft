@@ -37,6 +37,7 @@
 #include "SkiaPainters/Painter.h"
 #include "SkiaPainters/Rect.h"
 #include "SkiaPainters/ColorCurve.h"
+#include "SkiaPainters/Line.h"
 #include "SkiaWidget.h"
 #include "CityDraft/Assets/SkiaColorCurve.h"
 #include "CityDraft/Drafts/SkiaImage.h"
@@ -145,6 +146,12 @@ namespace CityDraft::UI::Rendering
 	void SkiaWidget::PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness)
 	{
 		auto painter = std::make_shared<SkiaPainters::Circle>(pos, radius, color, thickness);
+		PaintOrQueue(painter);
+	}
+
+	void SkiaWidget::PaintLine(const Vector2D& from, const Vector2D& to, const LinearColorF& color, double thickness)
+	{
+		auto painter = std::make_shared<SkiaPainters::Line>(from, to, color, thickness);
 		PaintOrQueue(painter);
 	}
 

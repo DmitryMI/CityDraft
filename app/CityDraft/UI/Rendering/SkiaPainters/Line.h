@@ -6,15 +6,15 @@
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
-	class Circle : public Painter
+	class Line: public Painter
 	{
 	public:
-		Circle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness);
+		Line(const Vector2D& from, const Vector2D& to, const LinearColorF& color, double thickness);
 		void Paint(CityDraft::UI::Rendering::SkiaWidget* renderer) override;
 
 	private:
-		Vector2D m_Center;
-		double m_Radius;
+		Vector2D m_Start;
+		Vector2D m_End;
 		LinearColorF m_Color;
 		double m_Thickness;
 	};

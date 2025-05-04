@@ -24,6 +24,7 @@ namespace CityDraft::UI::Rendering
 		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness, const LinearColorF& fillColor) = 0;
 		virtual void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor) = 0;
 		virtual void PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness) = 0;
+		virtual void PaintLine(const Vector2D& from, const Vector2D& to, const LinearColorF& color, double thickness) = 0;
 		virtual void Repaint() = 0;
 
 		// Model

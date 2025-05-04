@@ -1,19 +1,19 @@
-#include "Circle.h"
+#include "Line.h"
 #include "CityDraft/UI/Colors/Utils.h"
 #include "CityDraft/UI/Rendering/SkiaWidget.h"
 
 namespace CityDraft::UI::Rendering::SkiaPainters
 {
-	Circle::Circle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness):
-		m_Center(pos),
-		m_Radius(radius),
+	Line::Line(const Vector2D& from, const Vector2D& to, const LinearColorF& color, double thickness):
+		m_Start(from),
+		m_End(to),
 		m_Color(color),
 		m_Thickness(thickness)
 	{
-		
+
 	}
 
-	void Circle::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
+	void Line::Paint(CityDraft::UI::Rendering::SkiaWidget* renderer)
 	{
 		auto* canvas = renderer->GetPrimaryCanvas();
 		SkColor skColor = CityDraft::UI::Colors::Utils::ToSkColor(m_Color);
@@ -23,8 +23,7 @@ namespace CityDraft::UI::Rendering::SkiaPainters
 		paint.setColor(skColor);
 		paint.setStyle(SkPaint::kStroke_Style);
 		paint.setStrokeWidth(m_Thickness);
-
-		canvas->drawCircle(m_Center.GetX(), m_Center.GetY(), m_Radius, paint);
+		canvas->drawLine(m_Start.GetX(), m_Start.GetY(), m_End.GetX(), m_End.GetY(), paint);
 	}
 
 }

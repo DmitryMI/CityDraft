@@ -65,6 +65,7 @@ namespace CityDraft::UI::Rendering
 		void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& outlineColor, double outlineThickness, const LinearColorF& fillColor) override;
 		void PaintRect(const Vector2D& min, const Vector2D& max, const LinearColorF& fillColor) override;
 		void PaintCircle(const Vector2D& pos, double radius, const LinearColorF& color, double thickness) override;
+		void PaintLine(const Vector2D& from, const Vector2D& to, const LinearColorF& color, double thickness) override;
 		const Vector2D GetViewportCenter() const override;
 		double GetViewportZoom() const override;
 		void SetViewportTransform(const Vector2D& center, double zoom) override;
