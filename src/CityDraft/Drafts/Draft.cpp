@@ -36,7 +36,6 @@ namespace CityDraft::Drafts
 		if (m_Scene)
 		{
 			m_Scene->UpdateDraftModel(this);
-			return;
 		}
 		m_TransformProperty->m_ValueChanged();
 	}
@@ -47,7 +46,6 @@ namespace CityDraft::Drafts
 		if (m_Scene)
 		{
 			m_Scene->UpdateDraftModel(this);
-			return;
 		}
 		m_TransformProperty->m_ValueChanged();
 	}

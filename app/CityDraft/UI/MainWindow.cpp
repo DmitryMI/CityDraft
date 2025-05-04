@@ -72,6 +72,9 @@ namespace CityDraft::UI
 			});
 		*/
 
+		m_RepaintTimer = new QTimer(this);
+		connect(m_RepaintTimer, &QTimer::timeout, this, &MainWindow::OnRepaintTimerExpired);
+
 		m_Logger->info("MainWindow created");
 	}
 
@@ -106,6 +109,7 @@ namespace CityDraft::UI
 		m_LayerZChangedConnection = m_Scene->ConnectToLayerZChanged(std::bind(&MainWindow::OnSceneLayerZChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 		m_LayerFlagChangedConnection = m_Scene->ConnectToLayerFlagChanged(std::bind(&MainWindow::OnSceneLayerFlagChanged, this, std::placeholders::_1));
 		m_DraftAddedConnection = m_Scene->ConnectToDraftAdded(std::bind(&MainWindow::OnSceneDraftAdded, this, std::placeholders::_1));
+		m_DraftUpdatedConnection = m_Scene->ConnectToDraftUpdated(std::bind(&MainWindow::OnSceneDraftUpdated, this, std::placeholders::_1));
 		m_DraftRemovedConnection = m_Scene->ConnectToDraftRemoved(std::bind(&MainWindow::OnSceneDraftRemoved, this, std::placeholders::_1));
 	}
 
@@ -430,7 +434,12 @@ namespace CityDraft::UI
 
 	void MainWindow::OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft)
 	{
-		
+		m_RenderingWidget->Repaint();
+	}
+
+	void MainWindow::OnSceneDraftUpdated(std::shared_ptr<Drafts::Draft> draft)
+	{
+		m_RepaintTimer->start(10);
 	}
 
 	void MainWindow::OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft)
@@ -445,6 +454,7 @@ namespace CityDraft::UI
 				DeactivateInstrument(editor);
 			}
 		}
+		m_RenderingWidget->Repaint();
 	}
 
 	const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& MainWindow::GetSelectedDrafts() const
@@ -611,6 +621,15 @@ namespace CityDraft::UI
 		
 		m_ScenePath = "";
 		InitializeUiForScene(m_Scene);
+	}
+
+	void MainWindow::OnRepaintTimerExpired()
+	{
+		m_RepaintTimer->stop();
+		if(m_RenderingWidget)
+		{
+			m_RenderingWidget->Repaint();
+		}
 	}
 
 	void MainWindow::OnSaveSceneAsClicked()

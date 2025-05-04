@@ -15,6 +15,7 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <vector>
+#include <QTimer>
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/IKeyBindingProvider.h"
@@ -65,6 +66,7 @@ namespace CityDraft::UI
 		UI::Properties::PropertiesWidget* m_PropertiesWidget = nullptr;
 		QLabel* m_CursorProjectedPosition = nullptr;
 		QLabel* m_ActiveInstrumentsLabel = nullptr;
+		QTimer* m_RepaintTimer = nullptr;
 
 		// CityDraft Objects
 		std::shared_ptr<CityDraft::Assets::SkiaAssetManager> m_AssetManager;
@@ -74,6 +76,7 @@ namespace CityDraft::UI
 		boost::signals2::connection m_LayerZChangedConnection;
 		boost::signals2::connection m_LayerFlagChangedConnection;
 		boost::signals2::connection m_DraftAddedConnection;
+		boost::signals2::connection m_DraftUpdatedConnection;
 		boost::signals2::connection m_DraftRemovedConnection;
 
 		// Config
@@ -169,6 +172,7 @@ namespace CityDraft::UI
 		void OnSceneLayerZChanged(CityDraft::Layer* layer, int64_t oldZ, int64_t newZ);
 		void OnSceneLayerFlagChanged(CityDraft::Layer* layer);
 		void OnSceneDraftAdded(std::shared_ptr<Drafts::Draft> draft);
+		void OnSceneDraftUpdated(std::shared_ptr<Drafts::Draft> draft);
 		void OnSceneDraftRemoved(CityDraft::Drafts::Draft* draft);
 
 	private slots:
@@ -182,6 +186,7 @@ namespace CityDraft::UI
 		void OnSaveSceneAsClicked();
 		void OnOpenSceneClicked();
 		void OnNewSceneClicked();
+		void OnRepaintTimerExpired();
 	};
 
 }

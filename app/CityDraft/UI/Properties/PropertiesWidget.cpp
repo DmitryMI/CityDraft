@@ -1,5 +1,7 @@
 #include "PropertiesWidget.h"
 #include "StringEditorWidget.h"
+#include "IntegerEditorWidget.h"
+#include "TransformEditorWidget.h"
 #include <QVBoxLayout>
 
 namespace CityDraft::UI::Properties
@@ -101,10 +103,22 @@ namespace CityDraft::UI::Properties
 	{
 		BOOST_ASSERT(properties.size() > 0);
 
-		if (auto stringProp = dynamic_pointer_cast<CityDraft::Drafts::Properties::TypedProperty<std::string>>(properties[0]))
+		if (dynamic_pointer_cast<CityDraft::Drafts::Properties::TypedProperty<std::string>>(properties[0]))
 		{
-			auto group = ConvertToPropertyGroup<std::string>(properties);
-			return new StringEditorWidget(group, this);
+			StringEditorWidget* editor = new StringEditorWidget(properties, this);
+			editor->Init();
+			return editor;
+		}
+		if(dynamic_pointer_cast<CityDraft::Drafts::Properties::TypedProperty<int64_t>>(properties[0]))
+		{
+			IntegerEditorWidget* editor = new IntegerEditorWidget(properties, typeid(int64_t), this);
+			editor->Init();
+			return editor;
+		}
+		if(dynamic_pointer_cast<CityDraft::Drafts::Properties::TypedProperty<CityDraft::Transform2D>>(properties[0]))
+		{
+			auto group = ConvertToPropertyGroup<CityDraft::Transform2D>(properties);
+			return new TransformEditorWidget(group, this);
 		}
 		return nullptr;
 	}
