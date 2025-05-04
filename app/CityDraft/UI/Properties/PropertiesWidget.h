@@ -27,6 +27,7 @@ namespace CityDraft::UI::Properties
 		boost::signals2::connection m_DraftSelectedConnection;
 		boost::signals2::connection m_DraftDeselectedConnection;
 		std::map<std::string_view, EditorWidget*> m_Editors;
+		QSpacerItem* m_EditorsSpacer = nullptr;
 
 		void AddEditor(EditorWidget* editor);
 		void RemoveEditor(EditorWidget* editor);

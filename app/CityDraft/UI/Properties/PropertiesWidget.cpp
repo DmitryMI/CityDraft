@@ -3,6 +3,7 @@
 #include "IntegerEditorWidget.h"
 #include "TransformEditorWidget.h"
 #include <QVBoxLayout>
+#include <QSpacerItem>
 
 namespace CityDraft::UI::Properties
 {
@@ -60,6 +61,12 @@ namespace CityDraft::UI::Properties
 		{
 			RemoveEditor(editor);
 		}
+
+		QWidget* container = m_Ui.ScrollArea->widget();
+		BOOST_ASSERT(container);
+		QVBoxLayout* containerLayout = dynamic_cast<QVBoxLayout*>(container->layout());
+		BOOST_ASSERT(containerLayout);
+		containerLayout->removeItem(m_EditorsSpacer);
 	}
 
 	void PropertiesWidget::UpdateEditors()
@@ -85,6 +92,13 @@ namespace CityDraft::UI::Properties
 			}
 			AddEditor(editor);
 		}
+
+		m_EditorsSpacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+		QWidget* container = m_Ui.ScrollArea->widget();
+		BOOST_ASSERT(container);
+		QVBoxLayout* containerLayout = dynamic_cast<QVBoxLayout*>(container->layout());
+		BOOST_ASSERT(containerLayout);
+		containerLayout->addItem(m_EditorsSpacer);
 	}
 
 	void PropertiesWidget::OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)
