@@ -1,4 +1,4 @@
-#include "ImageDraftEditor.h"
+#include "DraftEditor.h"
 #include "CityDraft/Input/ISelectionManager.h"
 #include "CityDraft/UI/Colors/IColorsProvider.h"
 #include <QWidget>
@@ -6,18 +6,18 @@
 
 namespace CityDraft::Input::Instruments
 {
-    ImageDraftEditor::ImageDraftEditor(const Dependencies& dependencies):
+    DraftEditor::DraftEditor(const Dependencies& dependencies):
 		Instrument(dependencies)
     {
 		GetLogger()->debug("Created");
     }
 
-	ImageDraftEditor::~ImageDraftEditor()
+	DraftEditor::~DraftEditor()
 	{
 		GetLogger()->debug("Destroyed");
 	}
 
-	EventChainAction ImageDraftEditor::OnRendererMouseButton(QMouseEvent* event, bool pressed)
+	EventChainAction DraftEditor::OnRendererMouseButton(QMouseEvent* event, bool pressed)
 	{
 		BOOST_ASSERT(IsActive());
 
@@ -58,7 +58,7 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Next;
 	}
 
-	EventChainAction ImageDraftEditor::OnRendererMouseMove(QMouseEvent* event)
+	EventChainAction DraftEditor::OnRendererMouseMove(QMouseEvent* event)
 	{
 		BOOST_ASSERT(IsActive());
 
@@ -99,7 +99,7 @@ namespace CityDraft::Input::Instruments
 		return EventChainAction::Stop;
 	}
 
-	void ImageDraftEditor::OnPaint()
+	void DraftEditor::OnPaint()
 	{
 		BOOST_ASSERT(IsActive());
 		
@@ -114,7 +114,7 @@ namespace CityDraft::Input::Instruments
 		PaintScalingRects(bbox);
 	}
 
-	void ImageDraftEditor::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
+	void DraftEditor::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
 	{
 		ToolDescryptor dragTool;
 		dragTool.MouseButton = m_KeyBindingProvider->GetMouseSelectionButton();
@@ -147,7 +147,7 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::OnActiveFlagChanged()
+	void DraftEditor::OnActiveFlagChanged()
 	{
 		QObject* parentObj = parent();
 		QWidget* parentWidget = dynamic_cast<QWidget*>(parentObj);
@@ -165,7 +165,7 @@ namespace CityDraft::Input::Instruments
 		m_OldTransforms.clear();
 	}
 
-	void ImageDraftEditor::GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects)
+	void DraftEditor::GetScalingRectsPositions(const AxisAlignedBoundingBox2D& bbox, std::array<Vector2D, 4>& rects)
 	{
 		Vector2D min = bbox.GetMin();
 		Vector2D max = bbox.GetMax();
@@ -175,7 +175,7 @@ namespace CityDraft::Input::Instruments
 		rects[3] = { max.GetX(), min.GetY() };
 	}
 
-	void ImageDraftEditor::PaintRotatorCircle(const AxisAlignedBoundingBox2D& bbox)
+	void DraftEditor::PaintRotatorCircle(const AxisAlignedBoundingBox2D& bbox)
 	{
 		Vector2D center;
 		double radius;
@@ -194,7 +194,7 @@ namespace CityDraft::Input::Instruments
 		m_Renderer->PaintCircle(center, radius, circleColor, 2.0 / m_Renderer->GetViewportZoom());
 	}
 
-	void ImageDraftEditor::PaintScalingRects(const AxisAlignedBoundingBox2D& bbox)
+	void DraftEditor::PaintScalingRects(const AxisAlignedBoundingBox2D& bbox)
 	{
 		std::array<Vector2D, 4> rects;
 		GetScalingRectsPositions(bbox, rects);
@@ -208,7 +208,7 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::DetectTransformationTool(const AxisAlignedBoundingBox2D& bbox, QMouseEvent* event)
+	void DraftEditor::DetectTransformationTool(const AxisAlignedBoundingBox2D& bbox, QMouseEvent* event)
 	{
 		m_Tool = Tool::None;
 		m_ScalingRectIndex = -1;
@@ -273,7 +273,7 @@ namespace CityDraft::Input::Instruments
 		parentWidget->unsetCursor();
 	}
 
-	AxisAlignedBoundingBox2D ImageDraftEditor::GetSelectionBoundingBox() const
+	AxisAlignedBoundingBox2D DraftEditor::GetSelectionBoundingBox() const
 	{
 		const auto& selectedDrafts = m_SelectionManager->GetSelectedDrafts();
 		BOOST_ASSERT(selectedDrafts.size() > 0);
@@ -315,7 +315,7 @@ namespace CityDraft::Input::Instruments
 		return bbox;
 	}
 
-	Radians ImageDraftEditor::GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center)
+	Radians DraftEditor::GetRotationDelta(const QPointF& point1, const QPointF& point2, const Vector2D& center)
 	{
 		Vector2D first = m_Renderer->Project(point1);
 		Vector2D second = m_Renderer->Project(point2);
@@ -327,7 +327,7 @@ namespace CityDraft::Input::Instruments
 		return angle;
 	}
 
-	void ImageDraftEditor::Drag(QMouseEvent* event)
+	void DraftEditor::Drag(QMouseEvent* event)
 	{
 		Vector2D first = m_Renderer->Project(m_PreviousPoint);
 		Vector2D second = m_Renderer->Project(event->position());
@@ -341,7 +341,7 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
+	void DraftEditor::Rotate(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
 	{
 		Radians angle = GetRotationDelta(m_PreviousPoint, event->position(), bbox.GetCenter());
 		GetLogger()->info("Angle: {}", Degrees(angle).Value);
@@ -354,7 +354,7 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::Scale(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
+	void DraftEditor::Scale(QMouseEvent* event, const AxisAlignedBoundingBox2D& bbox)
 	{
 		std::array<Vector2D, 4> rects;
 		GetScalingRectsPositions(bbox, rects);
@@ -385,7 +385,7 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
-	void ImageDraftEditor::Finalize()
+	void DraftEditor::Finalize()
 	{
 		std::vector<TransformChange> changes;
 		for (const auto& draftTransformPair : m_OldTransforms)
@@ -398,7 +398,7 @@ namespace CityDraft::Input::Instruments
 		m_UndoStack->push(command);
 	}
 
-	void ImageDraftEditor::Cancel()
+	void DraftEditor::Cancel()
 	{
 		for (const auto& draftTransformPair : m_OldTransforms)
 		{
