@@ -25,12 +25,11 @@
 #include "CityDraft/Assets/SkiaAssetManager.h"
 #include "CityDraft/Drafts/Draft.h"
 #include "CityDraft/Input/Factory.h"
-#include "CityDraft/Input/Instruments/DraftEditor.h"
+#include "CityDraft/Input/Instruments/DraftTransformer.h"
 #include "CityDraft/Input/Instruments/Instrument.h"
 #include "CityDraft/Input/Instruments/Panner.h"
 #include "CityDraft/Input/Instruments/Selector.h"
 #include "CityDraft/Input/Utils.h"
-#include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/Logging/LogManager.h"
 #include "CityDraft/Scene.h"
 #include "CityDraft/UI/Colors/Factory.h"
@@ -199,7 +198,7 @@ namespace CityDraft::UI
 		m_InactiveInstruments.insert(
 			new CityDraft::Input::Instruments::Panner(dependencies));
 		m_InactiveInstruments.insert(
-			new CityDraft::Input::Instruments::DraftEditor(dependencies));
+			new CityDraft::Input::Instruments::DraftTransformer(dependencies));
 
 		for (auto* instrument : m_InactiveInstruments)
 		{
@@ -448,7 +447,7 @@ namespace CityDraft::UI
 		m_Logger->info("{} drafts removed from selection due to being removed from scene", num);
 		if (m_SelectedDrafts.size() == 0)
 		{
-			auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftEditor>();
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
 			if (editor->IsActive())
 			{
 				DeactivateInstrument(editor);
@@ -476,7 +475,7 @@ namespace CityDraft::UI
 
 		BOOST_ASSERT(m_SelectedDrafts.size() == 0);
 
-		auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftEditor>();
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
 		if (editor->IsActive())
 		{
 			DeactivateInstrument(editor);
@@ -503,7 +502,7 @@ namespace CityDraft::UI
 
 		m_DraftsSelected(actuallySelected);
 
-		auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftEditor>();
+		auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
 		if (!editor->IsActive())
 		{
 			ActivateInstrument(editor);
@@ -530,7 +529,7 @@ namespace CityDraft::UI
 
 		if(m_SelectedDrafts.size() == 0)
 		{
-			auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftEditor>();
+			auto* editor = FindInstrument<CityDraft::Input::Instruments::DraftTransformer>();
 			if(editor->IsActive())
 			{
 				DeactivateInstrument(editor);

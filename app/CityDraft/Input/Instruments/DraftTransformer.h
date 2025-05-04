@@ -53,7 +53,7 @@ namespace CityDraft::Input::Instruments
 		CityDraft::UI::Rendering::IRenderer* m_Renderer = nullptr;
 	};
 
-	class DraftEditor : public Instrument
+	class DraftTransformer : public Instrument
 	{
 	public:
 		enum class Tool
@@ -67,11 +67,11 @@ namespace CityDraft::Input::Instruments
 		constexpr static double RotatorPixelDistance = 10;
 		constexpr static double ScalingRectsSize = 10;
 
-		DraftEditor(const Dependencies& dependencies);
-		virtual ~DraftEditor() override;
+		DraftTransformer(const Dependencies& dependencies);
+		virtual ~DraftTransformer() override;
 		inline QString GetName() const override
 		{
-			return "Image Draft Edit";
+			return "Transform Draft";
 		}
 
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
@@ -83,7 +83,7 @@ namespace CityDraft::Input::Instruments
 
 	protected:
 
-		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("DraftEditor"); };
+		inline std::shared_ptr<spdlog::logger> GetLogger() override { return CityDraft::Logging::LogManager::CreateLogger("DraftTransformer"); };
 		void OnActiveFlagChanged() override;
 	private:
 		Tool m_Tool = Tool::None;
