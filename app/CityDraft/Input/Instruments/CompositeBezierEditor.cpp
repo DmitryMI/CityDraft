@@ -10,34 +10,72 @@ namespace CityDraft::Input::Instruments
 	CompositeBezierEditor::CompositeBezierEditor(const Dependencies& dependencies):
 		Instrument(dependencies)
 	{
+		m_DraftsSelectedConnection = m_SelectionManager->ConnectToDraftsSelected(std::bind(&CompositeBezierEditor::OnDraftsSelected, this, std::placeholders::_1));
+		m_DraftsDeselectedConnection = m_SelectionManager->ConnectToDraftsDeselected(std::bind(&CompositeBezierEditor::OnDraftsDeselected, this, std::placeholders::_1));
 	}
 
 	CompositeBezierEditor::~CompositeBezierEditor()
-	{}
+	{
+		m_DraftsSelectedConnection.disconnect();
+		m_DraftsDeselectedConnection.disconnect();
+	}
+
+	void CompositeBezierEditor::OnActiveFlagChanged()
+	{
+		m_DragActive = false;
+		m_HasActiveAnchor = false;
+		m_ActiveDraft = nullptr;
+		m_ActiveCurve = nullptr;
+
+		if(IsActive())
+		{
+			const auto& selectedDrafts = m_SelectionManager->GetSelectedDrafts();
+			BOOST_ASSERT(selectedDrafts.size() == 1);
+
+			const auto& draft = *selectedDrafts.begin();
+
+			m_ActiveDraft = dynamic_pointer_cast<CityDraft::Drafts::Curve>(draft);
+			BOOST_ASSERT(m_ActiveDraft);
+
+			m_ActiveCurve = dynamic_cast<CityDraft::Curves::CompositeBezierCurve*>(m_ActiveDraft->GetCurve().get());
+			BOOST_ASSERT(m_ActiveCurve);
+		}
+	}
+
+	SelectionResponse CompositeBezierEditor::GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const
+	{
+		if(selectedDrafts.size() != 1)
+		{
+			return SelectionResponse::WantsToDeactivate;
+		}
+
+		const auto& draft = *selectedDrafts.begin();
+
+		auto curveDraft = dynamic_pointer_cast<CityDraft::Drafts::Curve>(draft);
+		if(!curveDraft)
+		{
+			return SelectionResponse::WantsToDeactivate;
+		}
+
+		auto bezier = dynamic_pointer_cast<CityDraft::Curves::CompositeBezierCurve>(curveDraft->GetCurve());
+		if(!bezier)
+		{
+			return SelectionResponse::WantsToDeactivate;
+		}
+
+		return SelectionResponse::WantsToActivate;
+	}
 
 	void CompositeBezierEditor::OnPaint()
 	{
-		const auto& selectedDrafts = m_SelectionManager->GetSelectedDrafts();
-		for(const auto& draft : selectedDrafts)
-		{
-			auto curveDraft = dynamic_pointer_cast<CityDraft::Drafts::Curve>(draft);
-			if(!curveDraft)
-			{
-				continue;
-			}
-			auto bezier = dynamic_pointer_cast<CityDraft::Curves::CompositeBezierCurve>(curveDraft->GetCurve());
-			if(bezier)
-			{
-				PaintAnchors(bezier.get());
-			}
-		}
+		PaintAnchors(m_ActiveCurve);
 	}
 
 	EventChainAction CompositeBezierEditor::OnRendererMouseButton(QMouseEvent* event, bool pressed)
 	{
 		if(event->button() == m_KeyBindingProvider->GetMouseSelectionButton())
 		{
-			if(!m_ActiveCurve)
+			if(!m_HasActiveAnchor)
 			{
 				return EventChainAction::Next;
 			}
@@ -85,13 +123,13 @@ namespace CityDraft::Input::Instruments
 		}
 		else
 		{
-			if(!DetectAnchorComponentUnderCursor(event, m_ActiveDraft, m_ActiveCurve, m_ActiveAnchorIndex, m_ActiveAnchorComponentIndex))
-			{
-				parentWidget->unsetCursor();
-				m_ActiveCurve = nullptr;
-				return EventChainAction::Next;
-			}
+			m_HasActiveAnchor = DetectAnchorComponentUnderCursor(event, m_ActiveAnchorIndex, m_ActiveAnchorComponentIndex);
 			parentWidget->setCursor(Qt::OpenHandCursor);
+			if(m_HasActiveAnchor)
+			{
+				return EventChainAction::Stop;
+			}
+			return EventChainAction::Next;
 		}
 		
 
@@ -105,6 +143,11 @@ namespace CityDraft::Input::Instruments
 
 	void CompositeBezierEditor::QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions)
 	{
+	}
+
+	bool CompositeBezierEditor::HasActiveTool() const
+	{
+		return m_DragActive;
 	}
 
 	void CompositeBezierEditor::PaintAnchors(CityDraft::Curves::CompositeBezierCurve* curve)
@@ -152,49 +195,14 @@ namespace CityDraft::Input::Instruments
 
 	bool CompositeBezierEditor::DetectAnchorComponentUnderCursor(
 		QMouseEvent* event,
-		CityDraft::Drafts::Curve*& outDraft,
-		CityDraft::Curves::CompositeBezierCurve*& outCurve, 
 		size_t& outAnchorIndex,
 		size_t& outAnchorComponentIndex
 	)
 	{
 		Vector2D projected = m_Renderer->Project(event->position());
 
-		const auto& selectedDrafts = m_SelectionManager->GetSelectedDrafts();
-		for(const auto& draft : selectedDrafts)
-		{
-			auto curveDraft = dynamic_pointer_cast<CityDraft::Drafts::Curve>(draft);
-			if(!curveDraft)
-			{
-				continue;
-			}
-			auto bezier = dynamic_pointer_cast<CityDraft::Curves::CompositeBezierCurve>(curveDraft->GetCurve());
-			if(!bezier)
-			{
-				continue;
-			}
-
-			if(DetectAnchorComponentInCurveUnderCursor(event, projected, bezier.get(), outAnchorIndex, outAnchorComponentIndex))
-			{
-				outCurve = bezier.get();
-				outDraft = curveDraft.get();
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	bool CompositeBezierEditor::DetectAnchorComponentInCurveUnderCursor(
-		QMouseEvent* event,
-		Vector2D& projected, 
-		CityDraft::Curves::CompositeBezierCurve* curve,
-		size_t& outAnchorIndex,
-		size_t& outAnchorComponentIndex
-	)
-	{
 		double distanceMax = CurveAnchorPointSize * 2 / m_Renderer->GetViewportZoom();
-		const auto& anchors = curve->GetAnchors();
+		const auto& anchors = m_ActiveCurve->GetAnchors();
 		for(size_t anchorIndex = 0; anchorIndex < anchors.size(); anchorIndex++)
 		{
 			const auto& anchor = anchors[anchorIndex];
@@ -202,7 +210,7 @@ namespace CityDraft::Input::Instruments
 				anchor.Position + anchor.IncomingHandle,
 				anchor.Position + anchor.OutgoingHandle,
 				anchor.Position
-				};
+			};
 
 			size_t minI = anchorIndex == 0 ? 1 : 0;
 
@@ -214,7 +222,7 @@ namespace CityDraft::Input::Instruments
 				}
 
 				const auto& pos = components[i];
-				
+
 				if((projected - pos).GetSize() < distanceMax)
 				{
 					outAnchorIndex = anchorIndex;
@@ -262,7 +270,7 @@ namespace CityDraft::Input::Instruments
 		}
 
 		m_ActiveCurve->ChangeAnchor(m_ActiveAnchorIndex, anchor);
-		m_Scene->UpdateDraftModel(m_ActiveDraft);
+		m_Scene->UpdateDraftModel(m_ActiveDraft.get());
 		// m_Renderer->Repaint();
 	}
 
@@ -274,63 +282,46 @@ namespace CityDraft::Input::Instruments
 
 	void CompositeBezierEditor::InsertAnchor(QMouseEvent* event)
 	{
-		const auto& selectedDrafts = m_SelectionManager->GetSelectedDrafts();
-		CityDraft::Drafts::Curve* curveDraft = nullptr;
-		for(const auto& draft : selectedDrafts)
-		{
-			if(auto* curveDraftSelected = dynamic_cast<CityDraft::Drafts::Curve*>(draft.get()))
-			{
-				if(curveDraft)
-				{
-					return;
-				}
-				curveDraft = curveDraftSelected;
-			}
-		}
-
-		if(!curveDraft)
-		{
-			return;
-		}
-
-		auto* curve = dynamic_cast<CityDraft::Curves::CompositeBezierCurve*>(curveDraft->GetCurve().get());
-		if(!curve)
-		{
-			return;
-		}
-
 		Vector2D projected = m_Renderer->Project(event->position());
 
-		double closestT = curve->GetClosestParameter(projected);
-		Vector2D closestPoint = curve->GetPoint(closestT);
-		const auto width = curveDraft->GetFillWidth();
+		double closestT = m_ActiveCurve->GetClosestParameter(projected);
+		Vector2D closestPoint = m_ActiveCurve->GetPoint(closestT);
+		const auto width = m_ActiveDraft->GetFillWidth();
 		if((closestPoint - projected).GetSize() < width->GetWidth(closestT))
 		{
-			curve->InsertAnchor(closestT);
+			m_ActiveCurve->InsertAnchor(closestT);
 		}
 		else if(closestT > 0.5)
 		{
-			auto prevAnchor = curve->GetAnchors()[curve->GetAnchors().size() - 1];
+			auto prevAnchor = m_ActiveCurve->GetAnchors()[m_ActiveCurve->GetAnchors().size() - 1];
 			prevAnchor.OutgoingHandle = -prevAnchor.IncomingHandle;
-			curve->ChangeAnchor(curve->GetAnchors().size() - 1, prevAnchor);
+			m_ActiveCurve->ChangeAnchor(m_ActiveCurve->GetAnchors().size() - 1, prevAnchor);
 			
 			CityDraft::Curves::CompositeBezierCurve::Anchor anchor;
 			anchor.Position = projected;
 			anchor.IncomingHandle = (prevAnchor.Position + projected) / 2 - projected;
-			curve->AddAnchor(anchor);
+			m_ActiveCurve->AddAnchor(anchor);
 		}
 		else
 		{
-			auto prevAnchor = curve->GetAnchors()[0];
+			auto prevAnchor = m_ActiveCurve->GetAnchors()[0];
 			prevAnchor.IncomingHandle = -prevAnchor.OutgoingHandle;
-			curve->ChangeAnchor(0, prevAnchor);
+			m_ActiveCurve->ChangeAnchor(0, prevAnchor);
 
 			CityDraft::Curves::CompositeBezierCurve::Anchor anchor;
 			anchor.Position = projected;
 			anchor.OutgoingHandle = (prevAnchor.Position + projected) / 2 - projected;
-			curve->AddAnchor(anchor, false);
+			m_ActiveCurve->AddAnchor(anchor, false);
 		}
 
-		m_Scene->UpdateDraftModel(curveDraft);
+		m_Scene->UpdateDraftModel(m_ActiveDraft.get());
 	}
+
+	void CompositeBezierEditor::OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts)
+	{
+		
+	}
+
+	void CompositeBezierEditor::OnDraftsDeselected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& deselectedDrafts)
+	{}
 }

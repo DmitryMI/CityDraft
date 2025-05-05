@@ -114,6 +114,39 @@ namespace CityDraft::UI
 		void ProcessInstrumentsMouseWheelEvent(QWheelEvent* event);
 		void ProcessInstrumentsKeyboardEvent(QKeyEvent* event);
 
+		template<typename Func>
+		void ProceessInstruments(const Func& func)
+		{
+			auto activeInstrumentsCopy = m_ActiveInstruments;
+			size_t assertActiveTools = 0;
+			for(auto& instrument : activeInstrumentsCopy)
+			{
+				BOOST_ASSERT(instrument);
+				if(!instrument->HasActiveTool())
+				{
+					continue;
+				}
+				assertActiveTools++;
+				auto action = func(instrument);
+				if(action == CityDraft::Input::Instruments::EventChainAction::Stop)
+				{
+					return;
+				}
+			}
+
+			BOOST_ASSERT(assertActiveTools <= 1);
+
+			for(auto& instrument : activeInstrumentsCopy)
+			{
+				BOOST_ASSERT(instrument);
+				auto action = func(instrument);
+				if(action == CityDraft::Input::Instruments::EventChainAction::Stop)
+				{
+					return;
+				}
+			}
+		}
+
 		template<typename T>
 		T* FindInstrument()
 		{

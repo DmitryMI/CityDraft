@@ -87,6 +87,8 @@ namespace CityDraft::Input::Instruments
 
 		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
 
+		bool HasActiveTool() const override;
+
 		inline SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const override
 		{
 			if(selectedDrafts.size() > 0)

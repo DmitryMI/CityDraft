@@ -147,6 +147,11 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
+	bool DraftTransformer::HasActiveTool() const
+	{
+		return m_Tool != Tool::None && m_ToolInUse;
+	}
+
 	void DraftTransformer::OnActiveFlagChanged()
 	{
 		QObject* parentObj = parent();

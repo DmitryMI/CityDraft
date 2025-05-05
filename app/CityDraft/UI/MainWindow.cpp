@@ -278,6 +278,14 @@ namespace CityDraft::UI
 	{
 		std::map<CityDraft::Input::Instruments::ToolDescryptor, QString> toolDescriptions;
 
+		for(const auto& instrument : m_ActiveInstruments)
+		{
+			if(instrument->HasActiveTool())
+			{
+				instrument->QueryTools(toolDescriptions);
+			}
+		}
+
 		for (const auto& instrument : m_ActiveInstruments)
 		{
 			instrument->QueryTools(toolDescriptions);
@@ -340,48 +348,24 @@ namespace CityDraft::UI
 
 	void MainWindow::ProcessInstrumentsMouseButtonEvent(QMouseEvent* event, bool pressed)
 	{
-		auto activeInstrumentsCopy = m_ActiveInstruments;
-		for (auto& instrument : activeInstrumentsCopy)
-		{
-			BOOST_ASSERT(instrument);
-			auto action = instrument->OnRendererMouseButton(event, pressed);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
+		auto func = [event, pressed](CityDraft::Input::Instruments::Instrument* instrument){return instrument->OnRendererMouseButton(event, pressed);};
+		ProceessInstruments(func);
 
 		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ProcessInstrumentsMouseMoveEvent(QMouseEvent* event)
 	{
-		auto activeInstrumentsCopy = m_ActiveInstruments;
-		for (auto& instrument : activeInstrumentsCopy)
-		{
-			BOOST_ASSERT(instrument);
-			auto action = instrument->OnRendererMouseMove(event);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
+		auto func = [event](CityDraft::Input::Instruments::Instrument* instrument){return instrument->OnRendererMouseMove(event);};
+		ProceessInstruments(func);
 
 		UpdateActiveInstrumentsLabel();
 	}
 
 	void MainWindow::ProcessInstrumentsMouseWheelEvent(QWheelEvent* event)
 	{
-		auto activeInstrumentsCopy = m_ActiveInstruments;
-		for (auto& instrument : activeInstrumentsCopy)
-		{
-			BOOST_ASSERT(instrument);
-			auto action = instrument->OnRendererMouseWheel(event);
-			if (action == CityDraft::Input::Instruments::EventChainAction::Stop)
-			{
-				return;
-			}
-		}
+		auto func = [event](CityDraft::Input::Instruments::Instrument* instrument){return instrument->OnRendererMouseWheel(event);};
+		ProceessInstruments(func);
 
 		UpdateActiveInstrumentsLabel();
 	}
@@ -505,6 +489,8 @@ namespace CityDraft::UI
 		{
 			DeactivateInstrument(editor);
 		}
+
+		ProcessInstrumentsSelectionResponses();
 	}
 
 	void MainWindow::AddDraftsToSelection(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& drafts)

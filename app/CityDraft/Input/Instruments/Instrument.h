@@ -103,6 +103,7 @@ namespace CityDraft::Input::Instruments
 		bool IsActive() const;
 
 		virtual void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) = 0;
+		virtual bool HasActiveTool() const = 0;
 
 		virtual SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const
 		{

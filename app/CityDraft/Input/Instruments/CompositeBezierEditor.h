@@ -3,6 +3,7 @@
 #include "Instrument.h"
 #include "CityDraft/Curves/CompositeBezierCurve.h"
 #include "CityDraft/Drafts/Curve.h"
+#include <vector>
 
 namespace CityDraft::Input::Instruments
 {
@@ -16,6 +17,9 @@ namespace CityDraft::Input::Instruments
 
 		CompositeBezierEditor(const Dependencies& dependencies);
 		virtual ~CompositeBezierEditor();
+
+		void OnActiveFlagChanged() override;
+
 		int GetPriority() const override
 		{
 			return Priority;
@@ -26,23 +30,7 @@ namespace CityDraft::Input::Instruments
 			return "Composite Bezier Edit";
 		}
 
-		SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const override
-		{
-			for(const auto& draft : selectedDrafts)
-			{
-				auto curveDraft = dynamic_pointer_cast<CityDraft::Drafts::Curve>(draft);
-				if(!curveDraft)
-				{
-					continue;
-				}
-				auto bezier = dynamic_pointer_cast<CityDraft::Curves::CompositeBezierCurve>(curveDraft->GetCurve());
-				if(bezier)
-				{
-					return SelectionResponse::WantsToActivate;
-				}
-			}
-			return SelectionResponse::WantsToDeactivate;
-		}
+		SelectionResponse GetSelectionResponse(const std::set<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts) const override;
 
 		void OnPaint() override;
 		EventChainAction OnRendererMouseButton(QMouseEvent* event, bool pressed) override;
@@ -50,6 +38,7 @@ namespace CityDraft::Input::Instruments
 		EventChainAction OnRendererMouseWheel(QWheelEvent* event) override;
 
 		void QueryTools(std::map<ToolDescryptor, QString>& toolDescriptions) override;
+		bool HasActiveTool() const override;
 
 	protected:
 		inline std::shared_ptr<spdlog::logger> GetLogger() override
@@ -59,10 +48,15 @@ namespace CityDraft::Input::Instruments
 
 	private:
 		bool m_DragActive = false;
-		CityDraft::Drafts::Curve* m_ActiveDraft = nullptr;
+		std::shared_ptr<CityDraft::Drafts::Curve> m_ActiveDraft = nullptr;
 		CityDraft::Curves::CompositeBezierCurve* m_ActiveCurve = nullptr;
+		bool m_HasActiveAnchor = false;
 		size_t m_ActiveAnchorIndex = 0;
 		size_t m_ActiveAnchorComponentIndex = 0;
+		boost::signals2::connection m_DraftsSelectedConnection;
+		boost::signals2::connection m_DraftsDeselectedConnection;
+
+
 		QPointF m_FirstPoint;
 		QPointF m_PreviousPoint;
 
@@ -70,22 +64,16 @@ namespace CityDraft::Input::Instruments
 
 		bool DetectAnchorComponentUnderCursor(
 			QMouseEvent* event,
-			CityDraft::Drafts::Curve*& outDraft,
-			CityDraft::Curves::CompositeBezierCurve*& outCurve, 
 			size_t& outAnchorIndex,
 			size_t& outAnchorComponentIndex
 			);
 
-		bool DetectAnchorComponentInCurveUnderCursor(
-			QMouseEvent* event,
-			Vector2D& projected,
-			CityDraft::Curves::CompositeBezierCurve* curve,
-			size_t& outAnchorIndex,
-			size_t& outAnchorComponentIndex
-		);
-
 		void Drag(QMouseEvent* event);
 		void DragHandles(const Vector2D& delta, Vector2D& handle, Vector2D& oppositeHandle);
 		void InsertAnchor(QMouseEvent* event);
+
+		void OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts);
+		void OnDraftsDeselected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& deselectedDrafts);
+
 	};
 }

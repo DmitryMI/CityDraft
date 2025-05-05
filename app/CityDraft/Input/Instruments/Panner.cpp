@@ -98,4 +98,9 @@ namespace CityDraft::Input::Instruments
 			toolDescriptions[zoomTool] = msg;
 		}
 	}
+
+	bool Panner::HasActiveTool() const
+	{
+		return m_PanPressed;
+	}
 }

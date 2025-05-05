@@ -154,6 +154,11 @@ namespace CityDraft::Input::Instruments
 		}
 	}
 
+	bool Selector::HasActiveTool() const
+	{
+		return m_SelectionPressed;
+	}
+
 	void Selector::FinishSelection(QMouseEvent* event)
 	{
 		m_Renderer->Repaint();
