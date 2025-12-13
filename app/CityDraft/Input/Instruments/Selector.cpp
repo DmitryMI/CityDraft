@@ -61,6 +61,7 @@ namespace CityDraft::Input::Instruments
 		BOOST_ASSERT(m_Renderer);
 
 		QPointF currentPosition = event->position();
+		EventChainAction action;
 
 		if (m_SelectionPressed)
 		{
@@ -75,6 +76,7 @@ namespace CityDraft::Input::Instruments
 				m_Renderer->PaintRectViewportSpace(m_FirstMousePosition, currentPosition, m_ColorsProvider->GetSelectionBoxColor(), 1.0);
 				m_Renderer->Repaint();
 			}
+			action = EventChainAction::Stop;
 		}
 		else
 		{
@@ -85,10 +87,11 @@ namespace CityDraft::Input::Instruments
 				m_DraftUnderCursor = draft;
 				m_Renderer->Repaint();
 			}
+			action = EventChainAction::Next;
 		}
 
 		m_LastMousePosition = currentPosition;
-		return EventChainAction::Next;
+		return action;
 	}
 
 	void Selector::OnPaint()

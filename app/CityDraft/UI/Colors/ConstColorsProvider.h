@@ -50,5 +50,15 @@ namespace CityDraft::UI::Colors
 		{
 			return "#90CAF9FF"_frgba;
 		}
+
+		LinearColorF GetCurveAnchorPointFillColorHighlighted() override
+		{
+			return "#F88546FF"_frgba;
+		}
+
+		LinearColorF GetCurveHandleColorHighlighted() override
+		{
+			return "#B0DBFAFF"_frgba;
+		}
 	};
 }

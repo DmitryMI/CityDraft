@@ -15,7 +15,9 @@ namespace CityDraft::UI::Colors
 		virtual LinearColorF GetDraftRotationCircleHighlightedColor() = 0;
 		virtual LinearColorF GetCurveAnchorPointOutlineColor() = 0;
 		virtual LinearColorF GetCurveAnchorPointFillColor() = 0;
+		virtual LinearColorF GetCurveAnchorPointFillColorHighlighted() = 0;
 		virtual LinearColorF GetCurveHandlePointColor() = 0;
+		virtual LinearColorF GetCurveHandleColorHighlighted() = 0;
 		virtual LinearColorF GetCurveHandleLineColor() = 0;
 	};
 }

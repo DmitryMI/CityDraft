@@ -53,9 +53,6 @@ namespace CityDraft::Input::Instruments
 		bool m_HasActiveAnchor = false;
 		size_t m_ActiveAnchorIndex = 0;
 		size_t m_ActiveAnchorComponentIndex = 0;
-		boost::signals2::connection m_DraftsSelectedConnection;
-		boost::signals2::connection m_DraftsDeselectedConnection;
-
 
 		QPointF m_FirstPoint;
 		QPointF m_PreviousPoint;
@@ -71,9 +68,6 @@ namespace CityDraft::Input::Instruments
 		void Drag(QMouseEvent* event);
 		void DragHandles(const Vector2D& delta, Vector2D& handle, Vector2D& oppositeHandle);
 		void InsertAnchor(QMouseEvent* event);
-
-		void OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts);
-		void OnDraftsDeselected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& deselectedDrafts);
 
 	};
 }

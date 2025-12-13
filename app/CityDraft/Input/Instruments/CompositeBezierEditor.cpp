@@ -10,14 +10,11 @@ namespace CityDraft::Input::Instruments
 	CompositeBezierEditor::CompositeBezierEditor(const Dependencies& dependencies):
 		Instrument(dependencies)
 	{
-		m_DraftsSelectedConnection = m_SelectionManager->ConnectToDraftsSelected(std::bind(&CompositeBezierEditor::OnDraftsSelected, this, std::placeholders::_1));
-		m_DraftsDeselectedConnection = m_SelectionManager->ConnectToDraftsDeselected(std::bind(&CompositeBezierEditor::OnDraftsDeselected, this, std::placeholders::_1));
 	}
 
 	CompositeBezierEditor::~CompositeBezierEditor()
 	{
-		m_DraftsSelectedConnection.disconnect();
-		m_DraftsDeselectedConnection.disconnect();
+
 	}
 
 	void CompositeBezierEditor::OnActiveFlagChanged()
@@ -127,6 +124,7 @@ namespace CityDraft::Input::Instruments
 			parentWidget->setCursor(Qt::OpenHandCursor);
 			if(m_HasActiveAnchor)
 			{
+				m_Renderer->Repaint();
 				return EventChainAction::Stop;
 			}
 			return EventChainAction::Next;
@@ -157,31 +155,56 @@ namespace CityDraft::Input::Instruments
 
 		double anchorPointSize = CurveAnchorPointSize / m_Renderer->GetViewportZoom();
 		double handlePointSize = CurveHandlePointSize / m_Renderer->GetViewportZoom();
-		double anchorPointOutlineThickness = 2 / m_Renderer->GetViewportZoom();
+		double anchorPointOutlineThickness = 1 / m_Renderer->GetViewportZoom();
 		double lineThickness = 0;
-		for(const auto& anchor : anchors)
+		for(size_t i = 0; i < anchors.size(); i++)
 		{
+			const auto& anchor = anchors[i];
+			LinearColorF pivotColor = m_ColorsProvider->GetCurveAnchorPointFillColor();
+			LinearColorF incomingHandleColor = m_ColorsProvider->GetCurveHandlePointColor();
+			LinearColorF outgoingHandleColor = m_ColorsProvider->GetCurveHandlePointColor();
+			if(m_HasActiveAnchor && m_ActiveAnchorIndex == i)
+			{
+				switch(m_ActiveAnchorComponentIndex)
+				{
+				case 0:
+					// Incoming Handle
+					incomingHandleColor = m_ColorsProvider->GetCurveHandleColorHighlighted();
+					break;
+				case 1:
+					// Outgoing Handle
+					outgoingHandleColor = m_ColorsProvider->GetCurveHandleColorHighlighted();
+					break;
+				case 2:
+					// Pivot
+					pivotColor = m_ColorsProvider->GetCurveAnchorPointFillColorHighlighted();
+					break;
+				default:
+					break;
+				}
+			}
+
 			Vector2D anchorPos = anchor.Position;
 			m_Renderer->PaintRect(
 				anchorPos - Vector2D{anchorPointSize, anchorPointSize},
 				anchorPos + Vector2D{anchorPointSize, anchorPointSize},
 				m_ColorsProvider->GetCurveAnchorPointOutlineColor(),
 				anchorPointOutlineThickness,
-				m_ColorsProvider->GetCurveAnchorPointFillColor()
+				pivotColor
 			);
 
 			Vector2D handleInPos = anchorPos + anchor.IncomingHandle;
 			m_Renderer->PaintRect(
 				handleInPos - Vector2D{handlePointSize, handlePointSize},
 				handleInPos + Vector2D{handlePointSize, handlePointSize},
-				m_ColorsProvider->GetCurveHandlePointColor()
+				incomingHandleColor
 			);
 
 			Vector2D handleOutPos = anchorPos + anchor.OutgoingHandle;
 			m_Renderer->PaintRect(
 				handleOutPos - Vector2D{handlePointSize, handlePointSize},
 				handleOutPos + Vector2D{handlePointSize, handlePointSize},
-				m_ColorsProvider->GetCurveHandlePointColor()
+				outgoingHandleColor
 			);
 
 			m_Renderer->PaintLine(
@@ -316,12 +339,4 @@ namespace CityDraft::Input::Instruments
 
 		m_Scene->UpdateDraftModel(m_ActiveDraft.get());
 	}
-
-	void CompositeBezierEditor::OnDraftsSelected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& selectedDrafts)
-	{
-		
-	}
-
-	void CompositeBezierEditor::OnDraftsDeselected(const std::vector<std::shared_ptr<CityDraft::Drafts::Draft>>& deselectedDrafts)
-	{}
 }
